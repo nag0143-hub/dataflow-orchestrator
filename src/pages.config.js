@@ -49,12 +49,14 @@
  */
 import Dashboard from './pages/Dashboard';
 import Connections from './pages/Connections';
+import Jobs from './pages/Jobs';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Dashboard": Dashboard,
     "Connections": Connections,
+    "Jobs": Jobs,
 }
 
 export const pagesConfig = {
