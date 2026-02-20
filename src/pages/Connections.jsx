@@ -43,6 +43,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon, { platformConfig } from "@/components/PlatformIcon";
 import PrerequisitePanel from "@/components/PrerequisitePanel";
+import { useTenant } from "@/components/useTenant";
 import moment from "moment";
 import { toast } from "sonner";
 
