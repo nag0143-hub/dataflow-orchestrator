@@ -97,7 +97,7 @@ export default function Connections() {
       base44.entities.Connection.list(),
       base44.entities.ConnectionPrerequisite.list()
     ]);
-    setConnections(data);
+    setConnections(scope(data));
     setPrereqs(prereqData);
     setLoading(false);
   };
