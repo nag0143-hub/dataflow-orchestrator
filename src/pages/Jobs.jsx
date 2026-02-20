@@ -146,27 +146,24 @@ export default function Jobs() {
 
     if (editingJob) {
       await base44.entities.IngestionJob.update(editingJob.id, payload);
-      await base44.entities.ActivityLog.create({
-        log_type: "info",
-        category: "job",
-        job_id: editingJob.id,
-        message: `Job "${formData.name}" updated`
-      });
+      await Promise.all([
+        base44.entities.ActivityLog.create({ log_type: "info", category: "job", job_id: editingJob.id, message: `Job "${formData.name}" updated` }),
+        saveVersion({ ...editingJob, ...payload }, "updated", commitMessage || `Updated by ${currentUser?.email || "user"}`)
+      ]);
       toast.success("Job updated");
     } else {
       const created = await base44.entities.IngestionJob.create(payload);
-      await base44.entities.ActivityLog.create({
-        log_type: "success",
-        category: "job",
-        job_id: created.id,
-        message: `Job "${formData.name}" created`
-      });
+      await Promise.all([
+        base44.entities.ActivityLog.create({ log_type: "success", category: "job", job_id: created.id, message: `Job "${formData.name}" created` }),
+        saveVersion({ ...created, ...payload }, "created", commitMessage || `Created by ${currentUser?.email || "user"}`)
+      ]);
       toast.success("Job created");
     }
 
     setDialogOpen(false);
     setEditingJob(null);
     setFormData(defaultFormData);
+    setCommitMessage("");
     setSaving(false);
     loadData();
   };
