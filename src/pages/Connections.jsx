@@ -58,7 +58,19 @@ const defaultFormData = {
   region: "",
   bucket_container: "",
   status: "active",
-  notes: ""
+  notes: "",
+  file_config: {
+    delimiter: ",",
+    encoding: "UTF-8",
+    has_header: true,
+    quote_char: '"',
+    escape_char: "\\",
+    record_length: "",
+    copybook_path: "",
+    file_pattern: "*",
+    nas_path: "",
+    archive_path: ""
+  }
 };
 
 export default function Connections() {
