@@ -75,13 +75,16 @@ const defaultFormData = {
 
 export default function Connections() {
   const [connections, setConnections] = useState([]);
+  const [prereqs, setPrereqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [prereqDialogConn, setPrereqDialogConn] = useState(null);
   const [editingConnection, setEditingConnection] = useState(null);
   const [formData, setFormData] = useState(defaultFormData);
   const [saving, setSaving] = useState(false);
+  const [formTab, setFormTab] = useState("general");
 
   useEffect(() => {
     loadConnections();
