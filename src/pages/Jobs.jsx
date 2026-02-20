@@ -457,6 +457,15 @@ export default function Jobs() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => setHistoryDialogJob(job)}
+                        className="gap-1 text-slate-500"
+                      >
+                        <GitCommitHorizontal className="w-4 h-4" />
+                        History
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => { setViewingJob(job); setDetailsDialogOpen(true); }}
                         className="gap-1"
                       >
