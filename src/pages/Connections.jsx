@@ -87,13 +87,26 @@ export default function Connections() {
   const [formTab, setFormTab] = useState("general");
 
   useEffect(() => {
-    loadConnections();
+    loadData();
   }, []);
 
-  const loadConnections = async () => {
-    const data = await base44.entities.Connection.list();
+  const loadData = async () => {
+    const [data, prereqData] = await Promise.all([
+      base44.entities.Connection.list(),
+      base44.entities.ConnectionPrerequisite.list()
+    ]);
     setConnections(data);
+    setPrereqs(prereqData);
     setLoading(false);
+  };
+
+  const loadConnections = loadData;
+
+  const getPrereqSummary = (connectionId) => {
+    const items = prereqs.filter(p => p.connection_id === connectionId);
+    const done = items.filter(p => p.status === "completed" || p.status === "not_required").length;
+    const pending = items.filter(p => p.status === "pending").length;
+    return { total: items.length, done, pending };
   };
 
   const handleSubmit = async (e) => {
