@@ -73,6 +73,7 @@ export default function Jobs() {
   const [jobs, setJobs] = useState([]);
   const [connections, setConnections] = useState([]);
   const [runs, setRuns] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -83,6 +84,8 @@ export default function Jobs() {
   const [formData, setFormData] = useState(defaultFormData);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
+  const [commitMessage, setCommitMessage] = useState("");
+  const [historyDialogJob, setHistoryDialogJob] = useState(null);
 
   useEffect(() => {
     loadData();
