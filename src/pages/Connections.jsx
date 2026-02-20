@@ -75,6 +75,7 @@ const defaultFormData = {
 };
 
 export default function Connections() {
+  const { user, scope } = useTenant();
   const [connections, setConnections] = useState([]);
   const [prereqs, setPrereqs] = useState([]);
   const [loading, setLoading] = useState(true);
