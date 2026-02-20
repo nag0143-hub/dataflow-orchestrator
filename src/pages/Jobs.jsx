@@ -71,10 +71,10 @@ const defaultFormData = {
 };
 
 export default function Jobs() {
+  const { user: currentUser, scope } = useTenant();
   const [jobs, setJobs] = useState([]);
   const [connections, setConnections] = useState([]);
   const [runs, setRuns] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
