@@ -1,20 +1,26 @@
-import { Database, Server, Cloud, HardDrive } from "lucide-react";
+import { Database, Server, Cloud, HardDrive, FileText, FolderOpen, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const platformConfig = {
-  sql_server: { icon: Server, color: "bg-red-100 text-red-600", label: "SQL Server" },
-  oracle: { icon: Database, color: "bg-orange-100 text-orange-600", label: "Oracle" },
-  postgresql: { icon: Database, color: "bg-blue-100 text-blue-600", label: "PostgreSQL" },
-  mysql: { icon: Database, color: "bg-cyan-100 text-cyan-600", label: "MySQL" },
-  mongodb: { icon: Database, color: "bg-green-100 text-green-600", label: "MongoDB" },
-  adls2: { icon: Cloud, color: "bg-sky-100 text-sky-600", label: "Azure ADLS Gen2" },
-  s3: { icon: HardDrive, color: "bg-amber-100 text-amber-600", label: "AWS S3" },
+  sql_server:           { icon: Server,      color: "bg-red-100 text-red-600",     label: "SQL Server" },
+  oracle:               { icon: Database,    color: "bg-orange-100 text-orange-600", label: "Oracle" },
+  postgresql:           { icon: Database,    color: "bg-blue-100 text-blue-600",   label: "PostgreSQL" },
+  mysql:                { icon: Database,    color: "bg-cyan-100 text-cyan-600",    label: "MySQL" },
+  mongodb:              { icon: Database,    color: "bg-green-100 text-green-600",  label: "MongoDB" },
+  adls2:                { icon: Cloud,       color: "bg-sky-100 text-sky-600",      label: "Azure ADLS Gen2" },
+  s3:                   { icon: HardDrive,   color: "bg-amber-100 text-amber-600",  label: "AWS S3" },
+  flat_file_delimited:  { icon: FileText,    color: "bg-violet-100 text-violet-600", label: "Flat File (Delimited)" },
+  flat_file_fixed_width:{ icon: FileText,    color: "bg-purple-100 text-purple-600", label: "Flat File (Fixed Width)" },
+  cobol_ebcdic:         { icon: FileText,    color: "bg-rose-100 text-rose-600",    label: "COBOL / EBCDIC" },
+  sftp:                 { icon: Network,     color: "bg-teal-100 text-teal-600",    label: "SFTP" },
+  nas:                  { icon: FolderOpen,  color: "bg-lime-100 text-lime-700",    label: "NAS / Network Share" },
+  local_fs:             { icon: HardDrive,   color: "bg-slate-100 text-slate-600",  label: "Local Filesystem" },
 };
 
 export default function PlatformIcon({ platform, showLabel = false, size = "default" }) {
   const config = platformConfig[platform] || { icon: Database, color: "bg-slate-100 text-slate-600", label: platform };
   const Icon = config.icon;
-  
+
   return (
     <div className="flex items-center gap-2">
       <div className={cn(
