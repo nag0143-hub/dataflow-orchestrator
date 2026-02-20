@@ -10,7 +10,9 @@ import {
   Cable,
   Database,
   Cloud,
-  Filter
+  Filter,
+  Shield,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,8 +38,11 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon, { platformConfig } from "@/components/PlatformIcon";
+import PrerequisitePanel from "@/components/PrerequisitePanel";
 import moment from "moment";
 import { toast } from "sonner";
 
