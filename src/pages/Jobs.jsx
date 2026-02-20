@@ -47,9 +47,11 @@ import { Switch } from "@/components/ui/switch";
 import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon, { platformConfig } from "@/components/PlatformIcon";
 import ObjectSelector from "@/components/ObjectSelector";
+import PipelineVersionHistory from "@/components/PipelineVersionHistory";
 import moment from "moment";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GitCommitHorizontal } from "lucide-react";
 
 const defaultFormData = {
   name: "",
