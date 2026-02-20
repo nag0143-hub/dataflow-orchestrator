@@ -90,7 +90,6 @@ export default function Jobs() {
 
   useEffect(() => {
     loadData();
-    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
   }, []);
 
   const loadData = async () => {
@@ -99,8 +98,8 @@ export default function Jobs() {
       base44.entities.Connection.list(),
       base44.entities.JobRun.list("-created_date", 100)
     ]);
-    setJobs(jobsData);
-    setConnections(connectionsData);
+    setJobs(scope(jobsData));
+    setConnections(scope(connectionsData));
     setRuns(runsData);
     setLoading(false);
   };
