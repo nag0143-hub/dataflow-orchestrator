@@ -42,8 +42,8 @@ export default function Dashboard() {
       base44.entities.JobRun.list("-created_date", 50),
       base44.entities.ActivityLog.list("-created_date", 10)
     ]);
-    setConnections(connectionsData);
-    setJobs(jobsData);
+    setConnections(scope(connectionsData));
+    setJobs(scope(jobsData));
     setRuns(runsData);
     setLogs(logsData);
     setLoading(false);
