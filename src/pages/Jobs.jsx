@@ -734,6 +734,24 @@ export default function Jobs() {
         </DialogContent>
       </Dialog>
 
+      {/* Version History Dialog */}
+      <Dialog open={!!historyDialogJob} onOpenChange={(open) => !open && setHistoryDialogJob(null)}>
+        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitCommitHorizontal className="w-5 h-5 text-blue-600" />
+              Version History — {historyDialogJob?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {historyDialogJob && (
+            <PipelineVersionHistory
+              job={historyDialogJob}
+              onRestore={() => { setHistoryDialogJob(null); loadData(); }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Job Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
