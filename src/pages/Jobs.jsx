@@ -89,6 +89,7 @@ export default function Jobs() {
 
   useEffect(() => {
     loadData();
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
   }, []);
 
   const loadData = async () => {
@@ -101,6 +102,29 @@ export default function Jobs() {
     setConnections(connectionsData);
     setRuns(runsData);
     setLoading(false);
+  };
+
+  const saveVersion = async (job, changeType, msg) => {
+    const versions = await base44.entities.PipelineVersion.filter({ job_id: job.id }, "-version_number", 1);
+    const nextVersion = (versions[0]?.version_number || 0) + 1;
+    await base44.entities.PipelineVersion.create({
+      job_id: job.id,
+      version_number: nextVersion,
+      label: `v${nextVersion}`,
+      commit_message: msg || `${changeType} by ${currentUser?.email || "user"}`,
+      snapshot: {
+        name: job.name,
+        description: job.description,
+        source_connection_id: job.source_connection_id,
+        target_connection_id: job.target_connection_id,
+        selected_objects: job.selected_objects,
+        schedule_type: job.schedule_type,
+        cron_expression: job.cron_expression,
+        retry_config: job.retry_config,
+      },
+      changed_by: currentUser?.email || "",
+      change_type: changeType,
+    });
   };
 
   const sourceConnections = connections.filter(c => c.connection_type === "source");
