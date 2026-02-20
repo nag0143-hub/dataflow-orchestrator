@@ -384,188 +384,261 @@ export default function Connections() {
 
       {/* Connection Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {editingConnection ? "Edit Connection" : "New Connection"}
-            </DialogTitle>
+            <DialogTitle>{editingConnection ? "Edit Connection" : "New Connection"}</DialogTitle>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <Label>Connection Name</Label>
-                <Input 
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="My Database Connection"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label>Type</Label>
-                <Select 
-                  value={formData.connection_type}
-                  onValueChange={(v) => setFormData({...formData, connection_type: v})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="source">Source</SelectItem>
-                    <SelectItem value="target">Target</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label>Platform</Label>
-                <Select 
-                  value={formData.platform}
-                  onValueChange={(v) => setFormData({...formData, platform: v})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select platform" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sql_server">SQL Server</SelectItem>
-                    <SelectItem value="oracle">Oracle</SelectItem>
-                    <SelectItem value="postgresql">PostgreSQL</SelectItem>
-                    <SelectItem value="mysql">MySQL</SelectItem>
-                    <SelectItem value="mongodb">MongoDB</SelectItem>
-                    <SelectItem value="adls2">Azure ADLS Gen2</SelectItem>
-                    <SelectItem value="s3">AWS S3</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <form onSubmit={handleSubmit}>
+            <Tabs value={formTab} onValueChange={setFormTab}>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="fileconfig" disabled={!isFilePlatform}>File Config</TabsTrigger>
+              </TabsList>
 
-              {!isCloudPlatform && (
-                <>
-                  <div>
-                    <Label>Host</Label>
-                    <Input 
-                      value={formData.host}
-                      onChange={(e) => setFormData({...formData, host: e.target.value})}
-                      placeholder="localhost or IP"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>Port</Label>
-                    <Input 
-                      type="number"
-                      value={formData.port}
-                      onChange={(e) => setFormData({...formData, port: e.target.value})}
-                      placeholder="1433"
-                    />
-                  </div>
-                  
+              <TabsContent value="general" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <Label>Database</Label>
+                    <Label>Connection Name</Label>
                     <Input 
-                      value={formData.database}
-                      onChange={(e) => setFormData({...formData, database: e.target.value})}
-                      placeholder="Database name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      placeholder="My Database Connection"
+                      required
                     />
                   </div>
-                </>
-              )}
+                  
+                  <div>
+                    <Label>Type</Label>
+                    <Select value={formData.connection_type} onValueChange={(v) => setFormData({...formData, connection_type: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="source">Source</SelectItem>
+                        <SelectItem value="target">Target</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Platform</Label>
+                    <Select value={formData.platform} onValueChange={(v) => setFormData({...formData, platform: v})}>
+                      <SelectTrigger><SelectValue placeholder="Select platform" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sql_server">SQL Server</SelectItem>
+                        <SelectItem value="oracle">Oracle</SelectItem>
+                        <SelectItem value="postgresql">PostgreSQL</SelectItem>
+                        <SelectItem value="mysql">MySQL</SelectItem>
+                        <SelectItem value="mongodb">MongoDB</SelectItem>
+                        <SelectItem value="adls2">Azure ADLS Gen2</SelectItem>
+                        <SelectItem value="s3">AWS S3</SelectItem>
+                        <SelectItem value="flat_file_delimited">Flat File – Delimited</SelectItem>
+                        <SelectItem value="flat_file_fixed_width">Flat File – Fixed Width</SelectItem>
+                        <SelectItem value="cobol_ebcdic">COBOL / EBCDIC</SelectItem>
+                        <SelectItem value="sftp">SFTP</SelectItem>
+                        <SelectItem value="nas">NAS / Network Share</SelectItem>
+                        <SelectItem value="local_fs">Local Filesystem</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {isCloudPlatform && (
-                <>
+                  {!isCloudPlatform && !isFilePlatform && (
+                    <>
+                      <div>
+                        <Label>Host</Label>
+                        <Input value={formData.host} onChange={(e) => setFormData({...formData, host: e.target.value})} placeholder="localhost or IP" />
+                      </div>
+                      <div>
+                        <Label>Port</Label>
+                        <Input type="number" value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="1433" />
+                      </div>
+                      <div className="col-span-2">
+                        <Label>Database</Label>
+                        <Input value={formData.database} onChange={(e) => setFormData({...formData, database: e.target.value})} placeholder="Database name" />
+                      </div>
+                    </>
+                  )}
+
+                  {isCloudPlatform && (
+                    <>
+                      <div>
+                        <Label>Region</Label>
+                        <Input value={formData.region} onChange={(e) => setFormData({...formData, region: e.target.value})} placeholder={formData.platform === "s3" ? "us-east-1" : "eastus"} />
+                      </div>
+                      <div>
+                        <Label>{formData.platform === "s3" ? "Bucket" : "Container"}</Label>
+                        <Input value={formData.bucket_container} onChange={(e) => setFormData({...formData, bucket_container: e.target.value})} placeholder="my-bucket" />
+                      </div>
+                      <div className="col-span-2">
+                        <Label>Endpoint / Account URL</Label>
+                        <Input value={formData.host} onChange={(e) => setFormData({...formData, host: e.target.value})} placeholder={formData.platform === "s3" ? "s3.amazonaws.com" : "https://account.dfs.core.windows.net"} />
+                      </div>
+                    </>
+                  )}
+
+                  {isFilePlatform && (
+                    <>
+                      {(formData.platform === "sftp") && (
+                        <>
+                          <div>
+                            <Label>SFTP Host</Label>
+                            <Input value={formData.host} onChange={(e) => setFormData({...formData, host: e.target.value})} placeholder="sftp.example.com" />
+                          </div>
+                          <div>
+                            <Label>Port</Label>
+                            <Input type="number" value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="22" />
+                          </div>
+                        </>
+                      )}
+                      {(formData.platform === "nas" || formData.platform === "local_fs") && (
+                        <div className="col-span-2">
+                          <Label>Base Path</Label>
+                          <Input value={formData.file_config?.nas_path || ""} onChange={(e) => setFormData({...formData, file_config: {...formData.file_config, nas_path: e.target.value}})} placeholder="\\\\server\\share\\data or /mnt/nas/data" />
+                        </div>
+                      )}
+                    </>
+                  )}
+
                   <div>
-                    <Label>Region</Label>
-                    <Input 
-                      value={formData.region}
-                      onChange={(e) => setFormData({...formData, region: e.target.value})}
-                      placeholder={formData.platform === "s3" ? "us-east-1" : "eastus"}
-                    />
+                    <Label>Auth Method</Label>
+                    <Select value={formData.auth_method} onValueChange={(v) => setFormData({...formData, auth_method: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="password">Password</SelectItem>
+                        <SelectItem value="key">Access Key</SelectItem>
+                        <SelectItem value="sftp_key">SFTP Private Key</SelectItem>
+                        <SelectItem value="connection_string">Connection String</SelectItem>
+                        <SelectItem value="managed_identity">Managed Identity</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>
-                    <Label>{formData.platform === "s3" ? "Bucket" : "Container"}</Label>
-                    <Input 
-                      value={formData.bucket_container}
-                      onChange={(e) => setFormData({...formData, bucket_container: e.target.value})}
-                      placeholder="my-bucket"
-                    />
+                    <Label>Username / Access Key ID</Label>
+                    <Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="Username" />
                   </div>
-                  
+
+                  <div>
+                    <Label>Status</Label>
+                    <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="pending_setup">Pending Setup</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="col-span-2">
-                    <Label>Endpoint / Account URL</Label>
-                    <Input 
-                      value={formData.host}
-                      onChange={(e) => setFormData({...formData, host: e.target.value})}
-                      placeholder={formData.platform === "s3" ? "s3.amazonaws.com" : "https://account.dfs.core.windows.net"}
-                    />
+                    <Label>Notes</Label>
+                    <Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} placeholder="Optional notes..." rows={2} />
                   </div>
-                </>
-              )}
+                </div>
+              </TabsContent>
 
-              <div>
-                <Label>Auth Method</Label>
-                <Select 
-                  value={formData.auth_method}
-                  onValueChange={(v) => setFormData({...formData, auth_method: v})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="password">Password</SelectItem>
-                    <SelectItem value="key">Access Key</SelectItem>
-                    <SelectItem value="connection_string">Connection String</SelectItem>
-                    <SelectItem value="managed_identity">Managed Identity</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label>Username / Access Key ID</Label>
-                <Input 
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  placeholder="Username"
-                />
-              </div>
+              <TabsContent value="fileconfig" className="space-y-4">
+                {isDelimited && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Delimiter</Label>
+                      <Select value={formData.file_config?.delimiter || ","} onValueChange={v => setFormData({...formData, file_config: {...formData.file_config, delimiter: v}})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value=",">Comma (,)</SelectItem>
+                          <SelectItem value="|">Pipe (|)</SelectItem>
+                          <SelectItem value="\t">Tab (\t)</SelectItem>
+                          <SelectItem value=";">Semicolon (;)</SelectItem>
+                          <SelectItem value=" ">Space</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Quote Character</Label>
+                      <Input value={formData.file_config?.quote_char || '"'} onChange={e => setFormData({...formData, file_config: {...formData.file_config, quote_char: e.target.value}})} placeholder='"' />
+                    </div>
+                    <div>
+                      <Label>Escape Character</Label>
+                      <Input value={formData.file_config?.escape_char || "\\"} onChange={e => setFormData({...formData, file_config: {...formData.file_config, escape_char: e.target.value}})} placeholder="\\" />
+                    </div>
+                    <div className="flex items-center gap-3 pt-6">
+                      <Switch checked={formData.file_config?.has_header ?? true} onCheckedChange={v => setFormData({...formData, file_config: {...formData.file_config, has_header: v}})} />
+                      <Label>Has Header Row</Label>
+                    </div>
+                  </div>
+                )}
 
-              <div>
-                <Label>Status</Label>
-                <Select 
-                  value={formData.status}
-                  onValueChange={(v) => setFormData({...formData, status: v})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                {isFixedOrCobol && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Record Length (bytes)</Label>
+                      <Input type="number" value={formData.file_config?.record_length || ""} onChange={e => setFormData({...formData, file_config: {...formData.file_config, record_length: e.target.value}})} placeholder="80" />
+                    </div>
+                    {isCobol && (
+                      <div className="col-span-2">
+                        <Label>Copybook / Layout Path</Label>
+                        <Input value={formData.file_config?.copybook_path || ""} onChange={e => setFormData({...formData, file_config: {...formData.file_config, copybook_path: e.target.value}})} placeholder="/layouts/CUSTMAST.cbl" />
+                        <p className="text-xs text-slate-500 mt-1">Path to COBOL copybook definition file</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              <div className="col-span-2">
-                <Label>Notes</Label>
-                <Textarea 
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  placeholder="Optional notes about this connection..."
-                  rows={2}
-                />
-              </div>
-            </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Encoding</Label>
+                    <Select value={formData.file_config?.encoding || "UTF-8"} onValueChange={v => setFormData({...formData, file_config: {...formData.file_config, encoding: v}})}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="UTF-8">UTF-8</SelectItem>
+                        <SelectItem value="UTF-16">UTF-16</SelectItem>
+                        <SelectItem value="ISO-8859-1">ISO-8859-1 (Latin-1)</SelectItem>
+                        <SelectItem value="EBCDIC-US">EBCDIC US (037)</SelectItem>
+                        <SelectItem value="EBCDIC-UK">EBCDIC UK (285)</SelectItem>
+                        <SelectItem value="ASCII">ASCII</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>File Pattern</Label>
+                    <Input value={formData.file_config?.file_pattern || "*"} onChange={e => setFormData({...formData, file_config: {...formData.file_config, file_pattern: e.target.value}})} placeholder="*.csv or CUSTMAST_*.dat" />
+                    <p className="text-xs text-slate-500 mt-1">Glob pattern to match files</p>
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Source Path (NAS / UNC / mount)</Label>
+                    <Input value={formData.file_config?.nas_path || ""} onChange={e => setFormData({...formData, file_config: {...formData.file_config, nas_path: e.target.value}})} placeholder="\\\\nas01\\finance\\extracts or /mnt/data/in" />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Archive Path (after processing)</Label>
+                    <Input value={formData.file_config?.archive_path || ""} onChange={e => setFormData({...formData, file_config: {...formData.file_config, archive_path: e.target.value}})} placeholder="\\\\nas01\\finance\\archive" />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? "Saving..." : editingConnection ? "Update" : "Create"}
-              </Button>
+            <div className="flex justify-end gap-3 pt-4 mt-4 border-t">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={saving}>{saving ? "Saving..." : editingConnection ? "Update" : "Create"}</Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Prerequisites Dialog */}
+      <Dialog open={!!prereqDialogConn} onOpenChange={(open) => !open && setPrereqDialogConn(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-600" />
+              Setup Prerequisites — {prereqDialogConn?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {prereqDialogConn && (
+            <PrerequisitePanel
+              connection={prereqDialogConn}
+              onUpdate={loadData}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
