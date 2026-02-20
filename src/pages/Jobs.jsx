@@ -48,6 +48,7 @@ import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon, { platformConfig } from "@/components/PlatformIcon";
 import ObjectSelector from "@/components/ObjectSelector";
 import PipelineVersionHistory from "@/components/PipelineVersionHistory";
+import { useTenant } from "@/components/useTenant";
 import moment from "moment";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
