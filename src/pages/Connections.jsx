@@ -285,30 +285,44 @@ export default function Connections() {
                       <p className="text-xs text-slate-500 capitalize">{connection.connection_type}</p>
                     </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleTestConnection(connection)}>
-                        <TestTube className="w-4 h-4 mr-2" />
-                        Test Connection
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEdit(connection)}>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleDelete(connection)}
-                        className="text-red-600 focus:text-red-600"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1 text-xs text-slate-500 hover:text-slate-800"
+                      onClick={() => setPrereqDialogConn(connection)}
+                    >
+                      <Shield className="w-3.5 h-3.5" />
+                      {(() => {
+                        const s = getPrereqSummary(connection.id);
+                        return s.total > 0 ? `${s.done}/${s.total}` : "Setup";
+                      })()}
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleTestConnection(connection)}>
+                          <TestTube className="w-4 h-4 mr-2" />
+                          Test Connection
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(connection)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDelete(connection)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
 
                 <div className="space-y-2 text-sm">
