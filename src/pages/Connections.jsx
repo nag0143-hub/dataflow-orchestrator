@@ -217,6 +217,10 @@ export default function Connections() {
   });
 
   const isCloudPlatform = formData.platform === "adls2" || formData.platform === "s3";
+  const isFilePlatform = ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"].includes(formData.platform);
+  const isFixedOrCobol = formData.platform === "flat_file_fixed_width" || formData.platform === "cobol_ebcdic";
+  const isDelimited = formData.platform === "flat_file_delimited";
+  const isCobol = formData.platform === "cobol_ebcdic";
 
   if (loading) {
     return (
