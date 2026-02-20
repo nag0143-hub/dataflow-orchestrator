@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon from "@/components/PlatformIcon";
+import { useTenant } from "@/components/useTenant";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import moment from "moment";
 
