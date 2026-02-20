@@ -160,8 +160,10 @@ export default function Connections() {
       region: connection.region || "",
       bucket_container: connection.bucket_container || "",
       status: connection.status || "active",
-      notes: connection.notes || ""
+      notes: connection.notes || "",
+      file_config: connection.file_config || defaultFormData.file_config
     });
+    setFormTab("general");
     setDialogOpen(true);
   };
 
