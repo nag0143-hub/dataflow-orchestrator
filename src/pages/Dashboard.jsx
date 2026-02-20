@@ -24,6 +24,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import moment from "moment";
 
 export default function Dashboard() {
+  const { scope } = useTenant();
   const [connections, setConnections] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [runs, setRuns] = useState([]);
