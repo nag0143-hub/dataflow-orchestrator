@@ -251,8 +251,8 @@ export default function Dashboard() {
           ) : (
             <div className="text-center py-12">
               <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No job runs yet</p>
-              <p className="text-sm text-slate-400">Create and run a job to see activity here</p>
+              <p className="text-slate-500 dark:text-slate-400">No job runs yet</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500">Create and run a job to see activity here</p>
             </div>
           )}
         </CardContent>
