@@ -32,6 +32,7 @@ export default function Layout({ children }) {
     { name: "Connections", icon: Cable, page: "Connections" },
     { name: "Jobs", icon: Play, page: "Jobs" },
     { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
+    { name: "Data Model", icon: Database, page: "DataModel" },
   ];
 
   const isActive = (page) => {
