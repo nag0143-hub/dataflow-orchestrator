@@ -151,7 +151,7 @@ export default function Dashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[250px] flex items-center justify-center text-slate-400">
+              <div className="h-[250px] flex items-center justify-center text-slate-400 dark:text-slate-500">
                 No transfer data yet
               </div>
             )}
