@@ -197,10 +197,10 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Job Runs */}
-      <Card className="border-slate-200">
+      <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Recent Job Runs</CardTitle>
+            <CardTitle className="text-lg font-semibold dark:text-white">Recent Job Runs</CardTitle>
             <Link to={createPageUrl("Jobs")}>
               <Button variant="outline" size="sm" className="gap-1">
                 View All Jobs
