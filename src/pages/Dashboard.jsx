@@ -184,8 +184,8 @@ export default function Dashboard() {
                     'bg-blue-500'
                   }`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 truncate">{log.message}</p>
-                    <p className="text-xs text-slate-400">{moment(log.created_date).fromNow()}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-200 truncate">{log.message}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">{moment(log.created_date).fromNow()}</p>
                   </div>
                 </div>
               )) : (
