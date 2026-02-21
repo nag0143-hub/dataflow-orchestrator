@@ -51,6 +51,7 @@ import ActivityLogs from './pages/ActivityLogs';
 import Connections from './pages/Connections';
 import Dashboard from './pages/Dashboard';
 import Jobs from './pages/Jobs';
+import DataModel from './pages/DataModel';
 import __Layout from './Layout.jsx';
 
 
@@ -59,6 +60,7 @@ export const PAGES = {
     "Connections": Connections,
     "Dashboard": Dashboard,
     "Jobs": Jobs,
+    "DataModel": DataModel,
 }
 
 export const pagesConfig = {
