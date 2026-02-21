@@ -159,10 +159,10 @@ export default function Dashboard() {
         </Card>
 
         {/* Recent Activity */}
-        <Card className="border-slate-200">
+        <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
                 <Activity className="w-5 h-5 text-emerald-600" />
                 Recent Activity
               </CardTitle>
