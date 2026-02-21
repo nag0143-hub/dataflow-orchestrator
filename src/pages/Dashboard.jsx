@@ -226,20 +226,20 @@ export default function Dashboard() {
                   {recentRuns.map((run) => {
                     const job = jobs.find(j => j.id === run.job_id);
                     return (
-                      <tr key={run.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                      <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
                         <td className="py-3 px-4">
-                          <span className="font-medium text-slate-900">{job?.name || "Unknown Job"}</span>
+                          <span className="font-medium text-slate-900 dark:text-slate-100">{job?.name || "Unknown Job"}</span>
                         </td>
                         <td className="py-3 px-4">
                           <StatusBadge status={run.status} size="sm" />
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-600">
+                        <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
                           {(run.rows_processed || 0).toLocaleString()}
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-600">
+                        <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
                           {run.duration_seconds ? `${run.duration_seconds}s` : "-"}
                         </td>
-                        <td className="py-3 px-4 text-sm text-slate-500">
+                        <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400">
                           {moment(run.started_at || run.created_date).fromNow()}
                         </td>
                       </tr>
