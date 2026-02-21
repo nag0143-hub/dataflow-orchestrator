@@ -112,9 +112,9 @@ export default function Dashboard() {
       {/* Charts & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Transfer Activity Chart */}
-        <Card className="lg:col-span-2 border-slate-200">
+        <Card className="lg:col-span-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
               <TrendingUp className="w-5 h-5 text-blue-600" />
               Transfer Activity
             </CardTitle>
