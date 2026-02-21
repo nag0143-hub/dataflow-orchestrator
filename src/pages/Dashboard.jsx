@@ -214,12 +214,12 @@ export default function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider py-3 px-4">Job</th>
-                    <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider py-3 px-4">Status</th>
-                    <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider py-3 px-4">Rows</th>
-                    <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider py-3 px-4">Duration</th>
-                    <th className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider py-3 px-4">Started</th>
+                  <tr className="border-b border-slate-100 dark:border-slate-700">
+                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Job</th>
+                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Status</th>
+                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Rows</th>
+                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Duration</th>
+                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Started</th>
                   </tr>
                 </thead>
                 <tbody>
