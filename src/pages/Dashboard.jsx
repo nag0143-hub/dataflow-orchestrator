@@ -261,16 +261,16 @@ export default function Dashboard() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link to={createPageUrl("Connections")}>
-          <Card className="border-slate-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group">
+          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all cursor-pointer group">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                 <Cable className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
                   Manage Connections
                 </h3>
-                <p className="text-sm text-slate-500">Add or configure data sources and targets</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Add or configure data sources and targets</p>
               </div>
               <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
             </CardContent>
