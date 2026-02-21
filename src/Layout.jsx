@@ -14,7 +14,19 @@ import { cn } from "@/lib/utils";
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("dataflow-dark") === "true";
+  });
   
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("dataflow-dark", darkMode);
+  }, [darkMode]);
+
   const navItems = [
     { name: "Dashboard", icon: Home, page: "Dashboard" },
     { name: "Connections", icon: Cable, page: "Connections" },
@@ -29,7 +41,7 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className={cn("min-h-screen", darkMode ? "dark bg-slate-950" : "bg-slate-50")}>
       <style>{`
         :root {
           --brand-primary: #0f172a;
@@ -38,18 +50,28 @@ export default function Layout({ children }) {
           --brand-warning: #f59e0b;
           --brand-error: #ef4444;
         }
+        .dark .dark-card { background: #1e293b; border-color: #334155; }
+        .dark .dark-text { color: #f1f5f9; }
+        .dark .dark-subtext { color: #94a3b8; }
+        .dark .dark-header { background: #0f172a; border-color: #1e293b; }
+        .dark .dark-hover:hover { background: #1e293b; }
+        .dark .dark-divide { border-color: #1e293b; }
+        .dark .dark-input { background: #1e293b; border-color: #334155; color: #f1f5f9; }
       `}</style>
       
       {/* Top Navigation Bar */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-50">
+      <header className={cn(
+        "fixed top-0 left-0 right-0 h-16 border-b z-50",
+        darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+      )}>
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
               <Database className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-slate-900 tracking-tight">DataFlow</h1>
-              <p className="text-xs text-slate-500">Data Connector Platform</p>
+              <h1 className={cn("text-lg font-semibold tracking-tight", darkMode ? "text-white" : "text-slate-900")}>DataFlow</h1>
+              <p className={cn("text-xs", darkMode ? "text-slate-400" : "text-slate-500")}>Data Connector Platform</p>
             </div>
           </div>
           
@@ -61,8 +83,8 @@ export default function Layout({ children }) {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   isActive(item.page)
-                    ? "bg-slate-900 text-white"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? darkMode ? "bg-blue-600 text-white" : "bg-slate-900 text-white"
+                    : darkMode ? "text-slate-300 hover:bg-slate-800 hover:text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 )}
               >
                 <item.icon className="w-4 h-4" />
@@ -72,6 +94,16 @@ export default function Layout({ children }) {
           </nav>
           
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={cn(
+                "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
+                darkMode ? "bg-slate-800 text-amber-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              )}
+              title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
               <span className="text-white text-xs font-medium">U</span>
             </div>
