@@ -176,8 +176,8 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-3">
               {logs.length > 0 ? logs.map((log) => (
-                <div key={log.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                  <div className={`w-2 h-2 rounded-full mt-2 ${
+                <div key={log.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <div className={`w-2 h-2 rounded-full mt-2 ${
                     log.log_type === 'error' ? 'bg-red-500' :
                     log.log_type === 'warning' ? 'bg-amber-500' :
                     log.log_type === 'success' ? 'bg-emerald-500' :
