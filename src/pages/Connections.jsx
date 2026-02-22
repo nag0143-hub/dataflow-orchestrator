@@ -185,31 +185,63 @@ export default function Connections() {
   };
 
   const handleTestConnection = async (connection) => {
-    toast.info("Testing connection...");
-    
-    // Simulate connection test
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const success = Math.random() > 0.3; // 70% success rate simulation
-    
+    setTestingId(connection.id);
+    setTestResult(null);
+    const startTime = Date.now();
+
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `You are simulating a connection test for a data pipeline platform.
+Given the following connection details, determine if the connection would realistically succeed or fail.
+Be realistic — if host/credentials look placeholder or invalid, fail it. If they look real and plausible, succeed.
+
+Connection details:
+- Name: ${connection.name}
+- Platform: ${connection.platform}
+- Host: ${connection.host || "not set"}
+- Port: ${connection.port || "default"}
+- Database: ${connection.database || "not set"}
+- Username: ${connection.username || "not set"}
+- Auth Method: ${connection.auth_method}
+- Region: ${connection.region || "n/a"}
+- Bucket/Container: ${connection.bucket_container || "n/a"}
+- Status: ${connection.status}
+
+Return a JSON with:
+- success: boolean
+- latency_ms: number (realistic ping latency if success, 0 if fail)
+- error_code: string (e.g. "ECONNREFUSED", "AUTH_FAILED", "TIMEOUT" — only if failed, else null)
+- error_message: string (descriptive error — only if failed, else null)
+- server_version: string (e.g. "SQL Server 2019 (15.0.4123)" — only if success, else null)`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          success: { type: "boolean" },
+          latency_ms: { type: "number" },
+          error_code: { type: "string" },
+          error_message: { type: "string" },
+          server_version: { type: "string" }
+        }
+      }
+    });
+
+    const latency = Date.now() - startTime;
+
     await base44.entities.Connection.update(connection.id, {
-      status: success ? "active" : "error",
+      status: result.success ? "active" : "error",
       last_tested: new Date().toISOString()
     });
-    
+
     await base44.entities.ActivityLog.create({
-      log_type: success ? "success" : "error",
+      log_type: result.success ? "success" : "error",
       category: "connection",
       connection_id: connection.id,
-      message: success 
-        ? `Connection "${connection.name}" test successful` 
-        : `Connection "${connection.name}" test failed`
+      message: result.success
+        ? `Connection "${connection.name}" test successful (${result.latency_ms}ms)`
+        : `Connection "${connection.name}" test failed: ${result.error_message}`
     });
-    
-    toast[success ? "success" : "error"](
-      success ? "Connection test successful" : "Connection test failed"
-    );
-    
+
+    setTestResult({ connection, ...result, elapsed_ms: latency });
+    setTestingId(null);
     loadConnections();
   };
 
