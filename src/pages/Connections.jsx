@@ -87,6 +87,8 @@ export default function Connections() {
   const [formData, setFormData] = useState(defaultFormData);
   const [saving, setSaving] = useState(false);
   const [formTab, setFormTab] = useState("general");
+  const [testingId, setTestingId] = useState(null);
+  const [testResult, setTestResult] = useState(null); // { connection, success, error, latency }
 
   useEffect(() => {
     loadData();
