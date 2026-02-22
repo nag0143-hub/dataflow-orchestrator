@@ -393,13 +393,28 @@ Return a JSON with:
                   )}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2">
                   <StatusBadge status={connection.status} size="sm" />
-                  {connection.last_tested && (
-                    <span className="text-xs text-slate-400">
-                      Tested {moment(connection.last_tested).fromNow()}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {connection.last_tested && (
+                      <span className="text-xs text-slate-400">
+                        {moment(connection.last_tested).fromNow()}
+                      </span>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs gap-1.5 border-slate-200 dark:border-slate-600"
+                      onClick={() => handleTestConnection(connection)}
+                      disabled={testingId === connection.id}
+                    >
+                      {testingId === connection.id
+                        ? <Loader2 className="w-3 h-3 animate-spin" />
+                        : <Wifi className="w-3 h-3" />
+                      }
+                      {testingId === connection.id ? "Testing..." : "Test"}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
