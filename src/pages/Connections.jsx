@@ -680,6 +680,82 @@ Return a JSON with:
         </DialogContent>
       </Dialog>
 
+      {/* Test Result Dialog */}
+      <Dialog open={!!testResult} onOpenChange={(open) => !open && setTestResult(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {testResult?.success
+                ? <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                : <XCircle className="w-5 h-5 text-red-500" />
+              }
+              Connection Test — {testResult?.connection?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          {testResult && (
+            <div className="space-y-4 mt-2">
+              {/* Result Banner */}
+              <div className={`rounded-lg p-4 flex items-start gap-3 ${
+                testResult.success
+                  ? "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800"
+                  : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+              }`}>
+                {testResult.success
+                  ? <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
+                  : <XCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+                }
+                <div>
+                  <p className={`font-semibold text-sm ${testResult.success ? "text-emerald-800 dark:text-emerald-300" : "text-red-800 dark:text-red-300"}`}>
+                    {testResult.success ? "Connection Successful" : "Connection Failed"}
+                  </p>
+                  {testResult.success && testResult.server_version && (
+                    <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1">{testResult.server_version}</p>
+                  )}
+                  {!testResult.success && testResult.error_message && (
+                    <p className="text-xs text-red-700 dark:text-red-400 mt-1">{testResult.error_message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="space-y-2 text-sm">
+                {testResult.success && testResult.latency_ms > 0 && (
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span className="text-slate-500">Latency</span>
+                    <span className={`font-medium ${testResult.latency_ms < 100 ? "text-emerald-600" : testResult.latency_ms < 500 ? "text-amber-600" : "text-red-600"}`}>
+                      {testResult.latency_ms} ms
+                    </span>
+                  </div>
+                )}
+                {!testResult.success && testResult.error_code && (
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                    <span className="text-slate-500">Error Code</span>
+                    <code className="text-xs bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2 py-0.5 rounded font-mono">
+                      {testResult.error_code}
+                    </code>
+                  </div>
+                )}
+                <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-700">
+                  <span className="text-slate-500">Platform</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-medium capitalize">
+                    {platformConfig[testResult.connection?.platform]?.label || testResult.connection?.platform}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Tested at</span>
+                  <span className="text-slate-700 dark:text-slate-300">{moment().format("HH:mm:ss")}</span>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button onClick={() => setTestResult(null)}>Close</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Prerequisites Dialog */}
       <Dialog open={!!prereqDialogConn} onOpenChange={(open) => !open && setPrereqDialogConn(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
