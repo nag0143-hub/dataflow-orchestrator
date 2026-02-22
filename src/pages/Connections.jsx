@@ -194,22 +194,58 @@ export default function Connections() {
     setTestResult(null);
     const startTime = Date.now();
 
+    // Fetch credentials from HashiCorp Vault
+    let vaultCreds = {};
+    let vaultError = null;
+    try {
+      vaultCreds = await base44.functions.invoke("fetchVaultCredentials", {
+        connection_name: connection.name
+      });
+    } catch (err) {
+      vaultError = err.message || "Failed to reach Vault";
+    }
+
+    if (vaultError) {
+      setTestResult({
+        connection,
+        success: false,
+        latency_ms: 0,
+        error_code: "VAULT_ERROR",
+        error_message: vaultError,
+        server_version: null
+      });
+      setTestingId(null);
+      await base44.entities.ActivityLog.create({
+        log_type: "error",
+        category: "connection",
+        connection_id: connection.id,
+        message: `Connection "${connection.name}" test failed: Vault error — ${vaultError}`
+      });
+      return;
+    }
+
+    // Merge vault credentials over stored connection details (vault takes priority)
+    const effectiveHost     = vaultCreds.host     || connection.host;
+    const effectivePort     = vaultCreds.port     || connection.port;
+    const effectiveDatabase = vaultCreds.database || connection.database;
+    const effectiveUsername = vaultCreds.username || connection.username;
+    const hasPassword       = !!vaultCreds.password || !!vaultCreds.connection_string || !!vaultCreds.access_key;
+
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `You are simulating a connection test for a data pipeline platform.
-Given the following connection details, determine if the connection would realistically succeed or fail.
-Be realistic — if host/credentials look placeholder or invalid, fail it. If they look real and plausible, succeed.
+Credentials were fetched from HashiCorp Vault. Treat any missing host/creds as a real failure.
 
-Connection details:
+Connection details (merged with Vault secrets):
 - Name: ${connection.name}
 - Platform: ${connection.platform}
-- Host: ${connection.host || "not set"}
-- Port: ${connection.port || "default"}
-- Database: ${connection.database || "not set"}
-- Username: ${connection.username || "not set"}
+- Host: ${effectiveHost || "NOT SET"}
+- Port: ${effectivePort || "default"}
+- Database: ${effectiveDatabase || "NOT SET"}
+- Username: ${effectiveUsername || "NOT SET"}
+- Password/Key available from Vault: ${hasPassword ? "YES" : "NO"}
 - Auth Method: ${connection.auth_method}
 - Region: ${connection.region || "n/a"}
 - Bucket/Container: ${connection.bucket_container || "n/a"}
-- Status: ${connection.status}
 
 Return a JSON with:
 - success: boolean
