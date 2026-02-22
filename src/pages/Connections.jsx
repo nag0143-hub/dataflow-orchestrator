@@ -12,7 +12,12 @@ import {
   Cloud,
   Filter,
   Shield,
-  ChevronDown
+  ChevronDown,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Wifi,
+  Server
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
