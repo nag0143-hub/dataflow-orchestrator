@@ -77,6 +77,8 @@ CREATE TABLE ingestion_job (
     description          TEXT,
     source_connection_id UUID NOT NULL REFERENCES connection(id) ON DELETE RESTRICT,
     target_connection_id UUID NOT NULL REFERENCES connection(id) ON DELETE RESTRICT,
+    source_path          TEXT,
+    source_format        TEXT,
     selected_objects     JSONB,      -- [{schema, table, filter_query, target_path, incremental_column, last_value}]
     schedule_type        schedule_type_enum DEFAULT 'manual',
     cron_expression      TEXT,
@@ -310,6 +312,8 @@ const entities = [
       { name: "description", type: "string", required: false, note: "Optional description" },
       { name: "source_connection_id", type: "string", required: true, note: "→ Connection.id (source)" },
       { name: "target_connection_id", type: "string", required: true, note: "→ Connection.id (target)" },
+      { name: "source_path", type: "string", required: false, note: "Path for flat file source" },
+      { name: "source_format", type: "string", required: false, note: "Format for flat file source (e.g. CSV, delimited, fixed-width)" },
       { name: "selected_objects", type: "array", required: false, note: "Array of {schema, table, filter_query, target_path, incremental_column}" },
       { name: "schedule_type", type: "string", required: false, note: 'manual | hourly | daily | weekly | custom' },
       { name: "cron_expression", type: "string", required: false, note: "Used when schedule_type = custom" },
