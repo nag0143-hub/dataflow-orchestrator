@@ -106,10 +106,6 @@ function JobSpecTabPreview({ formData, connections }) {
     dq_rules: formData.dq_rules || {},
   };
 
-  const { buildJobSpec: _build } = require ? (() => {
-    try { return require("@/components/JobSpecExport"); } catch { return {}; }
-  })() : {};
-
   // Inline YAML serializer so this component has no extra deps
   function toYaml(obj, indent = 0) {
     const pad = "  ".repeat(indent);
