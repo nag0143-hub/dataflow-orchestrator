@@ -8,9 +8,9 @@ import {
   Search, 
   Table2, 
   Database,
-  Plus,
-  Trash2,
-  Settings2
+  Settings2,
+  X,
+  Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -18,82 +18,60 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Mock schema/tables for demonstration
 const mockSchemas = [
-  {
-    name: "dbo",
-    tables: ["Customers", "Orders", "Products", "Inventory", "Suppliers", "Categories"]
-  },
-  {
-    name: "sales",
-    tables: ["Transactions", "Returns", "Discounts", "Promotions"]
-  },
-  {
-    name: "hr",
-    tables: ["Employees", "Departments", "Salaries", "Attendance"]
-  }
+  { name: "dbo", tables: ["Customers", "Orders", "Products", "Inventory", "Suppliers", "Categories"] },
+  { name: "sales", tables: ["Transactions", "Returns", "Discounts", "Promotions"] },
+  { name: "hr", tables: ["Employees", "Departments", "Salaries", "Attendance"] }
 ];
 
 export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedSchemas, setExpandedSchemas] = useState(["dbo"]);
-  const [configDialogOpen, setConfigDialogOpen] = useState(false);
-  const [currentObject, setCurrentObject] = useState(null);
-  const [objectConfig, setObjectConfig] = useState({
-    filter_query: "",
-    target_path: "",
-    target_dataset: "",
-    target_format: "original",
-    incremental_column: ""
-  });
+  const [configPanelObject, setConfigPanelObject] = useState(null); // { schema, table }
+  const [objectConfig, setObjectConfig] = useState({});
 
   const toggleSchema = (schema) => {
-    setExpandedSchemas(prev => 
-      prev.includes(schema) 
-        ? prev.filter(s => s !== schema)
-        : [...prev, schema]
+    setExpandedSchemas(prev =>
+      prev.includes(schema) ? prev.filter(s => s !== schema) : [...prev, schema]
     );
   };
 
-  const isSelected = (schema, table) => {
-    return selectedObjects.some(obj => obj.schema === schema && obj.table === table);
-  };
+  const isSelected = (schema, table) =>
+    selectedObjects.some(obj => obj.schema === schema && obj.table === table);
 
-  const getObjectConfig = (schema, table) => {
-    return selectedObjects.find(obj => obj.schema === schema && obj.table === table);
-  };
+  const getObjectConfig = (schema, table) =>
+    selectedObjects.find(obj => obj.schema === schema && obj.table === table);
 
   const toggleTable = (schema, table) => {
     if (isSelected(schema, table)) {
       onChange(selectedObjects.filter(obj => !(obj.schema === schema && obj.table === table)));
+      if (configPanelObject?.schema === schema && configPanelObject?.table === table) {
+        setConfigPanelObject(null);
+      }
     } else {
-      onChange([...selectedObjects, { schema, table, target_path: `/${schema}/${table}` }]);
+      onChange([...selectedObjects, { schema, table, target_path: `/${schema}/${table}`, target_format: "original" }]);
     }
   };
 
   const selectAllInSchema = (schema, tables) => {
-    const schemasToAdd = tables
+    const toAdd = tables
       .filter(t => !isSelected(schema, t))
-      .map(t => ({ schema, table: t, target_path: `/${schema}/${t}` }));
-    onChange([...selectedObjects, ...schemasToAdd]);
+      .map(t => ({ schema, table: t, target_path: `/${schema}/${t}`, target_format: "original" }));
+    onChange([...selectedObjects, ...toAdd]);
   };
 
   const deselectAllInSchema = (schema, tables) => {
     onChange(selectedObjects.filter(obj => obj.schema !== schema));
+    if (configPanelObject && tables.includes(configPanelObject.table) && configPanelObject.schema === schema) {
+      setConfigPanelObject(null);
+    }
   };
 
   const openConfig = (schema, table) => {
     const existing = getObjectConfig(schema, table);
-    setCurrentObject({ schema, table });
     setObjectConfig({
       filter_query: existing?.filter_query || "",
       target_path: existing?.target_path || `/${schema}/${table}`,
@@ -101,21 +79,21 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
       target_format: existing?.target_format || "original",
       incremental_column: existing?.incremental_column || ""
     });
-    setConfigDialogOpen(true);
+    setConfigPanelObject({ schema, table });
   };
 
   const saveConfig = () => {
-    onChange(selectedObjects.map(obj => 
-      obj.schema === currentObject.schema && obj.table === currentObject.table
+    onChange(selectedObjects.map(obj =>
+      obj.schema === configPanelObject.schema && obj.table === configPanelObject.table
         ? { ...obj, ...objectConfig }
         : obj
     ));
-    setConfigDialogOpen(false);
+    setConfigPanelObject(null);
   };
 
   const filteredSchemas = mockSchemas.map(schema => ({
     ...schema,
-    tables: schema.tables.filter(t => 
+    tables: schema.tables.filter(t =>
       t.toLowerCase().includes(searchTerm.toLowerCase()) ||
       schema.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -141,7 +119,7 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
         {filteredSchemas.map(schema => {
           const selectedCount = schema.tables.filter(t => isSelected(schema.name, t)).length;
           const allSelected = selectedCount === schema.tables.length;
-          
+
           return (
             <Collapsible
               key={schema.name}
@@ -176,7 +154,8 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
                     key={table}
                     className={cn(
                       "flex items-center gap-2 pl-10 pr-3 py-2 hover:bg-slate-50 border-b border-slate-50",
-                      isSelected(schema.name, table) && "bg-blue-50/50"
+                      isSelected(schema.name, table) && "bg-blue-50/50",
+                      configPanelObject?.schema === schema.name && configPanelObject?.table === table && "bg-blue-100/60"
                     )}
                   >
                     <Checkbox
@@ -186,14 +165,13 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
                     <Table2 className="w-4 h-4 text-slate-400" />
                     <span className="text-sm text-slate-600 flex-1">{table}</span>
                     {isSelected(schema.name, table) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-slate-400 hover:text-slate-600"
+                      <button
+                        type="button"
+                        className="h-6 w-6 flex items-center justify-center rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
                         onClick={(e) => { e.stopPropagation(); openConfig(schema.name, table); }}
                       >
                         <Settings2 className="w-3.5 h-3.5" />
-                      </Button>
+                      </button>
                     )}
                   </div>
                 ))}
@@ -207,96 +185,92 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
       <div className="p-3 border-t border-slate-200 bg-slate-50">
         <p className="text-sm text-slate-600">
           <span className="font-medium">{selectedObjects.length}</span> tables selected
+          {configPanelObject && <span className="text-slate-400 ml-2">— configuring <span className="font-medium text-slate-600">{configPanelObject.schema}.{configPanelObject.table}</span></span>}
         </p>
       </div>
 
-      {/* Config Dialog — rendered via portal to avoid nested Dialog conflicts */}
-      <Dialog open={configDialogOpen} onOpenChange={(open) => { if (!open) setConfigDialogOpen(false); }}>
-        <DialogContent
-          onInteractOutside={(e) => e.preventDefault()}
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={() => setConfigDialogOpen(false)}
-          style={{ zIndex: 9999 }}
-        >
-          <DialogHeader>
-            <DialogTitle>
-              Configure {currentObject?.schema}.{currentObject?.table}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Target Path</Label>
-                <Input
-                  value={objectConfig.target_path}
-                  onChange={(e) => setObjectConfig({...objectConfig, target_path: e.target.value})}
-                  placeholder="/schema/table"
-                />
-                <p className="text-xs text-slate-500 mt-1">Path in target storage</p>
-              </div>
-              <div>
-                <Label>Target Dataset Name</Label>
-                <Input
-                  value={objectConfig.target_dataset}
-                  onChange={(e) => setObjectConfig({...objectConfig, target_dataset: e.target.value})}
-                  placeholder="e.g. dim_customers"
-                />
-                <p className="text-xs text-slate-500 mt-1">Override table/dataset name at target</p>
-              </div>
-            </div>
+      {/* Inline Config Panel — no nested dialog */}
+      {configPanelObject && (
+        <div className="border-t border-blue-200 bg-blue-50/30 p-4 space-y-4">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-sm font-semibold text-slate-800">
+              Configure: <span className="text-blue-700">{configPanelObject.schema}.{configPanelObject.table}</span>
+            </p>
+            <button type="button" onClick={() => setConfigPanelObject(null)} className="text-slate-400 hover:text-slate-600">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Target Format</Label>
-              <Select value={objectConfig.target_format} onValueChange={v => setObjectConfig({...objectConfig, target_format: v})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="original">Original (keep source format)</SelectItem>
-                  <SelectItem value="parquet">Parquet</SelectItem>
-                  <SelectItem value="delta">Delta Lake</SelectItem>
-                  <SelectItem value="iceberg">Apache Iceberg</SelectItem>
-                  <SelectItem value="csv">CSV</SelectItem>
-                  <SelectItem value="json">JSON (line-delimited)</SelectItem>
-                  <SelectItem value="avro">Avro</SelectItem>
-                  <SelectItem value="orc">ORC</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-slate-500 mt-1">Output format for data at target</p>
-            </div>
-            
-            <div>
-              <Label>Filter Query (WHERE clause)</Label>
+              <Label className="text-xs">Target Path</Label>
               <Input
-                value={objectConfig.filter_query}
-                onChange={(e) => setObjectConfig({...objectConfig, filter_query: e.target.value})}
-                placeholder="status = 'active' AND created_date > '2024-01-01'"
+                value={objectConfig.target_path}
+                onChange={(e) => setObjectConfig({ ...objectConfig, target_path: e.target.value })}
+                placeholder="/schema/table"
+                className="mt-1 h-8 text-sm"
               />
-              <p className="text-xs text-slate-500 mt-1">Optional filter condition</p>
             </div>
-            
             <div>
-              <Label>Incremental Column</Label>
+              <Label className="text-xs">Target Dataset Name</Label>
               <Input
-                value={objectConfig.incremental_column}
-                onChange={(e) => setObjectConfig({...objectConfig, incremental_column: e.target.value})}
-                placeholder="updated_at"
+                value={objectConfig.target_dataset}
+                onChange={(e) => setObjectConfig({ ...objectConfig, target_dataset: e.target.value })}
+                placeholder="e.g. dim_customers"
+                className="mt-1 h-8 text-sm"
               />
-              <p className="text-xs text-slate-500 mt-1">Column for incremental loads</p>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <Button variant="outline" onClick={() => setConfigDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={saveConfig}>
-                Save Configuration
-              </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <div>
+            <Label className="text-xs">Target Format</Label>
+            <Select value={objectConfig.target_format} onValueChange={v => setObjectConfig({ ...objectConfig, target_format: v })}>
+              <SelectTrigger className="mt-1 h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="original">Original (keep source format)</SelectItem>
+                <SelectItem value="parquet">Parquet</SelectItem>
+                <SelectItem value="delta">Delta Lake</SelectItem>
+                <SelectItem value="iceberg">Apache Iceberg</SelectItem>
+                <SelectItem value="csv">CSV</SelectItem>
+                <SelectItem value="json">JSON (line-delimited)</SelectItem>
+                <SelectItem value="avro">Avro</SelectItem>
+                <SelectItem value="orc">ORC</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Filter Query (WHERE clause)</Label>
+              <Input
+                value={objectConfig.filter_query}
+                onChange={(e) => setObjectConfig({ ...objectConfig, filter_query: e.target.value })}
+                placeholder="status = 'active'"
+                className="mt-1 h-8 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Incremental Column</Label>
+              <Input
+                value={objectConfig.incremental_column}
+                onChange={(e) => setObjectConfig({ ...objectConfig, incremental_column: e.target.value })}
+                placeholder="updated_at"
+                className="mt-1 h-8 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="outline" size="sm" onClick={() => setConfigPanelObject(null)}>Cancel</Button>
+            <Button type="button" size="sm" onClick={saveConfig} className="gap-1.5">
+              <Check className="w-3.5 h-3.5" />
+              Save
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
