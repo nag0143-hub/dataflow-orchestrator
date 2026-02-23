@@ -106,6 +106,22 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     onChange({ ...mappings, [tableKey]: updated });
   };
 
+  // Duplicate a mapping as a new derived column (keeps original, adds a copy with a new target name)
+  const duplicateMapping = (m) => {
+    const newMapping = { source: m.source, target: `${m.target}_derived`, transformation: m.transformation, derived: true };
+    onChange({ ...mappings, [tableKey]: [...tableMappings, newMapping] });
+  };
+
+  const filteredMappings = useMemo(() =>
+    mappingSearch
+      ? tableMappings.filter(m =>
+          m.source.toLowerCase().includes(mappingSearch.toLowerCase()) ||
+          m.target.toLowerCase().includes(mappingSearch.toLowerCase())
+        )
+      : tableMappings,
+    [tableMappings, mappingSearch]
+  );
+
   const addAllVisible = () => {
     const newCols = pageColumns
       .filter(c => !mappedSourceCols.has(c.name))
