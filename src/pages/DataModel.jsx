@@ -476,8 +476,41 @@ function EntityCard({ entity }) {
   );
 }
 
+function DDLModal({ open, onClose }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(DDL);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-blue-600" />
+              PostgreSQL DDL — DataFlow Platform
+            </DialogTitle>
+            <Button size="sm" variant="outline" onClick={handleCopy} className="gap-1.5 text-xs mr-6">
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? "Copied!" : "Copy"}
+            </Button>
+          </div>
+        </DialogHeader>
+        <pre className="overflow-auto flex-1 text-xs font-mono bg-slate-950 text-slate-200 rounded-xl p-5 leading-relaxed">
+          {DDL}
+        </pre>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function DataModel() {
   const [showRel, setShowRel] = useState(true);
+  const [showDDL, setShowDDL] = useState(false);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
