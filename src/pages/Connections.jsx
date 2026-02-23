@@ -599,7 +599,19 @@ Return a JSON with:
                   
                   <div>
                     <Label>Platform</Label>
-                    <Select value={formData.platform} onValueChange={(v) => setFormData({...formData, platform: v})}>
+                    <Select value={formData.platform} onValueChange={(v) => {
+                      const template = PLATFORM_TEMPLATES[v] || {};
+                      setFormData(prev => ({
+                        ...defaultFormData,
+                        name: prev.name,
+                        connection_type: prev.connection_type,
+                        status: prev.status,
+                        notes: prev.notes,
+                        platform: v,
+                        ...template,
+                        file_config: { ...defaultFormData.file_config, ...(template.file_config || {}) }
+                      }));
+                    }}>
                       <SelectTrigger><SelectValue placeholder="Select platform" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="sql_server">SQL Server</SelectItem>
