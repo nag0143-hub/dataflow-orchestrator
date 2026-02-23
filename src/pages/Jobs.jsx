@@ -991,8 +991,8 @@ export default function Jobs() {
                   selectedObjects={formData.selected_objects}
                   columnMappings={formData.column_mappings}
                   dqRules={formData.dq_rules}
-                  onMappingsChange={useCallback((mappings) => setFormData(prev => ({ ...prev, column_mappings: mappings })), [])}
-                  onRulesChange={useCallback((rules) => setFormData(prev => ({ ...prev, dq_rules: rules })), [])}
+                  onMappingsChange={handleMappingsChange}
+                  onRulesChange={handleRulesChange}
                 />
               </TabsContent>
             </Tabs>
