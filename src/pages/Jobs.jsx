@@ -58,6 +58,38 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GitCommitHorizontal } from "lucide-react";
 
+// Memoized Advanced tab to prevent re-renders from parent form state changes
+const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, onMappingsChange, onRulesChange }) {
+  return (
+    <div className="space-y-5">
+      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <ArrowLeftRight className="w-4 h-4 text-violet-600" />
+          <h4 className="font-semibold text-slate-900 text-sm">Column Mapping &amp; Transformations</h4>
+        </div>
+        <p className="text-xs text-slate-500">Map source columns to target columns and apply transformations.</p>
+        <ColumnMapper
+          selectedObjects={selectedObjects}
+          mappings={columnMappings}
+          onChange={onMappingsChange}
+        />
+      </div>
+      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <h4 className="font-semibold text-slate-900 text-sm">Data Quality Rules</h4>
+        </div>
+        <p className="text-xs text-slate-500">Define dataset-level and column-level quality checks with configurable failure actions.</p>
+        <DataQualityRules
+          selectedObjects={selectedObjects}
+          rules={dqRules}
+          onChange={onRulesChange}
+        />
+      </div>
+    </div>
+  );
+});
+
 const defaultFormData = {
   name: "",
   description: "",
