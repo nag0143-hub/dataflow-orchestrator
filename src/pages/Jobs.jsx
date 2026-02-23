@@ -194,6 +194,8 @@ export default function Jobs() {
       use_custom_calendar: job.use_custom_calendar || false,
       include_calendar_id: job.include_calendar_id || "",
       exclude_calendar_id: job.exclude_calendar_id || "",
+      column_mappings: job.column_mappings || {},
+      dq_rules: job.dq_rules || {},
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
