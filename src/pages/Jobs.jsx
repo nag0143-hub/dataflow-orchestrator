@@ -887,7 +887,7 @@ export default function Jobs() {
                             <p className="text-xs text-slate-400 mb-2">SKIP runs on these dates (e.g. bank holidays to exclude)</p>
                             <Select
                               value={formData.exclude_calendar_id || ""}
-                              onValueChange={v => setFormData(prev => ({ ...prev, exclude_calendar_id: v || null }))}
+                              onValueChange={v => setFormData(prev => ({ ...prev, exclude_calendar_id: v }))}
                             >
                               <SelectTrigger className="h-8 text-xs">
                                 <SelectValue placeholder="Select calendar..." />
