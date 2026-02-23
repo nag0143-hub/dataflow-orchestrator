@@ -20,6 +20,8 @@ import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon from "@/components/PlatformIcon";
 import { useTenant } from "@/components/useTenant";
 import AirflowSection from "@/components/AirflowSection";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import { createIndex } from "@/components/dataIndexing";
 import moment from "moment";
 
 export default function Dashboard() {
@@ -48,6 +50,11 @@ export default function Dashboard() {
     setLoading(false);
   };
 
+  // Create indexes for O(1) lookups
+  const jobIndex = useEffect(() => {
+    if (jobs.length > 0) return createIndex(jobs, "id");
+  }, [jobs]);
+
   const stats = {
     totalConnections: connections.length,
     activeConnections: connections.filter(c => c.status === "active").length,
@@ -61,8 +68,17 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="space-y-8 max-w-7xl mx-auto">
+        <div className="space-y-2">
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-48 animate-pulse" />
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-96 animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({length:4}).map((_, i) => (
+            <div key={i} className="h-24 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />
+          ))}
+        </div>
+        <SkeletonLoader count={5} height="h-16" />
       </div>
     );
   }
@@ -134,7 +150,8 @@ export default function Dashboard() {
                   </thead>
                   <tbody>
                     {recentRuns.map((run) => {
-                      const job = jobs.find(j => j.id === run.job_id);
+                      const jobIndex = createIndex(jobs, "id");
+                      const job = jobIndex.get(run.job_id);
                       return (
                         <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
                           <td className="py-3 px-4">
