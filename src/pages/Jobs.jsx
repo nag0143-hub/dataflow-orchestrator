@@ -27,6 +27,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import EmptyStateGuide from "@/components/EmptyStateGuide";
+import HelpTooltip from "@/components/HelpTooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -569,6 +571,37 @@ export default function Jobs() {
     loadData();
   };
 
+  const handleCloneJob = async (job) => {
+    setFormData({
+      name: `${job.name} (Copy)`,
+      description: job.description || "",
+      source_connection_id: job.source_connection_id || "",
+      target_connection_id: job.target_connection_id || "",
+      selected_datasets: job.selected_datasets || [],
+      load_method: job.load_method || "append",
+      delivery_channel: job.delivery_channel || "pull",
+      schedule_type: job.schedule_type || "manual",
+      cron_expression: job.cron_expression || "",
+      status: "idle",
+      use_custom_calendar: job.use_custom_calendar || false,
+      include_calendar_id: job.include_calendar_id || "",
+      exclude_calendar_id: job.exclude_calendar_id || "",
+      column_mappings: job.column_mappings || {},
+      dq_rules: job.dq_rules || {},
+      data_cleansing: job.data_cleansing || {},
+      assignment_group: job.assignment_group || "",
+      cost_center: job.cost_center || "",
+      email: job.email || "",
+      access_entitlements: job.access_entitlements || [],
+      enable_advanced: job.enable_advanced || false,
+      retry_config: job.retry_config || defaultFormData.retry_config
+    });
+    setEditingJob(null);
+    setDialogOpen(true);
+    setActiveTab("general");
+    toast.success("Job cloned. Make changes and save as a new job.");
+  };
+
   const filteredJobs = jobs.filter(j => {
     const matchesSearch = j.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === "all" || j.status === filterStatus;
@@ -739,18 +772,22 @@ export default function Jobs() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleRetryJob(job)} disabled={job.status !== "failed"}>
-                            <RotateCcw className="w-4 h-4 mr-2" />
-                            Retry Failed
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handlePauseJob(job)}>
-                            <Pause className="w-4 h-4 mr-2" />
-                            {job.status === "paused" ? "Resume" : "Pause"}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleEdit(job)}>
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
+                                <RotateCcw className="w-4 h-4 mr-2" />
+                                Retry Failed
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePauseJob(job)}>
+                                <Pause className="w-4 h-4 mr-2" />
+                                {job.status === "paused" ? "Resume" : "Pause"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleCloneJob(job)}>
+                                <Copy className="w-4 h-4 mr-2" />
+                                Clone
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleEdit(job)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(job)}
                             className="text-red-600 focus:text-red-600"
@@ -768,21 +805,23 @@ export default function Jobs() {
           })}
         </div>
       ) : (
-        <Card className="border-slate-200">
-          <CardContent className="py-16 text-center">
-            <Play className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">No jobs found</h3>
-            <p className="text-slate-500 mb-4">
-              {searchTerm ? "Try adjusting your search" : "Create your first data transfer job"}
-            </p>
-            {!searchTerm && (
-              <Button onClick={() => setDialogOpen(true)} className="gap-2">
-                <Plus className="w-4 h-4" />
-                New Job
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <EmptyStateGuide
+          icon={Play}
+          title={searchTerm ? "No jobs found" : "No data transfer jobs yet"}
+          description={
+            searchTerm
+              ? "Try adjusting your search or filters"
+              : "Create your first data transfer job to start moving data between connections"
+          }
+          primaryAction={!searchTerm ? {
+            label: "New Job",
+            icon: <Plus className="w-4 h-4" />,
+            onClick: () => { setEditingJob(null); setFormData(defaultFormData); setDialogOpen(true); setActiveTab("general"); }
+          } : null}
+          secondaryLinks={!searchTerm ? [
+            { label: "Documentation", href: "https://docs.dataflow.io/jobs" }
+          ] : null}
+        />
       )}
 
       {/* Create/Edit Job Dialog */}
@@ -906,12 +945,15 @@ export default function Jobs() {
 
               <TabsContent value="datasets" className="space-y-4 mt-4">
                 <div>
-                  <Label className="mb-2 block">Select Tables/Datasets to Transfer</Label>
-                  <ObjectSelector
-                    selectedObjects={formData.selected_datasets}
-                    onChange={(objects) => setFormData({ ...formData, selected_datasets: objects })}
-                  />
-                </div>
+                   <div className="flex items-center gap-2 mb-2">
+                     <Label className="block">Select Tables/Datasets to Transfer</Label>
+                     <HelpTooltip text="Choose which tables or datasets from the source system to include in this job. You can override load methods per dataset." />
+                   </div>
+                   <ObjectSelector
+                     selectedObjects={formData.selected_datasets}
+                     onChange={(objects) => setFormData({ ...formData, selected_datasets: objects })}
+                   />
+                 </div>
 
                 {/* Job-Level Load Method */}
                 <div className="border border-slate-200 rounded-xl p-4 space-y-3">
