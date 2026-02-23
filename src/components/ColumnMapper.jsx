@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, Plus, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, X, Plus, ArrowRight, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TRANSFORMATIONS = [
