@@ -42,29 +42,29 @@ export default function JobFormDialog({
     }
   };
 
-  const validateJob = () => {
+  const validateJob = (silent = false) => {
     if (!formData.name?.trim()) {
-      toast.error("Job name is required");
+      if (!silent) toast.error("Job name is required");
       return false;
     }
     if (!formData.source_connection_id) {
-      toast.error("Source connection is required");
+      if (!silent) toast.error("Source connection is required");
       return false;
     }
     if (!formData.target_connection_id) {
-      toast.error("Target connection is required");
+      if (!silent) toast.error("Target connection is required");
       return false;
     }
     if (formData.source_connection_id === formData.target_connection_id) {
-      toast.error("Source and target connections must be different");
+      if (!silent) toast.error("Source and target connections must be different");
       return false;
     }
     if (!formData.selected_datasets || formData.selected_datasets.length === 0) {
-      toast.error("At least one dataset must be selected");
+      if (!silent) toast.error("At least one dataset must be selected");
       return false;
     }
     if (formData.schedule_type === "custom" && !formData.cron_expression?.trim()) {
-      toast.error("Cron expression is required for custom schedule");
+      if (!silent) toast.error("Cron expression is required for custom schedule");
       return false;
     }
     return true;
@@ -189,7 +189,7 @@ export default function JobFormDialog({
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving}>
+                <Button type="submit" disabled={saving || !validateJob(true)}>
                   {saving ? "Saving..." : editingJob ? "Update Job" : "Create Job"}
                 </Button>
               </div>
