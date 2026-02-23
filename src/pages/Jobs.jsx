@@ -63,9 +63,22 @@ import { GitCommitHorizontal, FileJson } from "lucide-react";
 import JobSpecExport, { buildJobSpec } from "@/components/JobSpecExport";
 
 // Memoized Advanced tab to prevent re-renders from parent form state changes
-const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, onMappingsChange, onRulesChange }) {
+const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, onMappingsChange, onRulesChange, isFlatFileSource, formData, onObjectsChange }) {
   return (
     <div className="space-y-5">
+      {isFlatFileSource && (
+        <div className="border border-slate-200 rounded-xl p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-blue-600" />
+            <h4 className="font-semibold text-slate-900 text-sm">Import Schema</h4>
+          </div>
+          <p className="text-xs text-slate-500">Import flat file structure (DDL, JSON, XML, or CSV) to define columns.</p>
+          <ObjectSelector
+            selectedObjects={formData.selected_objects}
+            onChange={onObjectsChange}
+          />
+        </div>
+      )}
       <div className="border border-slate-200 rounded-xl p-4 space-y-3">
         <div className="flex items-center gap-2">
           <ArrowLeftRight className="w-4 h-4 text-violet-600" />
