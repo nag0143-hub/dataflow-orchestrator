@@ -251,8 +251,8 @@ export default function DataQualityRules({ selectedObjects = [], rules = {}, onC
                     </Select>
                   </div>
                   <div className="flex gap-1">
-                    <Button size="sm" className="h-7 text-xs px-2" onClick={saveColumnRule}>Save</Button>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={() => setAddColRule(null)}>Cancel</Button>
+                    <Button type="button" size="sm" className="h-7 text-xs px-2" onClick={saveColumnRule}>Save</Button>
+                    <Button type="button" variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={() => setAddColRule(null)}>Cancel</Button>
                   </div>
                 </div>
               </div>
