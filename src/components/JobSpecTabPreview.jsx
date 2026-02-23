@@ -1,11 +1,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, Check, FileJson } from "lucide-react";
+import { Copy, Download, Check, FileJson, AlertCircle } from "lucide-react";
 import { buildJobSpec } from "@/components/JobSpecExport";
 
 export default function JobSpecTabPreview({ formData, connections }) {
   const [format, setFormat] = useState("yaml");
   const [copied, setCopied] = useState(false);
+
+  const getMissingFields = () => {
+    const missing = [];
+    if (!formData.name?.trim()) missing.push("Job name");
+    if (!formData.source_connection_id) missing.push("Source connection");
+    if (!formData.target_connection_id) missing.push("Target connection");
+    if (formData.source_connection_id === formData.target_connection_id) missing.push("Source and target must be different");
+    if (!formData.selected_datasets || formData.selected_datasets.length === 0) missing.push("At least one dataset");
+    if (formData.schedule_type === "custom" && !formData.cron_expression?.trim()) missing.push("Cron expression");
+    return missing;
+  };
+
+  const missingFields = getMissingFields();
 
   const draftJob = {
     id: "(unsaved)",
@@ -90,6 +103,23 @@ export default function JobSpecTabPreview({ formData, connections }) {
           ))}
         </div>
       </div>
+      
+      {missingFields.length > 0 && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-red-700">
+              <p className="font-semibold mb-1">Missing required fields:</p>
+              <ul className="space-y-0.5 list-disc list-inside">
+                {missingFields.map((field, i) => (
+                  <li key={i}>{field}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <p className="text-xs text-slate-500">
         This spec reflects the current (unsaved) form state and includes full connection details. Save the job first, then download to commit.
       </p>
