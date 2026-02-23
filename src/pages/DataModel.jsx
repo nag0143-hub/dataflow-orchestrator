@@ -389,7 +389,7 @@ const entities = [
   },
   {
     name: "ConnectionPrerequisite",
-    color: "from-cyan-500 to-sky-600",
+    color: "from-teal-500 to-cyan-600",
     description: "Tracks infra/ops tasks (firewall rules, VPN tunnels, DBA access) required before a connection can be used.",
     fields: [
       { name: "id", type: "string", required: true, note: "Auto-generated" },
@@ -425,7 +425,7 @@ function EntityCard({ entity }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-slate-900/30 transition-all">
       {/* Header */}
       <div className={`bg-gradient-to-r ${entity.color} p-4`}>
         <div className="flex items-center gap-2 mb-1">
@@ -438,9 +438,9 @@ function EntityCard({ entity }) {
       {/* Fields */}
       <div>
         <button
-          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-          onClick={() => setExpanded(!expanded)}
-        >
+            className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/70 transition-colors"
+            onClick={() => setExpanded(!expanded)}
+          >
           <span>{entity.fields.length} fields</span>
           {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
@@ -539,25 +539,30 @@ export default function DataModel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Model</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center">
+              <Database className="w-5 h-5 text-white" />
+            </div>
+            Data Model
+          </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Entity schemas and relationships for the DataFlow platform</p>
         </div>
-        <Button onClick={() => setShowDDL(true)} variant="outline" className="gap-2">
+        <Button onClick={() => setShowDDL(true)} variant="outline" className="gap-2 hover:bg-teal-50 dark:hover:bg-slate-700 hover:border-teal-300 dark:hover:border-teal-600">
           <Code2 className="w-4 h-4" />
           Generate DDL
         </Button>
       </div>
 
       {/* Relationships */}
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-slate-900/50 transition-all">
         <button
-          className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-teal-50/50 dark:hover:bg-slate-700/70 transition-colors"
           onClick={() => setShowRel(!showRel)}
         >
           <div className="flex items-center gap-2">
-            <Link2 className="w-5 h-5 text-blue-600" />
+            <Link2 className="w-5 h-5 text-teal-600 dark:text-teal-400" />
             <span className="font-semibold text-slate-900 dark:text-white">Entity Relationships</span>
-            <span className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full">{relationships.length}</span>
+            <span className="text-xs bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded-full">{relationships.length}</span>
           </div>
           {showRel ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
         </button>
@@ -595,8 +600,11 @@ export default function DataModel() {
       </div>
 
       {/* Legend */}
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Legend</h3>
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-slate-900/30 transition-all">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+          <div className="w-1 h-1 rounded-full bg-teal-500"></div>
+          Legend
+        </h3>
         <div className="flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-1.5"><Key className="w-3.5 h-3.5 text-amber-500" /> <span className="text-slate-600 dark:text-slate-400">Primary key</span></div>
           <div className="flex items-center gap-1.5"><Link2 className="w-3.5 h-3.5 text-blue-400" /> <span className="text-slate-600 dark:text-slate-400">Foreign key reference</span></div>

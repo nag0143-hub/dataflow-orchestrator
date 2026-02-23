@@ -42,7 +42,7 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className={cn("min-h-screen", darkMode ? "dark bg-slate-950" : "bg-slate-50")}>
+    <div className={cn("min-h-screen", darkMode ? "dark bg-slate-900" : "bg-slate-50")}>
       <style>{`
         :root {
           --brand-primary: #0f172a;
@@ -62,8 +62,8 @@ export default function Layout({ children }) {
       
       {/* Top Navigation Bar */}
       <header className={cn(
-        "fixed top-0 left-0 right-0 h-16 border-b z-50",
-        darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
+        "fixed top-0 left-0 right-0 h-16 border-b z-50 shadow-sm dark:shadow-lg",
+        darkMode ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"
       )}>
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center gap-3">
@@ -82,11 +82,11 @@ export default function Layout({ children }) {
                 key={item.page}
                 to={createPageUrl(item.page)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                  isActive(item.page)
-                    ? darkMode ? "bg-blue-600 text-white" : "bg-slate-900 text-white"
-                    : darkMode ? "text-slate-300 hover:bg-slate-800 hover:text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                )}
+                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                   isActive(item.page)
+                     ? darkMode ? "bg-cyan-600 text-white shadow-lg shadow-cyan-600/30" : "bg-slate-900 text-white"
+                     : darkMode ? "text-slate-300 hover:bg-slate-700 hover:text-white hover:shadow-md" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:shadow-sm"
+                 )}
               >
                 <item.icon className="w-4 h-4" />
                 {item.name}

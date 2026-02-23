@@ -3,24 +3,24 @@ import { CheckCircle2, XCircle, Clock, Loader2, AlertTriangle, Pause } from "luc
 
 const statusConfig = {
   // Job statuses
-  idle: { color: "bg-slate-100 text-slate-700", icon: Clock, label: "Idle" },
-  running: { color: "bg-blue-100 text-blue-700", icon: Loader2, label: "Running", animate: true },
-  completed: { color: "bg-emerald-100 text-emerald-700", icon: CheckCircle2, label: "Completed" },
-  failed: { color: "bg-red-100 text-red-700", icon: XCircle, label: "Failed" },
-  paused: { color: "bg-amber-100 text-amber-700", icon: Pause, label: "Paused" },
-  retrying: { color: "bg-orange-100 text-orange-700", icon: Loader2, label: "Retrying", animate: true },
-  cancelled: { color: "bg-slate-100 text-slate-600", icon: XCircle, label: "Cancelled" },
+  idle: { color: "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200", icon: Clock, label: "Idle" },
+  running: { color: "bg-blue-200 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300", icon: Loader2, label: "Running", animate: true },
+  completed: { color: "bg-green-200 text-green-800 dark:bg-green-900/40 dark:text-green-300", icon: CheckCircle2, label: "Completed" },
+  failed: { color: "bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-300", icon: XCircle, label: "Failed" },
+  paused: { color: "bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300", icon: Pause, label: "Paused" },
+  retrying: { color: "bg-orange-200 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300", icon: Loader2, label: "Retrying", animate: true },
+  cancelled: { color: "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200", icon: XCircle, label: "Cancelled" },
   
   // Connection statuses
-  active: { color: "bg-emerald-100 text-emerald-700", icon: CheckCircle2, label: "Active" },
-  inactive: { color: "bg-slate-100 text-slate-600", icon: Clock, label: "Inactive" },
-  error: { color: "bg-red-100 text-red-700", icon: AlertTriangle, label: "Error" },
-  pending_setup: { color: "bg-amber-100 text-amber-700", icon: AlertTriangle, label: "Pending Setup" },
+  active: { color: "bg-green-200 text-green-800 dark:bg-green-900/40 dark:text-green-300", icon: CheckCircle2, label: "Active" },
+  inactive: { color: "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200", icon: Clock, label: "Inactive" },
+  error: { color: "bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-300", icon: AlertTriangle, label: "Error" },
+  pending_setup: { color: "bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300", icon: AlertTriangle, label: "Pending Setup" },
   
   // Log types
-  info: { color: "bg-blue-100 text-blue-700", icon: Clock, label: "Info" },
-  warning: { color: "bg-amber-100 text-amber-700", icon: AlertTriangle, label: "Warning" },
-  success: { color: "bg-emerald-100 text-emerald-700", icon: CheckCircle2, label: "Success" },
+  info: { color: "bg-blue-200 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300", icon: Clock, label: "Info" },
+  warning: { color: "bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300", icon: AlertTriangle, label: "Warning" },
+  success: { color: "bg-green-200 text-green-800 dark:bg-green-900/40 dark:text-green-300", icon: CheckCircle2, label: "Success" },
 };
 
 export default function StatusBadge({ status, size = "default" }) {
