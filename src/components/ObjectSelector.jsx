@@ -23,14 +23,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SchemaImporter from "@/components/SchemaImporter";
 
-const mockSchemas = [
-  { name: "dbo", tables: ["Customers", "Orders", "Products", "Inventory", "Suppliers", "Categories"] },
-  { name: "sales", tables: ["Transactions", "Returns", "Discounts", "Promotions"] },
-  { name: "hr", tables: ["Employees", "Departments", "Salaries", "Attendance"] }
+const defaultSchemas = [
+  { name: "dbo", tables: [{ name: "Customers", columns: [] }, { name: "Orders", columns: [] }, { name: "Products", columns: [] }, { name: "Inventory", columns: [] }, { name: "Suppliers", columns: [] }, { name: "Categories", columns: [] }] },
+  { name: "sales", tables: [{ name: "Transactions", columns: [] }, { name: "Returns", columns: [] }, { name: "Discounts", columns: [] }, { name: "Promotions", columns: [] }] },
+  { name: "hr", tables: [{ name: "Employees", columns: [] }, { name: "Departments", columns: [] }, { name: "Salaries", columns: [] }, { name: "Attendance", columns: [] }] }
 ];
 
 export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [schemas, setSchemas] = useState(defaultSchemas);
   const [expandedSchemas, setExpandedSchemas] = useState(["dbo"]);
   const [configPanelObject, setConfigPanelObject] = useState(null);
   const [objectConfig, setObjectConfig] = useState({});
@@ -61,14 +62,14 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
 
   const selectAllInSchema = (schema, tables) => {
     const toAdd = tables
-      .filter(t => !isSelected(schema, t))
-      .map(t => ({ schema, table: t, target_path: `/${schema}/${t}`, target_format: "original" }));
+      .filter(t => !isSelected(schema, t.name))
+      .map(t => ({ schema, table: t.name, target_path: `/${schema}/${t.name}`, target_format: "original" }));
     onChange([...selectedObjects, ...toAdd]);
   };
 
   const deselectAllInSchema = (schema, tables) => {
     onChange(selectedObjects.filter(obj => obj.schema !== schema));
-    if (configPanelObject && tables.includes(configPanelObject.table) && configPanelObject.schema === schema) {
+    if (configPanelObject && tables.find(t => t.name === configPanelObject.table) && configPanelObject.schema === schema) {
       setConfigPanelObject(null);
     }
   };
@@ -94,27 +95,38 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
     setConfigPanelObject(null);
   };
 
-  const handleImportedObjects = (importedObjects) => {
-    const merged = [...selectedObjects];
-    importedObjects.forEach(obj => {
-      if (!merged.some(o => o.schema === obj.schema && o.table === obj.table)) {
-        merged.push(obj);
-      }
+  const handleImportedSchemas = (importedSchemas) => {
+    // Merge imported schemas into existing (avoid duplicates)
+    setSchemas(prev => {
+      const merged = [...prev];
+      importedSchemas.forEach(incoming => {
+        const existing = merged.find(s => s.name === incoming.name);
+        if (existing) {
+          incoming.tables.forEach(t => {
+            if (!existing.tables.find(et => et.name === t.name)) {
+              existing.tables.push(t);
+            }
+          });
+        } else {
+          merged.push(incoming);
+        }
+      });
+      return merged;
     });
-    onChange(merged);
+    setExpandedSchemas(importedSchemas.map(s => s.name));
   };
 
-  const filteredSchemas = mockSchemas.map(schema => ({
+  const filteredSchemas = schemas.map(schema => ({
     ...schema,
     tables: schema.tables.filter(t =>
-      t.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       schema.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   })).filter(schema => schema.tables.length > 0);
 
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden">
-      {/* Search + Import toggle */}
+      {/* Search + Import */}
       <div className="p-3 border-b border-slate-200 bg-slate-50 space-y-2">
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -126,25 +138,24 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
               className="pl-9 bg-white"
             />
           </div>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5 shrink-0 text-xs"
             onClick={() => setShowImporter(v => !v)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
-              showImporter
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
-            )}
           >
             <Upload className="w-3.5 h-3.5" />
             Import Schema
-          </button>
+          </Button>
         </div>
         {showImporter && (
-          <SchemaImporter
-            onImport={handleImportedObjects}
-            onClose={() => setShowImporter(false)}
-          />
+          <div className="bg-white border border-slate-200 rounded-lg p-3">
+            <SchemaImporter
+              onImport={handleImportedSchemas}
+              onClose={() => setShowImporter(false)}
+            />
+          </div>
         )}
       </div>
 
@@ -183,32 +194,38 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                {schema.tables.map(table => (
-                  <div
-                    key={table}
-                    className={cn(
-                      "flex items-center gap-2 pl-10 pr-3 py-2 hover:bg-slate-50 border-b border-slate-50",
-                      isSelected(schema.name, table) && "bg-blue-50/50",
-                      configPanelObject?.schema === schema.name && configPanelObject?.table === table && "bg-blue-100/60"
-                    )}
-                  >
-                    <Checkbox
-                      checked={isSelected(schema.name, table)}
-                      onCheckedChange={() => toggleTable(schema.name, table)}
-                    />
-                    <Table2 className="w-4 h-4 text-slate-400" />
-                    <span className="text-sm text-slate-600 flex-1">{table}</span>
-                    {isSelected(schema.name, table) && (
-                      <button
-                        type="button"
-                        className="h-6 w-6 flex items-center justify-center rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
-                        onClick={(e) => { e.stopPropagation(); openConfig(schema.name, table); }}
-                      >
-                        <Settings2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                {schema.tables.map(tableObj => {
+                  const tableName = tableObj.name;
+                  return (
+                    <div
+                      key={tableName}
+                      className={cn(
+                        "flex items-center gap-2 pl-10 pr-3 py-2 hover:bg-slate-50 border-b border-slate-50",
+                        isSelected(schema.name, tableName) && "bg-blue-50/50",
+                        configPanelObject?.schema === schema.name && configPanelObject?.table === tableName && "bg-blue-100/60"
+                      )}
+                    >
+                      <Checkbox
+                        checked={isSelected(schema.name, tableName)}
+                        onCheckedChange={() => toggleTable(schema.name, tableName)}
+                      />
+                      <Table2 className="w-4 h-4 text-slate-400" />
+                      <span className="text-sm text-slate-600 flex-1">{tableName}</span>
+                      {tableObj.columns?.length > 0 && (
+                        <span className="text-xs text-slate-400">{tableObj.columns.length} cols</span>
+                      )}
+                      {isSelected(schema.name, tableName) && (
+                        <button
+                          type="button"
+                          className="h-6 w-6 flex items-center justify-center rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+                          onClick={(e) => { e.stopPropagation(); openConfig(schema.name, tableName); }}
+                        >
+                          <Settings2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </CollapsibleContent>
             </Collapsible>
           );
