@@ -11,11 +11,15 @@ import {
   AlertTriangle,
   Clock,
   ChevronDown,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import { createIndex } from "@/components/dataIndexing";
 import {
   Select,
   SelectContent,
@@ -58,6 +62,8 @@ export default function ActivityLogs() {
   const [filterCategory, setFilterCategory] = useState("all");
   const [selectedLog, setSelectedLog] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const logsPerPage = 20;
 
   useEffect(() => {
     loadData();
@@ -66,7 +72,7 @@ export default function ActivityLogs() {
   const loadData = async () => {
     setLoading(true);
     const [logsData, jobsData, connectionsData] = await Promise.all([
-      base44.entities.ActivityLog.list("-created_date", 200),
+      base44.entities.ActivityLog.list("-created_date", 500),
       base44.entities.IngestionJob.list(),
       base44.entities.Connection.list()
     ]);
@@ -76,8 +82,12 @@ export default function ActivityLogs() {
     setLoading(false);
   };
 
-  const getJobName = (jobId) => jobs.find(j => j.id === jobId)?.name || "Unknown Job";
-  const getConnectionName = (connId) => connections.find(c => c.id === connId)?.name || "Unknown Connection";
+  // Indexed lookups for better performance
+  const jobIndex = createIndex(jobs, "id");
+  const connectionIndex = createIndex(connections, "id");
+  
+  const getJobName = (jobId) => jobIndex.get(jobId)?.name || "Unknown Job";
+  const getConnectionName = (connId) => connectionIndex.get(connId)?.name || "Unknown Connection";
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = log.message?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -85,6 +95,15 @@ export default function ActivityLogs() {
     const matchesCategory = filterCategory === "all" || log.category === filterCategory;
     return matchesSearch && matchesType && matchesCategory;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+  const paginatedLogs = filteredLogs.slice((currentPage - 1) * logsPerPage, currentPage * logsPerPage);
+  
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, filterCategory]);
 
   const handleExport = () => {
     const csvContent = [
@@ -126,8 +145,17 @@ export default function ActivityLogs() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="space-y-2">
+          <div className="h-8 bg-slate-200 rounded w-48 animate-pulse" />
+          <div className="h-4 bg-slate-200 rounded w-96 animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({length:4}).map((_, i) => (
+            <div key={i} className="h-20 bg-slate-200 rounded-lg animate-pulse" />
+          ))}
+        </div>
+        <SkeletonLoader count={8} height="h-16" />
       </div>
     );
   }
@@ -254,9 +282,9 @@ export default function ActivityLogs() {
       {/* Logs List */}
       <Card className="border-slate-200">
         <CardContent className="p-0">
-          {filteredLogs.length > 0 ? (
+          {paginatedLogs.length > 0 ? (
             <div className="divide-y divide-slate-100">
-              {filteredLogs.map((log) => {
+              {paginatedLogs.map((log) => {
                 const typeConfig = logTypeConfig[log.log_type] || logTypeConfig.info;
                 const catConfig = categoryConfig[log.category] || categoryConfig.system;
                 const Icon = typeConfig.icon;
@@ -322,6 +350,54 @@ export default function ActivityLogs() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-slate-500">
+            Showing {(currentPage - 1) * logsPerPage + 1} to {Math.min(currentPage * logsPerPage, filteredLogs.length)} of {filteredLogs.length} logs
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 rounded text-sm font-medium ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white"
+                        : "hover:bg-slate-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+              {totalPages > 5 && <span className="text-slate-400">...</span>}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Log Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
