@@ -140,7 +140,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
             <div className="border border-blue-100 rounded-xl overflow-hidden">
               <div className="bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 flex items-center justify-between">
                 <span>{tableMappings.length} Active Mappings</span>
-                <button onClick={() => onChange({ ...mappings, [tableKey]: [] })} className="text-red-400 hover:text-red-600 text-xs">Clear all</button>
+                <button type="button" onClick={() => onChange({ ...mappings, [tableKey]: [] })} className="text-red-400 hover:text-red-600 text-xs">Clear all</button>
               </div>
               <div className="max-h-48 overflow-y-auto overflow-x-auto">
                 {/* Header */}
