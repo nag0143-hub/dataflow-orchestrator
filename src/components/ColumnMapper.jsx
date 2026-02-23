@@ -52,30 +52,25 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
   const [selectedTable, setSelectedTable] = useState(selectedObjects[0] ? `${selectedObjects[0].schema}.${selectedObjects[0].table}` : "");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-
-  // Persist auto-mappings when table columns are first loaded
-  const autoMappedRef = useState(() => new Set())[0];
-  useMemo(() => {
-    if (!tableKey || !tableColumns.length || mappings[tableKey] || autoMappedRef.has(tableKey)) return;
-    autoMappedRef.add(tableKey);
-    const auto = tableColumns.map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
-    setTimeout(() => onChange({ ...mappings, [tableKey]: auto }), 0);
-  }, [tableKey, tableColumns]);
+  const autoMappedRef = useRef(new Set());
 
   const tableKey = selectedTable;
+
   const tableColumns = useMemo(() => {
     if (!selectedTable) return [];
     const [schema, table] = selectedTable.split(".");
     return getMockColumns(schema, table);
   }, [selectedTable]);
 
-  // Auto-map all columns on first load for a table
-  const tableMappings = useMemo(() => {
-    if (!tableKey) return [];
-    if (mappings[tableKey]) return mappings[tableKey];
-    // Auto-generate direct mappings for all columns
-    return tableColumns.map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
-  }, [mappings, tableKey, tableColumns]);
+  // Auto-map all columns to direct mapping when a table is first selected
+  useEffect(() => {
+    if (!tableKey || !tableColumns.length || mappings[tableKey] || autoMappedRef.current.has(tableKey)) return;
+    autoMappedRef.current.add(tableKey);
+    const auto = tableColumns.map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
+    onChange({ ...mappings, [tableKey]: auto });
+  }, [tableKey, tableColumns]);
+
+  const tableMappings = mappings[tableKey] || [];
 
   const mappedSourceCols = useMemo(() => new Set(tableMappings.map(m => m.source)), [tableMappings]);
 
