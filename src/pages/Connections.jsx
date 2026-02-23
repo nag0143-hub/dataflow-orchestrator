@@ -17,7 +17,8 @@ import {
   XCircle,
   Loader2,
   Wifi,
-  Server
+  Server,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
