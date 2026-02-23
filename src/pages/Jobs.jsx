@@ -318,8 +318,42 @@ export default function Jobs() {
   const getConnection = (id) => connections.find(c => c.id === id);
   const getJobRuns = (jobId) => runs.filter(r => r.job_id === jobId);
 
+  const validateJob = () => {
+    if (!formData.name?.trim()) {
+      toast.error("Job name is required");
+      return false;
+    }
+    if (!formData.source_connection_id) {
+      toast.error("Source connection is required");
+      return false;
+    }
+    if (!formData.target_connection_id) {
+      toast.error("Target connection is required");
+      return false;
+    }
+    if (formData.source_connection_id === formData.target_connection_id) {
+      toast.error("Source and target connections must be different");
+      return false;
+    }
+    if (!formData.selected_objects || formData.selected_objects.length === 0) {
+      toast.error("At least one object must be selected");
+      return false;
+    }
+    if (formData.schedule_type === "custom" && !formData.cron_expression?.trim()) {
+      toast.error("Cron expression is required for custom schedule");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateJob()) {
+      setSaving(false);
+      return;
+    }
+
     setSaving(true);
 
     const payload = {
