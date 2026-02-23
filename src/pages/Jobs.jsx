@@ -580,8 +580,8 @@ export default function Jobs() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Ingestion Jobs</h1>
-          <p className="text-slate-500 mt-1">Configure and run data transfer jobs</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Data Transfer Jobs</h1>
+          <p className="text-slate-500 mt-1">Configure and run data transfer jobs between connections</p>
         </div>
         <Button
            onClick={() => { setEditingJob(null); setFormData(defaultFormData); setDialogOpen(true); setActiveTab("general"); }}
@@ -765,7 +765,7 @@ export default function Jobs() {
             <Play className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-900 mb-2">No jobs found</h3>
             <p className="text-slate-500 mb-4">
-              {searchTerm ? "Try adjusting your search" : "Create your first ingestion job"}
+              {searchTerm ? "Try adjusting your search" : "Create your first data transfer job"}
             </p>
             {!searchTerm && (
               <Button onClick={() => setDialogOpen(true)} className="gap-2">
@@ -782,7 +782,7 @@ export default function Jobs() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingJob ? "Edit Job" : "New Ingestion Job"}
+              {editingJob ? "Edit Job" : "New Data Transfer Job"}
             </DialogTitle>
           </DialogHeader>
 
@@ -847,7 +847,7 @@ export default function Jobs() {
 
                 <div>
                   <Label>Job-Level Access Entitlements</Label>
-                  <p className="text-xs text-slate-500 mb-2">Roles/entitlements that can access this job. Objects inherit these unless overridden.</p>
+                  <p className="text-xs text-slate-500 mb-2">Roles/entitlements that can access this job. Datasets inherit these unless overridden.</p>
                   <Input
                     value={formData.access_entitlements?.join(", ") || ""}
                     onChange={(e) => setFormData({ 
@@ -909,7 +909,7 @@ export default function Jobs() {
 
               <TabsContent value="datasets" className="space-y-4 mt-4">
                 <div>
-                  <Label className="mb-2 block">Select Tables/Datasets to Ingest</Label>
+                  <Label className="mb-2 block">Select Tables/Datasets to Transfer</Label>
                   <ObjectSelector
                     selectedObjects={formData.selected_datasets}
                     onChange={(objects) => setFormData({ ...formData, selected_datasets: objects })}
@@ -923,7 +923,7 @@ export default function Jobs() {
                       <h4 className="font-semibold text-slate-900 text-sm">Dataset-Level Access Entitlements</h4>
                     </div>
                     <p className="text-xs text-slate-500">
-                      Configure access for individual datasets. Leave empty to inherit job-level entitlements: <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">{formData.access_entitlements?.length > 0 ? formData.access_entitlements.join(", ") : "(none set)"}</code>
+                      Configure access for individual datasets. Leave empty to inherit job-level entitlements:  <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">{formData.access_entitlements?.length > 0 ? formData.access_entitlements.join(", ") : "(none set)"}</code>
                     </p>
                     
                     <div className="space-y-3 max-h-96 overflow-y-auto">
