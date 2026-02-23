@@ -53,6 +53,57 @@ import { useTenant } from "@/components/useTenant";
 import moment from "moment";
 import { toast } from "sonner";
 
+function SaveAsProfileButton({ formData }) {
+  const [saving, setSaving] = useState(false);
+  const [namePrompt, setNamePrompt] = useState(false);
+  const [profileName, setProfileName] = useState("");
+
+  const handleSave = async () => {
+    if (!formData.platform) { toast.error("Select a platform first"); return; }
+    if (!profileName.trim()) return;
+    setSaving(true);
+    const { status, last_tested, notes, name: connName, ...fields } = formData;
+    await base44.entities.ConnectionProfile.create({
+      ...fields,
+      name: profileName.trim(),
+    });
+    toast.success(`Saved as profile "${profileName.trim()}"`);
+    setNamePrompt(false);
+    setProfileName("");
+    setSaving(false);
+  };
+
+  if (namePrompt) {
+    return (
+      <div className="flex items-center gap-2">
+        <Input
+          value={profileName}
+          onChange={e => setProfileName(e.target.value)}
+          placeholder="Profile name..."
+          className="h-8 text-sm w-44"
+          autoFocus
+          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleSave(); } if (e.key === "Escape") setNamePrompt(false); }}
+        />
+        <Button type="button" size="sm" disabled={saving || !profileName.trim()} onClick={handleSave} className="h-8 text-xs">Save</Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => setNamePrompt(false)} className="h-8 text-xs">✕</Button>
+      </div>
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="text-xs text-slate-500 hover:text-slate-800 gap-1.5"
+      onClick={() => { setProfileName(formData.name || ""); setNamePrompt(true); }}
+    >
+      <BookOpen className="w-3.5 h-3.5" />
+      Save as Profile
+    </Button>
+  );
+}
+
 const defaultFormData = {
   name: "",
   connection_type: "source",
