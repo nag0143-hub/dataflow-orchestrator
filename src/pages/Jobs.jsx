@@ -1278,6 +1278,30 @@ export default function Jobs() {
                             <div className="font-medium text-sm text-slate-900">
                               {obj.schema}.{obj.table}
                             </div>
+                            <div>
+                              <Label className="text-xs text-slate-600">Data Classification</Label>
+                              <Select 
+                                value={obj.data_classification || ""} 
+                                onValueChange={(v) => {
+                                  const updated = [...formData.selected_datasets];
+                                  updated[idx].data_classification = v;
+                                  setFormData({ ...formData, selected_datasets: updated });
+                                }}
+                              >
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue placeholder="Select classification" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="public">Public</SelectItem>
+                                  <SelectItem value="confidential">Confidential</SelectItem>
+                                  <SelectItem value="personal_class_1">Personal Class 1</SelectItem>
+                                  <SelectItem value="personal_class_1_pci">Personal Class 1 - PCI</SelectItem>
+                                  <SelectItem value="personal_class_2">Personal Class 2</SelectItem>
+                                  <SelectItem value="personal_class_3">Personal Class 3</SelectItem>
+                                  <SelectItem value="personal_class_4">Personal Class 4</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                             <Input
                               value={obj.access_entitlements?.join(", ") || ""}
                               onChange={(e) => {
