@@ -142,22 +142,22 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                 <span>{tableMappings.length} Active Mappings</span>
                 <button onClick={() => onChange({ ...mappings, [tableKey]: [] })} className="text-red-400 hover:text-red-600 text-xs">Clear all</button>
               </div>
-              <div className="max-h-48 overflow-y-auto">
+              <div className="max-h-48 overflow-y-auto overflow-x-auto">
                 {/* Header */}
-                <div className="grid grid-cols-[1fr_24px_1fr_1fr_28px] gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0">
-                  <span>Source</span><span></span><span>Target</span><span>Transformation</span><span></span>
+                <div className="grid gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0 min-w-[520px]" style={{gridTemplateColumns:"1fr 20px 1fr 160px 28px"}}>
+                  <span>Source Column</span><span></span><span>Target Column</span><span>Transformation</span><span></span>
                 </div>
                 {tableMappings.map((m, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_24px_1fr_1fr_28px] gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs">
+                  <div key={i} className="grid gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs min-w-[520px]" style={{gridTemplateColumns:"1fr 20px 1fr 160px 28px"}}>
                     <span className="font-mono text-slate-700 truncate" title={m.source}>{m.source}</span>
                     <ArrowRight className="w-3 h-3 text-slate-300 shrink-0" />
                     <Input
                       value={m.target}
                       onChange={e => updateMapping(m.source, "target", e.target.value)}
-                      className="h-6 text-xs px-2 font-mono"
+                      className="h-6 text-xs px-2 font-mono w-full"
                     />
                     <Select value={m.transformation} onValueChange={v => updateMapping(m.source, "transformation", v)}>
-                      <SelectTrigger className="h-6 text-xs px-2">
+                      <SelectTrigger className="h-6 text-xs px-2 w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
