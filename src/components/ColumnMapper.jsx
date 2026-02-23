@@ -60,11 +60,13 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     return getMockColumns(schema, table);
   }, [selectedTable]);
 
-  // Current mappings for this table
-  const tableMappings = useMemo(
-    () => (mappings[tableKey] || []),
-    [mappings, tableKey]
-  );
+  // Auto-map all columns on first load for a table
+  const tableMappings = useMemo(() => {
+    if (!tableKey) return [];
+    if (mappings[tableKey]) return mappings[tableKey];
+    // Auto-generate direct mappings for all columns
+    return tableColumns.map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
+  }, [mappings, tableKey, tableColumns]);
 
   const mappedSourceCols = useMemo(() => new Set(tableMappings.map(m => m.source)), [tableMappings]);
 
