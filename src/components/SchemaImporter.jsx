@@ -1,309 +1,411 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileCode, FileJson, FileText, ChevronDown, ChevronRight, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { base44 } from "@/api/base44Client";
+import {
+  Upload,
+  Code2,
+  FileSpreadsheet,
+  FileJson,
+  FileCode,
+  X,
+  Check,
+  Loader2,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Table2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ── Parsers ──────────────────────────────────────────────────────────────────
-
-function parseDDL(text) {
-  // Match: CREATE TABLE [schema.]table ( ... )
+/**
+ * Parses SQL DDL text and extracts table/column definitions.
+ * Handles CREATE TABLE statements.
+ */
+function parseDDL(ddl) {
   const schemas = {};
-  const tableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["'`\[]?(\w+)["'`\]]?\.?["'`\[]?(\w+)["'`\]]?\s*\(/gi;
-  const colRegex = /^\s*["'`\[]?(\w+)["'`\]]?\s+([\w()]+(?:\s*\(\s*\d+(?:\s*,\s*\d+)?\s*\))?)/;
-
+  const createTableRe = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:"?(\w+)"?\."?(\w+)"?|"?(\w+)"?)\s*\(([^;]+?)\)/gis;
   let match;
-  while ((match = tableRegex.exec(text)) !== null) {
-    const [, rawSchema, rawTable] = match;
-    const schema = rawSchema.toLowerCase();
-    const table = rawTable;
+  while ((match = createTableRe.exec(ddl)) !== null) {
+    const schemaName = match[1] || "dbo";
+    const tableName = match[2] || match[3];
+    const body = match[4];
 
-    // Extract columns from the table body
-    const bodyStart = match.index + match[0].length;
-    let depth = 1;
-    let i = bodyStart;
-    while (i < text.length && depth > 0) {
-      if (text[i] === "(") depth++;
-      else if (text[i] === ")") depth--;
-      i++;
-    }
-    const body = text.slice(bodyStart, i - 1);
-    const lines = body.split("\n");
+    // Parse columns (skip constraints)
     const columns = [];
-    for (const line of lines) {
-      const m = colRegex.exec(line);
-      if (m && !["PRIMARY", "FOREIGN", "UNIQUE", "INDEX", "KEY", "CONSTRAINT", "CHECK"].includes(m[1].toUpperCase())) {
-        columns.push({ name: m[1], type: m[2].toUpperCase() });
+    body.split(/,\n?/).forEach(line => {
+      line = line.trim();
+      if (/^(PRIMARY|FOREIGN|UNIQUE|CHECK|CONSTRAINT|INDEX|KEY)\b/i.test(line)) return;
+      const colMatch = line.match(/^"?(\w+)"?\s+([A-Z][\w(),.]*)/i);
+      if (colMatch) {
+        columns.push({ name: colMatch[1], type: colMatch[2].toUpperCase() });
       }
-    }
+    });
 
-    if (!schemas[schema]) schemas[schema] = {};
-    schemas[schema][table] = columns;
+    if (!schemas[schemaName]) schemas[schemaName] = {};
+    schemas[schemaName][tableName] = columns;
   }
-  return buildResult(schemas);
+  return schemas;
 }
 
-function parseJSON(text) {
+/**
+ * Parses a simple JSON schema (array of { schema, table, columns[] } or
+ * object like { schema: { table: [col,...] } })
+ */
+function parseJSONSchema(text) {
   const data = JSON.parse(text);
   const schemas = {};
 
-  const processTable = (schema, table, cols) => {
-    if (!schemas[schema]) schemas[schema] = {};
-    const columns = [];
-    if (Array.isArray(cols)) {
-      cols.forEach(c => {
-        if (typeof c === "string") columns.push({ name: c, type: "VARCHAR" });
-        else if (c.name) columns.push({ name: c.name, type: c.type || c.dataType || "VARCHAR" });
-      });
-    } else if (typeof cols === "object") {
-      Object.entries(cols).forEach(([name, type]) => columns.push({ name, type: typeof type === "string" ? type : "VARCHAR" }));
-    }
-    schemas[schema][table] = columns;
-  };
-
   if (Array.isArray(data)) {
-    // [{ schema, table, columns }] or [{ name, columns }]
+    // [{ schema, table, columns: [{name, type}] }]
     data.forEach(entry => {
-      const schema = entry.schema || "dbo";
-      const table = entry.table || entry.name;
-      if (table) processTable(schema, table, entry.columns || entry.fields || []);
+      const s = entry.schema || "dbo";
+      const t = entry.table || entry.name;
+      if (!schemas[s]) schemas[s] = {};
+      schemas[s][t] = (entry.columns || []).map(c =>
+        typeof c === "string" ? { name: c, type: "VARCHAR" } : c
+      );
     });
-  } else if (data.tables) {
-    data.tables.forEach(t => processTable(t.schema || "dbo", t.table || t.name, t.columns || []));
-  } else if (data.schemas) {
-    Object.entries(data.schemas).forEach(([schema, tables]) => {
-      Object.entries(tables).forEach(([table, cols]) => processTable(schema, table, cols));
-    });
-  } else {
-    // { schema: { table: [cols] } }
-    Object.entries(data).forEach(([schema, tables]) => {
-      if (typeof tables === "object" && !Array.isArray(tables)) {
-        Object.entries(tables).forEach(([table, cols]) => processTable(schema, table, Array.isArray(cols) ? cols : []));
+  } else if (typeof data === "object") {
+    // { schema: { table: ["col1", ...] } } or flat { table: [...] }
+    Object.entries(data).forEach(([key, val]) => {
+      if (typeof val === "object" && !Array.isArray(val)) {
+        // key = schema
+        schemas[key] = {};
+        Object.entries(val).forEach(([tbl, cols]) => {
+          schemas[key][tbl] = Array.isArray(cols)
+            ? cols.map(c => typeof c === "string" ? { name: c, type: "VARCHAR" } : c)
+            : [];
+        });
+      } else if (Array.isArray(val)) {
+        if (!schemas["dbo"]) schemas["dbo"] = {};
+        schemas["dbo"][key] = val.map(c => typeof c === "string" ? { name: c, type: "VARCHAR" } : c);
       }
     });
   }
-
-  return buildResult(schemas);
+  return schemas;
 }
 
-function parseXML(text) {
+/**
+ * Parses XML schema like:
+ * <schema name="dbo"><table name="Customers"><column name="id" type="INT"/></table></schema>
+ */
+function parseXMLSchema(text) {
+  const schemas = {};
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, "text/xml");
-  const schemas = {};
-
-  const tables = doc.querySelectorAll("table, Table, TABLE, entity, Entity");
-  tables.forEach(tableEl => {
-    const schema = tableEl.getAttribute("schema") || tableEl.getAttribute("Schema") || "dbo";
-    const tableName = tableEl.getAttribute("name") || tableEl.getAttribute("Name") || tableEl.tagName;
-    if (!schemas[schema]) schemas[schema] = {};
-    const columns = [];
-    tableEl.querySelectorAll("column, Column, field, Field, attribute, Attribute").forEach(colEl => {
-      const name = colEl.getAttribute("name") || colEl.getAttribute("Name") || colEl.textContent.trim();
-      const type = colEl.getAttribute("type") || colEl.getAttribute("dataType") || colEl.getAttribute("Type") || "VARCHAR";
-      if (name) columns.push({ name, type: type.toUpperCase() });
+  const schemaNodes = doc.querySelectorAll("schema");
+  if (schemaNodes.length === 0) {
+    // flat <tables><table name="...">...
+    const tables = doc.querySelectorAll("table");
+    tables.forEach(t => {
+      const s = t.getAttribute("schema") || "dbo";
+      const name = t.getAttribute("name");
+      if (!schemas[s]) schemas[s] = {};
+      schemas[s][name] = [...t.querySelectorAll("column")].map(c => ({
+        name: c.getAttribute("name"),
+        type: (c.getAttribute("type") || "VARCHAR").toUpperCase(),
+      }));
     });
-    schemas[schema][tableName] = columns;
-  });
-
-  return buildResult(schemas);
-}
-
-function parseCSV(text) {
-  // Expected: schema,table,column,type  OR  table,column,type
-  const lines = text.trim().split("\n").map(l => l.trim()).filter(Boolean);
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/['"]/g, ""));
-  const schemas = {};
-
-  const schemaIdx = headers.indexOf("schema");
-  const tableIdx = headers.findIndex(h => h === "table" || h === "table_name");
-  const colIdx = headers.findIndex(h => h === "column" || h === "column_name");
-  const typeIdx = headers.findIndex(h => h === "type" || h === "data_type" || h === "datatype");
-
-  for (let i = 1; i < lines.length; i++) {
-    const parts = lines[i].split(",").map(p => p.trim().replace(/['"]/g, ""));
-    const schema = schemaIdx >= 0 ? parts[schemaIdx] : "dbo";
-    const table = tableIdx >= 0 ? parts[tableIdx] : null;
-    const col = colIdx >= 0 ? parts[colIdx] : null;
-    const type = typeIdx >= 0 ? parts[typeIdx] : "VARCHAR";
-    if (!table || !col) continue;
-    if (!schemas[schema]) schemas[schema] = {};
-    if (!schemas[schema][table]) schemas[schema][table] = [];
-    schemas[schema][table].push({ name: col, type: type.toUpperCase() });
+  } else {
+    schemaNodes.forEach(sNode => {
+      const s = sNode.getAttribute("name") || "dbo";
+      schemas[s] = {};
+      sNode.querySelectorAll("table").forEach(t => {
+        const name = t.getAttribute("name");
+        schemas[s][name] = [...t.querySelectorAll("column")].map(c => ({
+          name: c.getAttribute("name"),
+          type: (c.getAttribute("type") || "VARCHAR").toUpperCase(),
+        }));
+      });
+    });
   }
-
-  return buildResult(schemas);
+  return schemas;
 }
 
-function buildResult(schemas) {
-  return Object.entries(schemas).map(([name, tables]) => ({
-    name,
-    tables: Object.entries(tables).map(([tName, columns]) => ({ name: tName, columns }))
-  }));
-}
-
-// ── Component ─────────────────────────────────────────────────────────────────
-
-const FORMAT_ICONS = {
-  sql: FileCode,
-  json: FileJson,
-  xml: FileText,
-  csv: FileText,
-  xlsx: FileText,
-};
+const MODES = [
+  { id: "ddl", label: "DDL", icon: Code2, desc: "Paste CREATE TABLE SQL" },
+  { id: "json", label: "JSON", icon: FileJson, desc: "JSON schema definition" },
+  { id: "xml", label: "XML", icon: FileCode, desc: "XML schema definition" },
+  { id: "file", label: "Upload File", icon: Upload, desc: "Excel / CSV / JSON / XML" },
+];
 
 export default function SchemaImporter({ onImport, onClose }) {
-  const [dragging, setDragging] = useState(false);
-  const [parsed, setParsed] = useState(null); // [{ name, tables: [{ name, columns }] }]
-  const [error, setError] = useState(null);
-  const [fileName, setFileName] = useState(null);
-  const [expanded, setExpanded] = useState({});
+  const [mode, setMode] = useState("ddl");
+  const [text, setText] = useState("");
+  const [parsedSchemas, setParsedSchemas] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [expandedSchemas, setExpandedSchemas] = useState([]);
+  const [selectedTables, setSelectedTables] = useState({});
   const fileRef = useRef();
 
-  const processFile = async (file) => {
-    setError(null);
-    setParsed(null);
-    setFileName(file.name);
-    const ext = file.name.split(".").pop().toLowerCase();
-
-    const text = await file.text();
-    let result;
+  const parse = () => {
+    setError("");
     try {
-      if (ext === "sql") result = parseDDL(text);
-      else if (ext === "json") result = parseJSON(text);
-      else if (ext === "xml") result = parseXML(text);
-      else if (ext === "csv") result = parseCSV(text);
-      else {
-        setError("Unsupported format. Please upload .sql, .json, .xml, or .csv");
-        return;
-      }
+      let schemas;
+      if (mode === "ddl") schemas = parseDDL(text);
+      else if (mode === "json") schemas = parseJSONSchema(text);
+      else if (mode === "xml") schemas = parseXMLSchema(text);
+      else return;
 
-      if (!result || result.length === 0) {
-        setError("No tables found in the file. Check the format and try again.");
+      if (Object.keys(schemas).length === 0) {
+        setError("No tables found. Check your input format.");
         return;
       }
-      setParsed(result);
-      // Auto-expand first schema
-      setExpanded({ [result[0].name]: true });
+      setParsedSchemas(schemas);
+      const firstSchema = Object.keys(schemas)[0];
+      setExpandedSchemas([firstSchema]);
+      // auto-select all
+      const sel = {};
+      Object.entries(schemas).forEach(([s, tables]) => {
+        Object.keys(tables).forEach(t => { sel[`${s}.${t}`] = true; });
+      });
+      setSelectedTables(sel);
     } catch (e) {
       setError(`Parse error: ${e.message}`);
     }
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
-  };
-
-  const handleFileInput = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) processFile(file);
+    if (!file) return;
+    setLoading(true);
+    setError("");
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            tables: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  schema: { type: "string" },
+                  table: { type: "string" },
+                  columns: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        type: { type: "string" },
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (result.status !== "success") throw new Error(result.details || "Extraction failed");
+
+      const rawTables = result.output?.tables || (Array.isArray(result.output) ? result.output : []);
+      const schemas = {};
+      rawTables.forEach(entry => {
+        const s = entry.schema || "dbo";
+        const t = entry.table || entry.name;
+        if (!t) return;
+        if (!schemas[s]) schemas[s] = {};
+        schemas[s][t] = (entry.columns || []).map(c =>
+          typeof c === "string" ? { name: c, type: "VARCHAR" } : c
+        );
+      });
+
+      if (Object.keys(schemas).length === 0) throw new Error("No tables could be extracted from the file.");
+      setParsedSchemas(schemas);
+      const firstSchema = Object.keys(schemas)[0];
+      setExpandedSchemas([firstSchema]);
+      const sel = {};
+      Object.entries(schemas).forEach(([s, tables]) => {
+        Object.keys(tables).forEach(t => { sel[`${s}.${t}`] = true; });
+      });
+      setSelectedTables(sel);
+    } catch (e) {
+      setError(e.message);
+    }
+    setLoading(false);
   };
 
-  const totalTables = parsed?.reduce((sum, s) => sum + s.tables.length, 0) || 0;
+  const toggleSchema = (s) => setExpandedSchemas(prev =>
+    prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]
+  );
+
+  const toggleTable = (s, t) => {
+    const key = `${s}.${t}`;
+    setSelectedTables(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleAllInSchema = (s, tables) => {
+    const allSelected = Object.keys(tables).every(t => selectedTables[`${s}.${t}`]);
+    const updates = {};
+    Object.keys(tables).forEach(t => { updates[`${s}.${t}`] = !allSelected; });
+    setSelectedTables(prev => ({ ...prev, ...updates }));
+  };
 
   const handleImport = () => {
-    onImport(parsed);
+    const objects = [];
+    Object.entries(parsedSchemas).forEach(([s, tables]) => {
+      Object.keys(tables).forEach(t => {
+        if (selectedTables[`${s}.${t}`]) {
+          objects.push({ schema: s, table: t, target_path: `/${s}/${t}`, target_format: "original" });
+        }
+      });
+    });
+    onImport(objects);
     onClose();
   };
 
+  const selectedCount = Object.values(selectedTables).filter(Boolean).length;
+
   return (
-    <div className="space-y-4">
-      {/* Drop zone */}
-      {!parsed && (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-          className={cn(
-            "border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer",
-            dragging ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
-          )}
-          onClick={() => fileRef.current?.click()}
-        >
-          <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-          <p className="font-medium text-slate-700 mb-1">Drop your schema file here</p>
-          <p className="text-sm text-slate-400 mb-3">Supports .sql (DDL), .json, .xml, .csv</p>
-          <div className="flex justify-center gap-2">
-            {["SQL", "JSON", "XML", "CSV"].map(f => (
-              <span key={f} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded font-mono">.{f.toLowerCase()}</span>
-            ))}
-          </div>
-          <input ref={fileRef} type="file" accept=".sql,.json,.xml,.csv" className="hidden" onChange={handleFileInput} />
+    <div className="border border-blue-200 rounded-xl bg-blue-50/20 p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Upload className="w-4 h-4 text-blue-600" />
+          <span className="font-semibold text-slate-800 text-sm">Import Schema</span>
         </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Preview */}
-      {parsed && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-emerald-700 font-medium">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Parsed from <code className="font-mono text-xs bg-slate-100 px-1 rounded">{fileName}</code></span>
-            </div>
-            <button type="button" onClick={() => { setParsed(null); setFileName(null); }} className="text-xs text-slate-400 hover:text-slate-600 underline">
-              Change file
-            </button>
-          </div>
-
-          <div className="border border-slate-200 rounded-lg overflow-hidden max-h-64 overflow-y-auto text-sm">
-            {parsed.map(schema => (
-              <div key={schema.name}>
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 border-b border-slate-100 font-medium text-slate-700"
-                  onClick={() => setExpanded(prev => ({ ...prev, [schema.name]: !prev[schema.name] }))}
-                >
-                  {expanded[schema.name] ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                  <span className="text-blue-600">{schema.name}</span>
-                  <span className="ml-auto text-xs text-slate-400 font-normal">{schema.tables.length} tables</span>
-                </button>
-                {expanded[schema.name] && schema.tables.map(table => (
-                  <div key={table.name} className="border-b border-slate-50">
-                    <div className="pl-8 pr-3 py-1.5 text-slate-700 bg-white font-medium text-xs flex items-center gap-2">
-                      <span>📄 {table.name}</span>
-                      <span className="text-slate-400 font-normal">({table.columns.length} cols)</span>
-                    </div>
-                    {table.columns.slice(0, 5).map(col => (
-                      <div key={col.name} className="pl-12 pr-3 py-0.5 text-xs text-slate-500 bg-white flex gap-3">
-                        <span className="font-mono">{col.name}</span>
-                        <span className="text-slate-400">{col.type}</span>
-                      </div>
-                    ))}
-                    {table.columns.length > 5 && (
-                      <div className="pl-12 py-0.5 text-xs text-slate-400 bg-white">+{table.columns.length - 5} more columns</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-
-          <p className="text-xs text-slate-500">
-            <span className="font-semibold text-slate-800">{parsed.length}</span> schemas, <span className="font-semibold text-slate-800">{totalTables}</span> tables will be added to the object list.
-          </p>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex justify-end gap-2 pt-1">
-        <Button type="button" variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-        {parsed && (
-          <Button type="button" size="sm" onClick={handleImport} className="bg-blue-600 hover:bg-blue-700 gap-1.5">
-            <Upload className="w-3.5 h-3.5" />
-            Import {totalTables} Tables
-          </Button>
-        )}
+        <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <X className="w-4 h-4" />
+        </button>
       </div>
+
+      {/* Mode selector */}
+      <div className="flex gap-2 flex-wrap">
+        {MODES.map(m => (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => { setMode(m.id); setParsedSchemas(null); setError(""); setText(""); }}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
+              mode === m.id
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+            )}
+          >
+            <m.icon className="w-3.5 h-3.5" />
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Input area */}
+      {mode === "file" ? (
+        <div>
+          <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv,.json,.xml" className="hidden" onChange={handleFileUpload} />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={loading}
+            className="w-full border-2 border-dashed border-slate-300 rounded-lg py-8 flex flex-col items-center gap-2 text-slate-500 hover:border-blue-400 hover:text-blue-600 transition-colors"
+          >
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
+            <span className="text-sm font-medium">{loading ? "Analysing file..." : "Click to upload"}</span>
+            <span className="text-xs">Supports Excel (.xlsx), CSV, JSON, XML</span>
+          </button>
+          <p className="text-xs text-slate-400 mt-2">The file should contain table names and column definitions (with optional types).</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label className="text-xs text-slate-600">
+            {mode === "ddl" && "Paste CREATE TABLE SQL statements"}
+            {mode === "json" && 'JSON format: [{ "schema": "dbo", "table": "Users", "columns": [{...}] }]'}
+            {mode === "xml" && '<schema name="dbo"><table name="Users"><column name="id" type="INT"/></table></schema>'}
+          </Label>
+          <Textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder={
+              mode === "ddl"
+                ? `CREATE TABLE dbo.Customers (\n  id INT PRIMARY KEY,\n  name VARCHAR(255),\n  email VARCHAR(255)\n);`
+                : mode === "json"
+                ? `[{"schema":"dbo","table":"Customers","columns":[{"name":"id","type":"INT"},{"name":"name","type":"VARCHAR"}]}]`
+                : `<schema name="dbo">\n  <table name="Customers">\n    <column name="id" type="INT"/>\n    <column name="name" type="VARCHAR"/>\n  </table>\n</schema>`
+            }
+            className="font-mono text-xs min-h-[120px] bg-white"
+          />
+          <Button type="button" size="sm" onClick={parse} disabled={!text.trim()} className="gap-1.5">
+            <Code2 className="w-3.5 h-3.5" />
+            Parse Schema
+          </Button>
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 text-xs">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {/* Parsed result */}
+      {parsedSchemas && (
+        <div className="space-y-3">
+          <div className="border border-slate-200 rounded-lg overflow-hidden bg-white max-h-[280px] overflow-y-auto">
+            {Object.entries(parsedSchemas).map(([schemaName, tables]) => {
+              const tableList = Object.keys(tables);
+              const allSelected = tableList.every(t => selectedTables[`${schemaName}.${t}`]);
+              const isExpanded = expandedSchemas.includes(schemaName);
+              return (
+                <div key={schemaName}>
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200 cursor-pointer hover:bg-slate-100"
+                    onClick={() => toggleSchema(schemaName)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={() => toggleAllInSchema(schemaName, tables)}
+                      onClick={e => e.stopPropagation()}
+                      className="rounded"
+                    />
+                    {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronUp className="w-4 h-4 text-slate-400" />}
+                    <span className="font-medium text-slate-700 text-sm">{schemaName}</span>
+                    <span className="text-xs text-slate-400 ml-auto">{tableList.length} tables</span>
+                  </div>
+                  {isExpanded && tableList.map(t => (
+                    <div key={t} className="flex items-center gap-2 pl-8 pr-3 py-1.5 border-b border-slate-50 hover:bg-slate-50">
+                      <input
+                        type="checkbox"
+                        checked={!!selectedTables[`${schemaName}.${t}`]}
+                        onChange={() => toggleTable(schemaName, t)}
+                        className="rounded"
+                      />
+                      <Table2 className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-sm text-slate-700 flex-1">{t}</span>
+                      <span className="text-xs text-slate-400">{tables[t]?.length || 0} cols</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">{selectedCount} tables selected</span>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleImport}
+                disabled={selectedCount === 0}
+                className="gap-1.5 bg-blue-600 hover:bg-blue-700"
+              >
+                <Check className="w-3.5 h-3.5" />
+                Import {selectedCount} Table{selectedCount !== 1 ? "s" : ""}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
