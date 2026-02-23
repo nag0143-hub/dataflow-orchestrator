@@ -14,12 +14,19 @@ import { ExportOpenMetadataButton } from "@/components/OpenMetadataExporter";
 export default function LineagePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
   const [lineageData, setLineageData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const { data: jobs } = useQuery({
     queryKey: ["jobs"],
     queryFn: () => base44.entities.IngestionJob.list("-updated_date", 100),
+    initialData: [],
+  });
+
+  const { data: connections } = useQuery({
+    queryKey: ["connections"],
+    queryFn: () => base44.entities.Connection.list(),
     initialData: [],
   });
 
