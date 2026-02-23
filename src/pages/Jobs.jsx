@@ -59,13 +59,26 @@ import { useTenant } from "@/components/useTenant";
 import moment from "moment";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GitCommitHorizontal, FileJson } from "lucide-react";
+import { GitCommitHorizontal, FileJson, Wand2 } from "lucide-react";
 import JobSpecExport, { buildJobSpec } from "@/components/JobSpecExport";
+import DataCleansing from "@/components/DataCleansing";
 
 // Memoized Advanced tab to prevent re-renders from parent form state changes
-const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, onMappingsChange, onRulesChange }) {
+const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, cleansing, onMappingsChange, onRulesChange, onCleansingChange }) {
   return (
     <div className="space-y-5">
+      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Wand2 className="w-4 h-4 text-indigo-600" />
+          <h4 className="font-semibold text-slate-900 text-sm">Data Cleansing</h4>
+        </div>
+        <p className="text-xs text-slate-500">Remove unprintable characters, control characters, and whitespace anomalies.</p>
+        <DataCleansing
+          selectedObjects={selectedObjects}
+          cleansing={cleansing}
+          onChange={onCleansingChange}
+        />
+      </div>
       <div className="border border-slate-200 rounded-xl p-4 space-y-3">
         <div className="flex items-center gap-2">
           <ArrowLeftRight className="w-4 h-4 text-violet-600" />
@@ -222,6 +235,7 @@ const defaultFormData = {
   exclude_calendar_id: "",
   column_mappings: {},
   dq_rules: {},
+  data_cleansing: {},
   retry_config: {
     max_retries: 3,
     retry_delay_seconds: 60,
@@ -257,6 +271,7 @@ export default function Jobs() {
     }));
   }, []);
   const handleRulesChange = useCallback((rules) => setFormData(prev => ({ ...prev, dq_rules: rules })), []);
+  const handleCleansingChange = useCallback((cleansing) => setFormData(prev => ({ ...prev, data_cleansing: cleansing })), []);
 
   useEffect(() => {
     loadData();
@@ -354,6 +369,7 @@ export default function Jobs() {
       exclude_calendar_id: job.exclude_calendar_id || "",
       column_mappings: job.column_mappings || {},
       dq_rules: job.dq_rules || {},
+      data_cleansing: job.data_cleansing || {},
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
@@ -1160,8 +1176,10 @@ export default function Jobs() {
                   selectedObjects={formData.selected_objects}
                   columnMappings={formData.column_mappings}
                   dqRules={formData.dq_rules}
+                  cleansing={formData.data_cleansing}
                   onMappingsChange={handleMappingsChange}
                   onRulesChange={handleRulesChange}
+                  onCleansingChange={handleCleansingChange}
                 />
               </TabsContent>
               {/* ── Job Spec Tab ── */}
