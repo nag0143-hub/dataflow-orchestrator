@@ -404,6 +404,12 @@ export default function Connections() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {connection.connection_type === "source" && (
+                          <DropdownMenuItem onClick={() => setDiscoveryModalConn(connection)}>
+                            <Database className="w-4 h-4 mr-2" />
+                            Discover Schema
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => handleTestConnection(connection)}>
                           <TestTube className="w-4 h-4 mr-2" />
                           Test Connection
