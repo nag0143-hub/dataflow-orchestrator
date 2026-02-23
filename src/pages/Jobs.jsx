@@ -1261,13 +1261,12 @@ export default function Jobs() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="public">Public</SelectItem>
-                        <SelectItem value="personal">Personal</SelectItem>
                         <SelectItem value="confidential">Confidential</SelectItem>
-                        <SelectItem value="class_1">Class 1</SelectItem>
-                        <SelectItem value="class_2">Class 2</SelectItem>
+                        <SelectItem value="personal_class_1">Personal Class 1</SelectItem>
+                        <SelectItem value="personal_class_1_pci">Personal Class 1 - PCI</SelectItem>
+                        <SelectItem value="personal_class_2">Personal Class 2</SelectItem>
                         <SelectItem value="class_3">Class 3</SelectItem>
                         <SelectItem value="class_4">Class 4</SelectItem>
-                        <SelectItem value="pci">PCI</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
