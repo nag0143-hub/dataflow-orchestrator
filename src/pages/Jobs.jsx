@@ -129,6 +129,7 @@ export default function Jobs() {
   const [activeTab, setActiveTab] = useState("general");
   const [commitMessage, setCommitMessage] = useState("");
   const [historyDialogJob, setHistoryDialogJob] = useState(null);
+  const [exportJob, setExportJob] = useState(null);
 
   const handleMappingsChange = useCallback((mappings) => setFormData(prev => ({ ...prev, column_mappings: mappings })), []);
   const handleRulesChange = useCallback((rules) => setFormData(prev => ({ ...prev, dq_rules: rules })), []);
