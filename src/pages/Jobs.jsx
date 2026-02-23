@@ -16,8 +16,7 @@ import {
   Calendar,
   ArrowRight,
   Filter,
-  RefreshCw,
-  Code2
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +53,6 @@ import moment from "moment";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GitCommitHorizontal } from "lucide-react";
-import PySparkCodeGenerator from "@/components/PySparkCodeGenerator";
 
 const defaultFormData = {
   name: "",
@@ -89,7 +87,6 @@ export default function Jobs() {
   const [activeTab, setActiveTab] = useState("general");
   const [commitMessage, setCommitMessage] = useState("");
   const [historyDialogJob, setHistoryDialogJob] = useState(null);
-  const [codeGenJob, setCodeGenJob] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -469,15 +466,6 @@ export default function Jobs() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCodeGenJob(job)}
-                        className="gap-1 text-slate-500"
-                      >
-                        <Code2 className="w-4 h-4" />
-                        PySpark
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
                         onClick={() => { setViewingJob(job); setDetailsDialogOpen(true); }}
                         className="gap-1"
                       >
@@ -763,17 +751,6 @@ export default function Jobs() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* PySpark Code Generator */}
-      {codeGenJob && (
-        <PySparkCodeGenerator
-          open={!!codeGenJob}
-          job={codeGenJob}
-          sourceConn={getConnection(codeGenJob.source_connection_id)}
-          targetConn={getConnection(codeGenJob.target_connection_id)}
-          onClose={() => setCodeGenJob(null)}
-        />
-      )}
 
       {/* Job Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
