@@ -97,6 +97,8 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
     setObjectConfig({
       filter_query: existing?.filter_query || "",
       target_path: existing?.target_path || `/${schema}/${table}`,
+      target_dataset: existing?.target_dataset || "",
+      target_format: existing?.target_format || "original",
       incremental_column: existing?.incremental_column || ""
     });
     setConfigDialogOpen(true);
