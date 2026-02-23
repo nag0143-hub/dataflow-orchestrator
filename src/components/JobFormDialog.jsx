@@ -30,6 +30,18 @@ export default function JobFormDialog({
   const sourceConnections = connections.filter(c => c.connection_type === "source");
   const targetConnections = connections.filter(c => c.connection_type === "target");
 
+  const tabOrder = ["general", "datasets", "settings"];
+  const allTabs = formData.enable_advanced
+    ? [...tabOrder, "advanced", "spec"]
+    : [...tabOrder, "spec"];
+  const currentTabIndex = allTabs.indexOf(activeTab);
+
+  const handleNext = () => {
+    if (currentTabIndex < allTabs.length - 1) {
+      setActiveTab(allTabs[currentTabIndex + 1]);
+    }
+  };
+
   const validateJob = () => {
     if (!formData.name?.trim()) {
       toast.error("Job name is required");
@@ -156,29 +168,42 @@ export default function JobFormDialog({
             </TabsContent>
           </Tabs>
 
-          <div className="mt-6 pt-4 border-t space-y-3">
-            <div>
-              <Label className="text-xs text-slate-500 flex items-center gap-1.5 mb-1">
-                <GitCommitHorizontal className="w-3.5 h-3.5" />
-                Commit message (optional)
-              </Label>
-              <input
-                type="text"
-                value={commitMessage}
-                onChange={(e) => setCommitMessage(e.target.value)}
-                placeholder="Describe what changed..."
-                className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              />
+          {activeTab === "spec" && (
+            <div className="mt-6 pt-4 border-t space-y-3">
+              <div>
+                <Label className="text-xs text-slate-500 flex items-center gap-1.5 mb-1">
+                  <GitCommitHorizontal className="w-3.5 h-3.5" />
+                  Commit message (optional)
+                </Label>
+                <input
+                  type="text"
+                  value={commitMessage}
+                  onChange={(e) => setCommitMessage(e.target.value)}
+                  placeholder="Describe what changed..."
+                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Saving..." : editingJob ? "Update Job" : "Create Job"}
+                </Button>
+              </div>
             </div>
-            <div className="flex justify-end gap-3">
+          )}
+
+          {activeTab !== "spec" && (
+            <div className="mt-6 pt-4 border-t flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? "Saving..." : editingJob ? "Update Job" : "Create Job"}
+              <Button onClick={handleNext}>
+                Next
               </Button>
             </div>
-          </div>
+          )}
         </form>
       </DialogContent>
     </Dialog>
