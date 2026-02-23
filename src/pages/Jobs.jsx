@@ -21,8 +21,7 @@ import {
   ShieldCheck,
   Copy,
   Download,
-  Check,
-  Database
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,22 +63,9 @@ import { GitCommitHorizontal, FileJson } from "lucide-react";
 import JobSpecExport, { buildJobSpec } from "@/components/JobSpecExport";
 
 // Memoized Advanced tab to prevent re-renders from parent form state changes
-const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, onMappingsChange, onRulesChange, isFlatFileSource, formData, onObjectsChange }) {
+const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, onMappingsChange, onRulesChange }) {
   return (
     <div className="space-y-5">
-      {isFlatFileSource && (
-        <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-blue-600" />
-            <h4 className="font-semibold text-slate-900 text-sm">Import Schema</h4>
-          </div>
-          <p className="text-xs text-slate-500">Import flat file structure (DDL, JSON, XML, or CSV) to define columns.</p>
-          <ObjectSelector
-            selectedObjects={formData.selected_objects}
-            onChange={onObjectsChange}
-          />
-        </div>
-      )}
       <div className="border border-slate-200 rounded-xl p-4 space-y-3">
         <div className="flex items-center gap-2">
           <ArrowLeftRight className="w-4 h-4 text-violet-600" />
@@ -316,9 +302,6 @@ export default function Jobs() {
 
   const getConnection = (id) => connections.find(c => c.id === id);
   const getJobRuns = (jobId) => runs.filter(r => r.job_id === jobId);
-
-  const sourceConn = getConnection(formData.source_connection_id);
-  const isFlatFileSource = sourceConn && ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"].includes(sourceConn.platform);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -750,7 +733,7 @@ export default function Jobs() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="general">General</TabsTrigger>
-                <TabsTrigger value="objects" disabled={isFlatFileSource}>Objects</TabsTrigger>
+                <TabsTrigger value="objects">Objects</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
                 <TabsTrigger value="advanced">Advanced</TabsTrigger>
                 <TabsTrigger value="spec">Job Spec</TabsTrigger>
@@ -1179,9 +1162,6 @@ export default function Jobs() {
                   dqRules={formData.dq_rules}
                   onMappingsChange={handleMappingsChange}
                   onRulesChange={handleRulesChange}
-                  isFlatFileSource={isFlatFileSource}
-                  formData={formData}
-                  onObjectsChange={(objects) => setFormData({ ...formData, selected_objects: objects })}
                 />
               </TabsContent>
               {/* ── Job Spec Tab ── */}
