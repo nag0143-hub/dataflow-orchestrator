@@ -644,22 +644,22 @@ export default function Jobs() {
                     <h4 className="font-semibold text-slate-900 text-sm">Schedule</h4>
                   </div>
 
-                  {/* Schedule type selector as button group */}
+                  {/* Run Frequency buttons */}
                   <div>
                     <Label className="text-xs text-slate-500 mb-2 block">Run Frequency</Label>
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { value: "manual", label: "Manual" },
-                        { value: "hourly", label: "Hourly" },
-                        { value: "daily",  label: "Daily" },
-                        { value: "weekly", label: "Weekly" },
-                        { value: "custom", label: "Custom Cron" },
+                        { value: "manual",  label: "Manual" },
+                        { value: "hourly",  label: "Hourly" },
+                        { value: "daily",   label: "Daily" },
+                        { value: "weekly",  label: "Weekly" },
+                        { value: "monthly", label: "Monthly" },
                       ].map(opt => (
                         <button
                           key={opt.value}
                           type="button"
                           onClick={() => {
-                            const cronMap = { hourly: "0 * * * *", daily: "0 6 * * *", weekly: "0 6 * * 1" };
+                            const cronMap = { hourly: "0 * * * *", daily: "0 6 * * *", weekly: "0 6 * * 1", monthly: "0 6 1 * *" };
                             setFormData(prev => ({
                               ...prev,
                               schedule_type: opt.value,
@@ -678,7 +678,7 @@ export default function Jobs() {
                     </div>
                   </div>
 
-                  {/* Hourly: minute offset */}
+                  {/* Hourly */}
                   {formData.schedule_type === "hourly" && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -699,7 +699,7 @@ export default function Jobs() {
                     </div>
                   )}
 
-                  {/* Daily: time of day */}
+                  {/* Daily */}
                   {formData.schedule_type === "daily" && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -742,7 +742,7 @@ export default function Jobs() {
                     </div>
                   )}
 
-                  {/* Weekly: day + time */}
+                  {/* Weekly */}
                   {formData.schedule_type === "weekly" && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -787,40 +787,116 @@ export default function Jobs() {
                     </div>
                   )}
 
-                  {/* Custom cron */}
-                  {formData.schedule_type === "custom" && (
-                    <div>
-                      <Label className="text-xs">Cron Expression</Label>
-                      <Input
-                        value={formData.cron_expression}
-                        onChange={(e) => setFormData({ ...formData, cron_expression: e.target.value })}
-                        placeholder="0 0 * * *"
-                        className="font-mono"
-                      />
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {[
-                          { label: "Every hour",     value: "0 * * * *" },
-                          { label: "Daily 6am",      value: "0 6 * * *" },
-                          { label: "Mon 8am",        value: "0 8 * * 1" },
-                          { label: "Every 15 min",   value: "*/15 * * * *" },
-                          { label: "1st of month",   value: "0 6 1 * *" },
-                        ].map(preset => (
-                          <button
-                            key={preset.value}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, cron_expression: preset.value }))}
-                            className="text-xs px-2 py-1 rounded border border-slate-200 hover:border-blue-400 hover:text-blue-700 text-slate-500 transition-colors"
-                          >
-                            {preset.label}
-                          </button>
-                        ))}
+                  {/* Monthly */}
+                  {formData.schedule_type === "monthly" && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Day of Month</Label>
+                        <Select
+                          value={formData.cron_expression?.split(" ")[2] || "1"}
+                          onValueChange={v => {
+                            const parts = (formData.cron_expression || "0 6 1 * *").split(" ");
+                            parts[2] = v;
+                            setFormData(prev => ({ ...prev, cron_expression: parts.join(" ") }));
+                          }}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Array.from({length:28},(_,i)=>i+1).map(d => (
+                              <SelectItem key={d} value={String(d)}>{d === 1 ? "1st" : d === 2 ? "2nd" : d === 3 ? "3rd" : `${d}th`}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <p className="text-xs text-slate-400 mt-2">Format: minute hour day-of-month month day-of-week</p>
+                      <div>
+                        <Label className="text-xs">Hour (UTC)</Label>
+                        <Select
+                          value={formData.cron_expression?.split(" ")[1] || "6"}
+                          onValueChange={v => {
+                            const parts = (formData.cron_expression || "0 6 1 * *").split(" ");
+                            parts[1] = v;
+                            setFormData(prev => ({ ...prev, cron_expression: parts.join(" ") }));
+                          }}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Array.from({length:24},(_,i)=>i).map(h => (
+                              <SelectItem key={h} value={String(h)}>{String(h).padStart(2,"0")}:00 UTC</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-2 text-xs text-slate-400">
+                        Cron: <code className="font-mono">{formData.cron_expression || "0 6 1 * *"}</code>
+                      </div>
                     </div>
                   )}
 
                   {formData.schedule_type === "manual" && (
                     <p className="text-xs text-slate-400">This job will only run when triggered manually.</p>
+                  )}
+
+                  {/* Include / Exclude Calendars — shown for all non-manual types */}
+                  {formData.schedule_type !== "manual" && (
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                      {/* Include Calendar */}
+                      <div>
+                        <Label className="text-xs text-slate-700 font-semibold mb-1 block flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                          Include Dates
+                        </Label>
+                        <p className="text-xs text-slate-400 mb-2">Job will ONLY run on these dates (overrides schedule)</p>
+                        <Input
+                          type="date"
+                          className="text-xs h-8"
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val && !formData.include_dates.includes(val)) {
+                              setFormData(prev => ({ ...prev, include_dates: [...prev.include_dates, val] }));
+                              e.target.value = "";
+                            }
+                          }}
+                        />
+                        <div className="flex flex-wrap gap-1 mt-2 max-h-20 overflow-y-auto">
+                          {(formData.include_dates || []).map(d => (
+                            <span key={d} className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-2 py-0.5">
+                              {d}
+                              <button type="button" onClick={() => setFormData(prev => ({ ...prev, include_dates: prev.include_dates.filter(x => x !== d) }))} className="hover:text-red-500">×</button>
+                            </span>
+                          ))}
+                          {!(formData.include_dates?.length) && <span className="text-xs text-slate-300 italic">None added</span>}
+                        </div>
+                      </div>
+
+                      {/* Exclude Calendar */}
+                      <div>
+                        <Label className="text-xs text-slate-700 font-semibold mb-1 block flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
+                          Exclude Dates
+                        </Label>
+                        <p className="text-xs text-slate-400 mb-2">Job will be SKIPPED on these dates (e.g. holidays)</p>
+                        <Input
+                          type="date"
+                          className="text-xs h-8"
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val && !formData.exclude_dates.includes(val)) {
+                              setFormData(prev => ({ ...prev, exclude_dates: [...prev.exclude_dates, val] }));
+                              e.target.value = "";
+                            }
+                          }}
+                        />
+                        <div className="flex flex-wrap gap-1 mt-2 max-h-20 overflow-y-auto">
+                          {(formData.exclude_dates || []).map(d => (
+                            <span key={d} className="inline-flex items-center gap-1 text-xs bg-red-50 text-red-700 border border-red-200 rounded px-2 py-0.5">
+                              {d}
+                              <button type="button" onClick={() => setFormData(prev => ({ ...prev, exclude_dates: prev.exclude_dates.filter(x => x !== d) }))} className="hover:text-red-700">×</button>
+                            </span>
+                          ))}
+                          {!(formData.exclude_dates?.length) && <span className="text-xs text-slate-300 italic">None added</span>}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
 
