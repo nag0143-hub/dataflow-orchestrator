@@ -508,6 +508,16 @@ export default function Jobs() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => setExportJob(job)}
+                        className="gap-1 text-slate-500"
+                        title="Export Job Spec"
+                      >
+                        <FileJson className="w-4 h-4" />
+                        Export
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => setHistoryDialogJob(job)}
                         className="gap-1 text-slate-500"
                       >
