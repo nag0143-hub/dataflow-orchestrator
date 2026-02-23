@@ -105,6 +105,32 @@ function SaveAsProfileButton({ formData }) {
   );
 }
 
+// Default values pre-filled per platform when user selects a platform
+const PLATFORM_TEMPLATES = {
+  sql_server:  { port: 1433, auth_method: "password", host: "" },
+  oracle:      { port: 1521, auth_method: "password", host: "" },
+  postgresql:  { port: 5432, auth_method: "password", host: "localhost", database: "postgres" },
+  mysql:       { port: 3306, auth_method: "password", host: "localhost" },
+  mongodb:     { port: 27017, auth_method: "password", host: "localhost", database: "admin" },
+  adls2:       { auth_method: "managed_identity", region: "eastus", host: "https://<account>.dfs.core.windows.net" },
+  s3:          { auth_method: "key", region: "us-east-1", host: "s3.amazonaws.com" },
+  flat_file_delimited: {
+    auth_method: "none",
+    file_config: { delimiter: ",", encoding: "UTF-8", has_header: true, quote_char: '"', escape_char: "\\", file_pattern: "*.csv", nas_path: "", archive_path: "" }
+  },
+  flat_file_fixed_width: {
+    auth_method: "none",
+    file_config: { encoding: "UTF-8", record_length: 80, file_pattern: "*.dat", nas_path: "", archive_path: "" }
+  },
+  cobol_ebcdic: {
+    auth_method: "none",
+    file_config: { encoding: "EBCDIC-US", record_length: 80, file_pattern: "*.dat", copybook_path: "", nas_path: "", archive_path: "" }
+  },
+  sftp:   { port: 22, auth_method: "sftp_key" },
+  nas:    { auth_method: "none", file_config: { encoding: "UTF-8", file_pattern: "*", nas_path: "", archive_path: "" } },
+  local_fs: { auth_method: "none", file_config: { encoding: "UTF-8", file_pattern: "*", nas_path: "", archive_path: "" } },
+};
+
 const defaultFormData = {
   name: "",
   connection_type: "source",
