@@ -32,11 +32,14 @@ function toYaml(obj, indent = 0) {
     if (keys.length === 0) return "{}";
     return keys.map(k => {
       const val = obj[k];
-      if (val !== null && typeof val === "object" && !Array.isArray(val) && Object.keys(val).length > 0) {
-        return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
+      if (val !== null && typeof val === "object" && !Array.isArray(val)) {
+        const nested = toYaml(val, indent + 1);
+        if (nested === "{}") return `${pad}${k}: {}`;
+        return `${pad}${k}:\n${nested}`;
       }
-      if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object") {
-        return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
+      if (Array.isArray(val)) {
+        if (val.length === 0) return `${pad}${k}: []`;
+        if (typeof val[0] === "object") return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
       }
       return `${pad}${k}: ${toYaml(val, indent)}`;
     }).join("\n");
