@@ -1285,6 +1285,21 @@ export default function Jobs() {
                   </div>
                   </div>
 
+                  {/* ── SLA Alerting Toggle ── */}
+                  <div className="border border-slate-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between opacity-100 group">
+                      <div>
+                        <p className={cn("text-sm font-medium", formData.schedule_type === "manual" ? "text-slate-400" : "text-slate-700")}>SLA Alerting</p>
+                        <p className="text-xs text-slate-400">Send alerts if job misses SLA thresholds</p>
+                      </div>
+                      <Switch
+                        checked={formData.enable_sla_alerting || false}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, enable_sla_alerting: checked }))}
+                        disabled={formData.schedule_type === "manual"}
+                      />
+                    </div>
+                  </div>
+
                   {/* ── Advanced Features Toggle ── */}
                   <div className="border border-slate-200 rounded-xl p-4">
                   <div className="flex items-center justify-between">
