@@ -200,6 +200,14 @@ CREATE TABLE connection_prerequisite (
 
 CREATE INDEX idx_prereq_connection ON connection_prerequisite(connection_id);
 CREATE INDEX idx_prereq_status     ON connection_prerequisite(status);
+CREATE INDEX idx_prereq_type       ON connection_prerequisite(prereq_type);
+
+-- JSONB indexes for common query patterns
+CREATE INDEX idx_connection_file_config ON connection USING GIN(file_config);
+CREATE INDEX idx_job_selected_objects ON ingestion_job USING GIN(selected_objects);
+CREATE INDEX idx_job_column_mappings ON ingestion_job USING GIN(column_mappings);
+CREATE INDEX idx_job_dq_rules ON ingestion_job USING GIN(dq_rules);
+CREATE INDEX idx_pipeline_snapshot ON pipeline_version USING GIN(snapshot);
 
 -- ------------------------------------------------------------
 -- CONNECTION PROFILE  (reusable template)
