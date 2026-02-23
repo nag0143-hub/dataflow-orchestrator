@@ -9,10 +9,7 @@ import {
   XCircle, 
   Clock,
   ArrowRight,
-  Activity,
-  TrendingUp,
-  Database,
-  Cloud
+  Activity
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +17,6 @@ import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon from "@/components/PlatformIcon";
 import { useTenant } from "@/components/useTenant";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import moment from "moment";
 
 export default function Dashboard() {
@@ -58,14 +54,7 @@ export default function Dashboard() {
     failedRuns: runs.filter(r => r.status === "failed").length,
   };
 
-  // Create chart data from runs
-  const chartData = runs.slice(0, 7).reverse().map(run => ({
-    date: moment(run.created_date).format("MMM D"),
-    rows: run.rows_processed || 0,
-    bytes: Math.round((run.bytes_transferred || 0) / 1024 / 1024)
-  }));
-
-  const recentRuns = runs.slice(0, 5);
+  const recentRuns = runs.slice(0, 10);
 
   if (loading) {
     return (
