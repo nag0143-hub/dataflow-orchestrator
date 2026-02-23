@@ -57,7 +57,7 @@ import moment from "moment";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GitCommitHorizontal, FileJson } from "lucide-react";
-import JobSpecExport from "@/components/JobSpecExport";
+import JobSpecExport, { buildJobSpec } from "@/components/JobSpecExport";
 
 // Memoized Advanced tab to prevent re-renders from parent form state changes
 const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, onMappingsChange, onRulesChange }) {
