@@ -1066,6 +1066,15 @@ export default function Jobs() {
         </DialogContent>
       </Dialog>
 
+      {/* Job Spec Export */}
+      {exportJob && (
+        <JobSpecExport
+          job={exportJob}
+          connections={connections}
+          onClose={() => setExportJob(null)}
+        />
+      )}
+
       {/* Version History Dialog */}
       <Dialog open={!!historyDialogJob} onOpenChange={(open) => !open && setHistoryDialogJob(null)}>
         <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
