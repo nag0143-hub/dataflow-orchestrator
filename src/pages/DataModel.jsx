@@ -79,6 +79,11 @@ CREATE TABLE ingestion_job (
     cron_expression      TEXT,
     status               job_status_enum DEFAULT 'idle',
     retry_config         JSONB,      -- {max_retries, retry_delay_seconds, exponential_backoff}
+    use_custom_calendar  BOOLEAN DEFAULT false,
+    include_calendar_id  TEXT,
+    exclude_calendar_id  TEXT,
+    column_mappings      JSONB,      -- {"schema.table": [{source, target, transformation}]}
+    dq_rules             JSONB,      -- {"schema.table": {dataset_rules: [], column_rules: []}}
     last_run             TIMESTAMPTZ,
     next_run             TIMESTAMPTZ,
     total_runs           INTEGER DEFAULT 0,
