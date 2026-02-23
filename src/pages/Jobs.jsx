@@ -826,7 +826,7 @@ export default function Jobs() {
 
       {/* Create/Edit Job Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingJob ? "Edit Job" : "New Data Transfer Job"}
@@ -835,17 +835,16 @@ export default function Jobs() {
 
           <form onSubmit={handleSubmit}>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="general">General</TabsTrigger>
-                <TabsTrigger value="datasets">Datasets</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="general">Basics</TabsTrigger>
+                <TabsTrigger value="datasets">Data</TabsTrigger>
+                <TabsTrigger value="settings">Schedule</TabsTrigger>
                 {formData.enable_advanced && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
-                <TabsTrigger value="spec">Job Spec</TabsTrigger>
               </TabsList>
 
               <TabsContent value="general" className="space-y-4 mt-4">
                 <div>
-                  <Label>Job Name</Label>
+                  <Label>Job Name *</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -854,49 +853,9 @@ export default function Jobs() {
                   />
                 </div>
 
-                <div>
-                  <Label>Description</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Optional description..."
-                    rows={2}
-                  />
-                </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Assignment Group</Label>
-                    <Input
-                      value={formData.assignment_group}
-                      onChange={(e) => setFormData({ ...formData, assignment_group: e.target.value })}
-                      placeholder="e.g. Data Engineering"
-                    />
-                  </div>
-                  <div>
-                    <Label>Cost Center</Label>
-                    <Input
-                      value={formData.cost_center}
-                      onChange={(e) => setFormData({ ...formData, cost_center: e.target.value })}
-                      placeholder="e.g. CC-12345"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <Label>Email (Optional)</Label>
-                    <Input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="notification@example.com"
-                    />
-                  </div>
-                </div>
-
-
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Source Connection</Label>
+                    <Label>Source Connection *</Label>
                     <Select
                       value={formData.source_connection_id}
                       onValueChange={(v) => setFormData({ ...formData, source_connection_id: v })}
@@ -919,7 +878,7 @@ export default function Jobs() {
                   </div>
 
                   <div>
-                    <Label>Target Connection</Label>
+                    <Label>Target Connection *</Label>
                     <Select
                       value={formData.target_connection_id}
                       onValueChange={(v) => setFormData({ ...formData, target_connection_id: v })}
@@ -941,6 +900,50 @@ export default function Jobs() {
                     </Select>
                   </div>
                 </div>
+
+                <div>
+                  <Label>Description</Label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="What does this job do?"
+                    rows={2}
+                  />
+                </div>
+
+                <details className="border border-slate-200 rounded-lg p-3">
+                  <summary className="cursor-pointer font-medium text-sm text-slate-700 hover:text-slate-900">Organization & Notifications</summary>
+                  <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-200">
+                    <div>
+                      <Label className="text-xs">Assignment Group</Label>
+                      <Input
+                        value={formData.assignment_group}
+                        onChange={(e) => setFormData({ ...formData, assignment_group: e.target.value })}
+                        placeholder="Data Engineering"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Cost Center</Label>
+                      <Input
+                        value={formData.cost_center}
+                        onChange={(e) => setFormData({ ...formData, cost_center: e.target.value })}
+                        placeholder="CC-12345"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-xs">Notification Email</Label>
+                      <Input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="alerts@company.com"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                </details>
               </TabsContent>
 
               <TabsContent value="datasets" className="space-y-4 mt-4">
@@ -1026,56 +1029,38 @@ export default function Jobs() {
 
               </TabsContent>
 
-              <TabsContent value="settings" className="space-y-5 mt-4">
+              <TabsContent value="settings" className="space-y-4 mt-4">
 
-                {/* ── Delivery Channel ── */}
-                <div className="border border-slate-200 rounded-xl p-4 space-y-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Send className="w-4 h-4 text-purple-600" />
-                    <h4 className="font-semibold text-slate-900 text-sm">Delivery Channel</h4>
-                  </div>
+               {/* ── Load Method ── */}
+               <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+                 <Label className="text-sm font-semibold">Load Method *</Label>
+                 <p className="text-xs text-slate-500">How to handle existing data in the target</p>
+                 <Select
+                   value={formData.load_method || "append"}
+                   onValueChange={(v) => setFormData({ ...formData, load_method: v })}
+                 >
+                   <SelectTrigger>
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="append">Append - Add new rows</SelectItem>
+                     <SelectItem value="replace">Replace - Clear and reload</SelectItem>
+                     <SelectItem value="upsert">Upsert - Insert or update</SelectItem>
+                     <SelectItem value="merge">Merge - Advanced strategy</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
 
-                  <div className="flex gap-3">
-                    {[
-                      { value: "pull", label: "Pull", description: "Target system pulls data from source" },
-                      { value: "push", label: "Push", description: "Source system pushes data to target" }
-                    ].map(opt => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            delivery_channel: opt.value,
-                            // Reset schedule if switching to push
-                            ...(opt.value === "push" && { schedule_type: "manual", cron_expression: "" })
-                          }));
-                        }}
-                        className={`flex-1 p-3 rounded-lg border text-sm transition-all ${
-                          formData.delivery_channel === opt.value
-                            ? "border-purple-600 bg-purple-50"
-                            : "border-slate-200 bg-white hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="font-medium text-slate-900">{opt.label}</div>
-                        <div className="text-xs text-slate-500 mt-1">{opt.description}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ── Schedule (only for pull) ── */}
-                {formData.delivery_channel === "pull" && (
-                <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+               {/* ── Schedule ── */}
+               <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+                 <Label className="text-sm font-semibold">Run Schedule</Label>
+                 <p className="text-xs text-slate-500">When this job should run</p>
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-4 h-4 text-blue-600" />
                     <h4 className="font-semibold text-slate-900 text-sm">Schedule</h4>
                   </div>
 
-                  {/* Run Frequency buttons */}
-                  <div>
-                    <Label className="text-xs text-slate-500 mb-2 block">Run Frequency</Label>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                       {[
                         { value: "manual",  label: "Manual" },
                         { value: "hourly",  label: "Hourly" },
@@ -1104,9 +1089,8 @@ export default function Jobs() {
                         </button>
                       ))}
                     </div>
-                  </div>
 
-                  {/* Hourly */}
+                     {/* Hourly */}
                   {formData.schedule_type === "hourly" && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1328,9 +1312,8 @@ export default function Jobs() {
                     </div>
                   )}
                 </div>
-                )}
 
-                  {/* ── Advanced Features Toggle ── */}
+                 {/* ── Advanced Features Toggle ── */}
                   <div className="border border-slate-200 rounded-xl p-4">
                   <div className="flex items-center justify-between">
                    <div>
