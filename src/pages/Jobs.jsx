@@ -984,35 +984,13 @@ export default function Jobs() {
 
               {/* ── Advanced Tab ── */}
               <TabsContent value="advanced" className="space-y-5 mt-4">
-
-                {/* Column Mapping */}
-                <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <ArrowLeftRight className="w-4 h-4 text-violet-600" />
-                    <h4 className="font-semibold text-slate-900 text-sm">Column Mapping &amp; Transformations</h4>
-                  </div>
-                  <p className="text-xs text-slate-500">Map source columns to target columns and apply transformations. Supports large datasets via paginated column browser.</p>
-                  <ColumnMapper
-                    selectedObjects={formData.selected_objects}
-                    mappings={formData.column_mappings}
-                    onChange={(mappings) => setFormData(prev => ({ ...prev, column_mappings: mappings }))}
-                  />
-                </div>
-
-                {/* Data Quality */}
-                <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <h4 className="font-semibold text-slate-900 text-sm">Data Quality Rules</h4>
-                  </div>
-                  <p className="text-xs text-slate-500">Define dataset-level and column-level quality checks with configurable failure actions.</p>
-                  <DataQualityRules
-                    selectedObjects={formData.selected_objects}
-                    rules={formData.dq_rules}
-                    onChange={(rules) => setFormData(prev => ({ ...prev, dq_rules: rules }))}
-                  />
-                </div>
-
+                <AdvancedTab
+                  selectedObjects={formData.selected_objects}
+                  columnMappings={formData.column_mappings}
+                  dqRules={formData.dq_rules}
+                  onMappingsChange={useCallback((mappings) => setFormData(prev => ({ ...prev, column_mappings: mappings })), [])}
+                  onRulesChange={useCallback((rules) => setFormData(prev => ({ ...prev, dq_rules: rules })), [])}
+                />
               </TabsContent>
             </Tabs>
 
