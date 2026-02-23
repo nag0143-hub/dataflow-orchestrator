@@ -88,6 +88,7 @@ export default function Jobs() {
   const [activeTab, setActiveTab] = useState("general");
   const [commitMessage, setCommitMessage] = useState("");
   const [historyDialogJob, setHistoryDialogJob] = useState(null);
+  const [codeGenJob, setCodeGenJob] = useState(null);
 
   useEffect(() => {
     loadData();
