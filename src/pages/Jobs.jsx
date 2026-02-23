@@ -986,97 +986,32 @@ export default function Jobs() {
               {/* ── Advanced Tab ── */}
               <TabsContent value="advanced" className="space-y-5 mt-4">
 
-                {/* Coming Soon Banner */}
-                <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                  <Construction className="w-5 h-5 text-amber-500 shrink-0" />
-                  <p className="text-sm text-amber-700 font-medium">These features are currently in development and will be available in a future release.</p>
-                </div>
-
-                {/* ── Column Mapping ── */}
-                <div className="border border-slate-200 rounded-xl p-4 space-y-4 opacity-60 pointer-events-none select-none">
+                {/* Column Mapping */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <ArrowLeftRight className="w-4 h-4 text-violet-600" />
                     <h4 className="font-semibold text-slate-900 text-sm">Column Mapping &amp; Transformations</h4>
-                    <span className="ml-auto text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5 font-medium">Coming Soon</span>
                   </div>
-                  <p className="text-xs text-slate-500">Map source columns to target columns and apply transformations per column.</p>
-
-                  {/* Mock mapping row */}
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-[1fr_auto_1fr_1fr] gap-2 text-xs font-medium text-slate-500 px-1">
-                      <span>Source Column</span>
-                      <span></span>
-                      <span>Target Column</span>
-                      <span>Transformation</span>
-                    </div>
-                    {[
-                      { src: "customer_id", tgt: "cust_id", tx: "Direct Copy" },
-                      { src: "order_date",  tgt: "order_date", tx: "Date Format (ISO)" },
-                      { src: "amount",      tgt: "amount_usd", tx: "Currency Round (2dp)" },
-                    ].map((row, i) => (
-                      <div key={i} className="grid grid-cols-[1fr_auto_1fr_1fr] gap-2 items-center bg-slate-50 rounded-lg px-3 py-2">
-                        <span className="text-xs font-mono text-slate-700">{row.src}</span>
-                        <ArrowRight className="w-3 h-3 text-slate-400" />
-                        <span className="text-xs font-mono text-slate-700">{row.tgt}</span>
-                        <span className="text-xs bg-violet-50 text-violet-700 border border-violet-200 rounded px-2 py-0.5">{row.tx}</span>
-                      </div>
-                    ))}
-                    <button disabled className="w-full mt-1 text-xs text-slate-400 border border-dashed border-slate-200 rounded-lg py-2 cursor-not-allowed">
-                      + Add Column Mapping
-                    </button>
-                  </div>
+                  <p className="text-xs text-slate-500">Map source columns to target columns and apply transformations. Supports large datasets via paginated column browser.</p>
+                  <ColumnMapper
+                    selectedObjects={formData.selected_objects}
+                    mappings={formData.column_mappings}
+                    onChange={(mappings) => setFormData(prev => ({ ...prev, column_mappings: mappings }))}
+                  />
                 </div>
 
-                {/* ── Data Quality ── */}
-                <div className="border border-slate-200 rounded-xl p-4 space-y-4 opacity-60 pointer-events-none select-none">
+                {/* Data Quality */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     <h4 className="font-semibold text-slate-900 text-sm">Data Quality Rules</h4>
-                    <span className="ml-auto text-xs bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5 font-medium">Coming Soon</span>
                   </div>
-                  <p className="text-xs text-slate-500">Define quality checks at the column level and dataset level.</p>
-
-                  {/* Column-level DQ */}
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Columns className="w-3.5 h-3.5 text-blue-500" />
-                      <span className="text-xs font-semibold text-slate-700">Column-Level Checks</span>
-                    </div>
-                    <div className="space-y-2">
-                      {[
-                        { col: "customer_id", rule: "Not Null", action: "Reject Row" },
-                        { col: "amount",      rule: "Min Value ≥ 0", action: "Flag & Continue" },
-                        { col: "email",       rule: "Regex Pattern", action: "Reject Row" },
-                      ].map((r, i) => (
-                        <div key={i} className="grid grid-cols-3 gap-2 bg-slate-50 rounded-lg px-3 py-2 text-xs">
-                          <span className="font-mono text-slate-700">{r.col}</span>
-                          <span className="text-blue-700">{r.rule}</span>
-                          <span className="text-orange-600">{r.action}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Dataset-level DQ */}
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <TableProperties className="w-3.5 h-3.5 text-purple-500" />
-                      <span className="text-xs font-semibold text-slate-700">Dataset-Level Checks</span>
-                    </div>
-                    <div className="space-y-2">
-                      {[
-                        { check: "Row Count Threshold", config: "Min 1,000 rows", action: "Fail Job" },
-                        { check: "Duplicate Key Check", config: "On customer_id", action: "Fail Job" },
-                        { check: "Freshness Check",     config: "Max 24h old",    action: "Warn & Continue" },
-                      ].map((r, i) => (
-                        <div key={i} className="grid grid-cols-3 gap-2 bg-slate-50 rounded-lg px-3 py-2 text-xs">
-                          <span className="text-slate-700 font-medium">{r.check}</span>
-                          <span className="text-purple-700">{r.config}</span>
-                          <span className="text-orange-600">{r.action}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="text-xs text-slate-500">Define dataset-level and column-level quality checks with configurable failure actions.</p>
+                  <DataQualityRules
+                    selectedObjects={formData.selected_objects}
+                    rules={formData.dq_rules}
+                    onChange={(rules) => setFormData(prev => ({ ...prev, dq_rules: rules }))}
+                  />
                 </div>
 
               </TabsContent>
