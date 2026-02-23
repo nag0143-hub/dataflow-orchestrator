@@ -180,6 +180,8 @@ export default function Jobs() {
       schedule_type: job.schedule_type || "manual",
       cron_expression: job.cron_expression || "",
       status: job.status || "idle",
+      include_dates: job.include_dates || [],
+      exclude_dates: job.exclude_dates || [],
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
