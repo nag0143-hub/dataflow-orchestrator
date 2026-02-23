@@ -227,6 +227,7 @@ const defaultFormData = {
   source_connection_id: "",
   target_connection_id: "",
   selected_datasets: [],
+  delivery_channel: "pull",
   schedule_type: "manual",
   cron_expression: "",
   status: "idle",
@@ -398,6 +399,7 @@ export default function Jobs() {
       source_connection_id: job.source_connection_id || "",
       target_connection_id: job.target_connection_id || "",
       selected_datasets: job.selected_datasets || [],
+      delivery_channel: job.delivery_channel || "pull",
       schedule_type: job.schedule_type || "manual",
       cron_expression: job.cron_expression || "",
       status: job.status || "idle",
@@ -910,7 +912,44 @@ export default function Jobs() {
 
               <TabsContent value="settings" className="space-y-5 mt-4">
 
-                {/* ── Schedule ── */}
+                {/* ── Delivery Channel ── */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Send className="w-4 h-4 text-purple-600" />
+                    <h4 className="font-semibold text-slate-900 text-sm">Delivery Channel</h4>
+                  </div>
+
+                  <div className="flex gap-3">
+                    {[
+                      { value: "pull", label: "Pull", description: "Target system pulls data from source" },
+                      { value: "push", label: "Push", description: "Source system pushes data to target" }
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            delivery_channel: opt.value,
+                            // Reset schedule if switching to push
+                            ...(opt.value === "push" && { schedule_type: "manual", cron_expression: "" })
+                          }));
+                        }}
+                        className={`flex-1 p-3 rounded-lg border text-sm transition-all ${
+                          formData.delivery_channel === opt.value
+                            ? "border-purple-600 bg-purple-50"
+                            : "border-slate-200 bg-white hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="font-medium text-slate-900">{opt.label}</div>
+                        <div className="text-xs text-slate-500 mt-1">{opt.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Schedule (only for pull) ── */}
+                {formData.delivery_channel === "pull" && (
                 <div className="border border-slate-200 rounded-xl p-4 space-y-4">
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="w-4 h-4 text-blue-600" />
@@ -1173,6 +1212,7 @@ export default function Jobs() {
                     </div>
                   )}
                 </div>
+                )}
 
                 {/* ── Retry Configuration ── */}
                 <div className="border border-slate-200 rounded-xl p-4 space-y-4">
