@@ -125,6 +125,8 @@ CREATE TABLE job_run (
 
 CREATE INDEX idx_job_run_job_id ON job_run(job_id);
 CREATE INDEX idx_job_run_status ON job_run(status);
+CREATE INDEX idx_job_run_job_status ON job_run(job_id, status);
+CREATE INDEX idx_job_run_triggered ON job_run(triggered_by);
 CREATE INDEX idx_job_run_started ON job_run(started_at DESC);
 
 -- ------------------------------------------------------------
