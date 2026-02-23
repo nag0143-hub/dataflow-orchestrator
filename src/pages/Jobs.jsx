@@ -790,7 +790,7 @@ export default function Jobs() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="general">General</TabsTrigger>
-                <TabsTrigger value="objects">Objects</TabsTrigger>
+                <TabsTrigger value="datasets">Datasets</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
                 <TabsTrigger value="advanced">Advanced</TabsTrigger>
                 <TabsTrigger value="spec">Job Spec</TabsTrigger>
@@ -907,7 +907,7 @@ export default function Jobs() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="objects" className="space-y-4 mt-4">
+              <TabsContent value="datasets" className="space-y-4 mt-4">
                 <div>
                   <Label className="mb-2 block">Select Tables/Datasets to Ingest</Label>
                   <ObjectSelector
