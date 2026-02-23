@@ -71,6 +71,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GitCommitHorizontal, FileJson, Wand2 } from "lucide-react";
 import JobSpecExport, { buildJobSpec } from "@/components/JobSpecExport";
 import DataCleansing from "@/components/DataCleansing";
+import DataMaskingConfig from "@/components/DataMaskingConfig";
+import SLAConfig from "@/components/SLAConfig";
+import JobBasicsTab from "@/components/JobFormTabs/JobBasicsTab";
+import JobDataTab from "@/components/JobFormTabs/JobDataTab";
 
 // Memoized Advanced tab to prevent re-renders from parent form state changes
 const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, cleansing, onMappingsChange, onRulesChange, onCleansingChange }) {
