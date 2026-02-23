@@ -95,33 +95,46 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
   const totalPages = Math.ceil(filteredColumns.length / PAGE_SIZE);
   const pageColumns = filteredColumns.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  const updateMapping = (source, field, value) => {
-    const existing = tableMappings.find(m => m.source === source);
-    let updated;
-    if (existing) {
-      updated = tableMappings.map(m => m.source === source ? { ...m, [field]: value } : m);
-    } else {
-      updated = [...tableMappings, { source, target: source, transformation: "direct", [field]: value }];
-    }
-    onChange({ ...mappings, [tableKey]: updated });
-  };
+  const updateMapping = useCallback((source, field, value) => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      const existing = tbl.find(m => m.source === source);
+      let updated;
+      if (existing) {
+        updated = tbl.map(m => m.source === source ? { ...m, [field]: value } : m);
+      } else {
+        updated = [...tbl, { source, target: source, transformation: "direct", [field]: value }];
+      }
+      return { ...prev, [key]: updated };
+    });
+  }, [selectedTable, onChange]);
 
-  const addMapping = (col) => {
-    if (mappedSourceCols.has(col.name)) return;
-    const updated = [...tableMappings, { source: col.name, target: col.name, transformation: "direct" }];
-    onChange({ ...mappings, [tableKey]: updated });
-  };
+  const addMapping = useCallback((col) => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      if (tbl.some(m => m.source === col.name)) return prev;
+      return { ...prev, [key]: [...tbl, { source: col.name, target: col.name, transformation: "direct" }] };
+    });
+  }, [selectedTable, onChange]);
 
-  const removeMapping = (source) => {
-    const updated = tableMappings.filter(m => m.source !== source);
-    onChange({ ...mappings, [tableKey]: updated });
-  };
+  const removeMapping = useCallback((source) => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      return { ...prev, [key]: tbl.filter(m => m.source !== source) };
+    });
+  }, [selectedTable, onChange]);
 
-  // Duplicate a mapping as a new derived column (keeps original, adds a copy with a new target name)
-  const duplicateMapping = (m) => {
-    const newMapping = { source: m.source, target: `${m.target}_derived`, transformation: m.transformation, derived: true };
-    onChange({ ...mappings, [tableKey]: [...tableMappings, newMapping] });
-  };
+  const duplicateMapping = useCallback((m) => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      const newMapping = { source: m.source, target: `${m.target}_derived`, transformation: m.transformation, derived: true };
+      return { ...prev, [key]: [...tbl, newMapping] };
+    });
+  }, [selectedTable, onChange]);
 
   const filteredMappings = useMemo(() =>
     mappingSearch
