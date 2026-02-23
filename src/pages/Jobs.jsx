@@ -226,7 +226,7 @@ const defaultFormData = {
   description: "",
   source_connection_id: "",
   target_connection_id: "",
-  selected_objects: [],
+  selected_datasets: [],
   schedule_type: "manual",
   cron_expression: "",
   status: "idle",
@@ -306,7 +306,7 @@ export default function Jobs() {
         description: job.description,
         source_connection_id: job.source_connection_id,
         target_connection_id: job.target_connection_id,
-        selected_objects: job.selected_objects,
+        selected_objects: job.selected_datasets,
         schedule_type: job.schedule_type,
         cron_expression: job.cron_expression,
         retry_config: job.retry_config,
@@ -339,10 +339,10 @@ export default function Jobs() {
       toast.error("Source and target connections must be different");
       return false;
     }
-    if (!formData.selected_objects || formData.selected_objects.length === 0) {
-      toast.error("At least one object must be selected");
-      return false;
-    }
+    if (!formData.selected_datasets || formData.selected_datasets.length === 0) {
+       toast.error("At least one dataset must be selected");
+       return false;
+     }
     if (formData.schedule_type === "custom" && !formData.cron_expression?.trim()) {
       toast.error("Cron expression is required for custom schedule");
       return false;
@@ -397,7 +397,7 @@ export default function Jobs() {
       description: job.description || "",
       source_connection_id: job.source_connection_id || "",
       target_connection_id: job.target_connection_id || "",
-      selected_objects: job.selected_objects || [],
+      selected_datasets: job.selected_datasets || [],
       schedule_type: job.schedule_type || "manual",
       cron_expression: job.cron_expression || "",
       status: job.status || "idle",
@@ -468,7 +468,7 @@ export default function Jobs() {
   };
 
   const simulateJobRun = async (job, run) => {
-    const objects = job.selected_objects || [];
+    const datasets = job.selected_datasets || [];
     const totalRows = Math.floor(Math.random() * 100000) + 10000;
     const bytesPerRow = 500;
 
@@ -485,9 +485,9 @@ export default function Jobs() {
       duration_seconds: duration,
       rows_processed: success ? totalRows : Math.floor(totalRows * 0.6),
       bytes_transferred: success ? totalRows * bytesPerRow : Math.floor(totalRows * 0.6 * bytesPerRow),
-      objects_completed: success ? objects.map(o => `${o.schema}.${o.table}`) : objects.slice(0, Math.floor(objects.length * 0.6)).map(o => `${o.schema}.${o.table}`),
-      objects_failed: success ? [] : objects.slice(Math.floor(objects.length * 0.6)).map(o => `${o.schema}.${o.table}`),
-      error_message: success ? null : "Connection timeout on remaining objects"
+      objects_completed: success ? datasets.map(d => `${d.schema}.${d.table}`) : datasets.slice(0, Math.floor(datasets.length * 0.6)).map(d => `${d.schema}.${d.table}`),
+      objects_failed: success ? [] : datasets.slice(Math.floor(datasets.length * 0.6)).map(d => `${d.schema}.${d.table}`),
+      error_message: success ? null : "Connection timeout on remaining datasets"
     });
 
     await base44.entities.IngestionJob.update(job.id, {
@@ -663,9 +663,9 @@ export default function Jobs() {
                     {/* Stats */}
                     <div className="flex items-center gap-6 text-sm">
                       <div className="text-center">
-                        <p className="text-slate-400">Objects</p>
-                        <p className="font-semibold text-slate-900">{job.selected_objects?.length || 0}</p>
-                      </div>
+                         <p className="text-slate-400">Datasets</p>
+                         <p className="font-semibold text-slate-900">{job.selected_datasets?.length || 0}</p>
+                       </div>
                       <div className="text-center">
                         <p className="text-slate-400">Runs</p>
                         <p className="font-semibold text-slate-900">{job.total_runs || 0}</p>
@@ -909,25 +909,25 @@ export default function Jobs() {
 
               <TabsContent value="objects" className="space-y-4 mt-4">
                 <div>
-                  <Label className="mb-2 block">Select Tables/Objects to Ingest</Label>
+                  <Label className="mb-2 block">Select Tables/Datasets to Ingest</Label>
                   <ObjectSelector
-                    selectedObjects={formData.selected_objects}
-                    onChange={(objects) => setFormData({ ...formData, selected_objects: objects })}
+                    selectedObjects={formData.selected_datasets}
+                    onChange={(objects) => setFormData({ ...formData, selected_datasets: objects })}
                   />
                 </div>
 
-                {formData.selected_objects?.length > 0 && (
+                {formData.selected_datasets?.length > 0 && (
                   <div className="border border-slate-200 rounded-xl p-4 space-y-4">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                      <h4 className="font-semibold text-slate-900 text-sm">Object-Level Access Entitlements</h4>
+                      <h4 className="font-semibold text-slate-900 text-sm">Dataset-Level Access Entitlements</h4>
                     </div>
                     <p className="text-xs text-slate-500">
-                      Configure access for individual objects. Leave empty to inherit job-level entitlements: <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">{formData.access_entitlements?.length > 0 ? formData.access_entitlements.join(", ") : "(none set)"}</code>
+                      Configure access for individual datasets. Leave empty to inherit job-level entitlements: <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">{formData.access_entitlements?.length > 0 ? formData.access_entitlements.join(", ") : "(none set)"}</code>
                     </p>
                     
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {formData.selected_objects.map((obj, idx) => (
+                      {formData.selected_datasets.map((obj, idx) => (
                         <div key={idx} className="border border-slate-200 rounded-lg p-3 space-y-2 bg-slate-50">
                           <div className="flex items-center justify-between">
                             <div className="font-medium text-sm text-slate-900">
@@ -939,9 +939,9 @@ export default function Jobs() {
                             <Input
                               value={obj.access_entitlements?.join(", ") || ""}
                               onChange={(e) => {
-                                const updated = [...formData.selected_objects];
+                                const updated = [...formData.selected_datasets];
                                 updated[idx].access_entitlements = e.target.value.split(",").map(s => s.trim()).filter(s => s);
-                                setFormData({ ...formData, selected_objects: updated });
+                                setFormData({ ...formData, selected_datasets: updated });
                               }}
                               placeholder="e.g. data_analyst, finance_user (empty = inherit job-level)"
                               className="text-xs"
@@ -1292,7 +1292,7 @@ export default function Jobs() {
               {/* ── Advanced Tab ── */}
               <TabsContent value="advanced" className="space-y-5 mt-4">
                 <AdvancedTab
-                  selectedObjects={formData.selected_objects}
+                   selectedObjects={formData.selected_datasets}
                   columnMappings={formData.column_mappings}
                   dqRules={formData.dq_rules}
                   cleansing={formData.data_cleansing}
@@ -1397,11 +1397,11 @@ export default function Jobs() {
                 </div>
               </div>
 
-              {/* Selected Objects */}
+              {/* Selected Datasets */}
               <div>
-                <h4 className="font-medium text-slate-900 mb-2">Selected Objects ({viewingJob.selected_objects?.length || 0})</h4>
+                <h4 className="font-medium text-slate-900 mb-2">Selected Datasets ({viewingJob.selected_datasets?.length || 0})</h4>
                 <div className="border border-slate-200 rounded-lg max-h-40 overflow-y-auto">
-                  {viewingJob.selected_objects?.length > 0 ? (
+                  {viewingJob.selected_datasets?.length > 0 ? (
                     <table className="w-full text-sm">
                       <thead className="bg-slate-50 sticky top-0">
                         <tr>
@@ -1411,7 +1411,7 @@ export default function Jobs() {
                         </tr>
                       </thead>
                       <tbody>
-                        {viewingJob.selected_objects.map((obj, i) => (
+                        {viewingJob.selected_datasets.map((obj, i) => (
                           <tr key={i} className="border-t border-slate-100">
                             <td className="px-3 py-2 text-slate-600">{obj.schema}</td>
                             <td className="px-3 py-2 text-slate-900">{obj.table}</td>
@@ -1419,12 +1419,12 @@ export default function Jobs() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
-                  ) : (
-                    <p className="p-4 text-center text-slate-500">No objects selected</p>
-                  )}
-                </div>
-              </div>
+                      </table>
+                      ) : (
+                      <p className="p-4 text-center text-slate-500">No datasets selected</p>
+                      )}
+                      </div>
+                      </div>
 
               {/* Run History */}
               <div>
