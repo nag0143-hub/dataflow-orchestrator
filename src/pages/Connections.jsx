@@ -631,6 +631,13 @@ Return a JSON with:
                     </Select>
                   </div>
 
+                  {formData.platform && PLATFORM_TEMPLATES[formData.platform] && !editingConnection && (
+                    <div className="col-span-2 flex items-center gap-2 text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-md px-3 py-2">
+                      <span className="shrink-0">✦</span>
+                      <span>Default values pre-filled for <strong>{platformConfig[formData.platform]?.label}</strong>. Adjust as needed.</span>
+                    </div>
+                  )}
+
                   {!isCloudPlatform && !isFilePlatform && (
                     <>
                       <div>
