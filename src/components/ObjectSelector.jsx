@@ -23,16 +23,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SchemaImporter from "@/components/SchemaImporter";
 
-const defaultSchemas = [
-  { name: "dbo", tables: [{ name: "Customers", columns: [] }, { name: "Orders", columns: [] }, { name: "Products", columns: [] }, { name: "Inventory", columns: [] }, { name: "Suppliers", columns: [] }, { name: "Categories", columns: [] }] },
-  { name: "sales", tables: [{ name: "Transactions", columns: [] }, { name: "Returns", columns: [] }, { name: "Discounts", columns: [] }, { name: "Promotions", columns: [] }] },
-  { name: "hr", tables: [{ name: "Employees", columns: [] }, { name: "Departments", columns: [] }, { name: "Salaries", columns: [] }, { name: "Attendance", columns: [] }] }
-];
-
 export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [schemas, setSchemas] = useState(defaultSchemas);
-  const [expandedSchemas, setExpandedSchemas] = useState(["dbo"]);
+  const [schemas, setSchemas] = useState([]);
+  const [expandedSchemas, setExpandedSchemas] = useState([]);
   const [configPanelObject, setConfigPanelObject] = useState(null);
   const [objectConfig, setObjectConfig] = useState({});
   const [showImporter, setShowImporter] = useState(false);
@@ -161,6 +155,20 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
 
       {/* Object Tree */}
       <div className="max-h-[300px] overflow-y-auto">
+        {filteredSchemas.length === 0 && schemas.length === 0 && (
+          <div className="p-8 text-center">
+            <Database className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm font-medium text-slate-600 mb-1">No schemas imported</p>
+            <p className="text-xs text-slate-500">Click "Import Schema" to upload metadata or discover from connection</p>
+          </div>
+        )}
+        {filteredSchemas.length === 0 && schemas.length > 0 && (
+          <div className="p-8 text-center">
+            <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm font-medium text-slate-600 mb-1">No results</p>
+            <p className="text-xs text-slate-500">Try a different search term</p>
+          </div>
+        )}
         {filteredSchemas.map(schema => {
           const selectedCount = schema.tables.filter(t => isSelected(schema.name, t.name)).length;
           const allSelected = selectedCount === schema.tables.length;
