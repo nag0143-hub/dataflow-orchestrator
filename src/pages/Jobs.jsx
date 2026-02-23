@@ -764,6 +764,17 @@ export default function Jobs() {
         </DialogContent>
       </Dialog>
 
+      {/* PySpark Code Generator */}
+      {codeGenJob && (
+        <PySparkCodeGenerator
+          open={!!codeGenJob}
+          job={codeGenJob}
+          sourceConn={getConnection(codeGenJob.source_connection_id)}
+          targetConn={getConnection(codeGenJob.target_connection_id)}
+          onClose={() => setCodeGenJob(null)}
+        />
+      )}
+
       {/* Job Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
