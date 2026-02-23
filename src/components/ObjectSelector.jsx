@@ -10,7 +10,8 @@ import {
   Database,
   Settings2,
   X,
-  Check
+  Check,
+  Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -20,18 +21,21 @@ import {
 } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SchemaImporter from "@/components/SchemaImporter";
 
-const mockSchemas = [
-  { name: "dbo", tables: ["Customers", "Orders", "Products", "Inventory", "Suppliers", "Categories"] },
-  { name: "sales", tables: ["Transactions", "Returns", "Discounts", "Promotions"] },
-  { name: "hr", tables: ["Employees", "Departments", "Salaries", "Attendance"] }
+const defaultSchemas = [
+  { name: "dbo", tables: [{ name: "Customers", columns: [] }, { name: "Orders", columns: [] }, { name: "Products", columns: [] }, { name: "Inventory", columns: [] }, { name: "Suppliers", columns: [] }, { name: "Categories", columns: [] }] },
+  { name: "sales", tables: [{ name: "Transactions", columns: [] }, { name: "Returns", columns: [] }, { name: "Discounts", columns: [] }, { name: "Promotions", columns: [] }] },
+  { name: "hr", tables: [{ name: "Employees", columns: [] }, { name: "Departments", columns: [] }, { name: "Salaries", columns: [] }, { name: "Attendance", columns: [] }] }
 ];
 
 export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [schemas, setSchemas] = useState(defaultSchemas);
   const [expandedSchemas, setExpandedSchemas] = useState(["dbo"]);
-  const [configPanelObject, setConfigPanelObject] = useState(null); // { schema, table }
+  const [configPanelObject, setConfigPanelObject] = useState(null);
   const [objectConfig, setObjectConfig] = useState({});
+  const [showImporter, setShowImporter] = useState(false);
 
   const toggleSchema = (schema) => {
     setExpandedSchemas(prev =>
