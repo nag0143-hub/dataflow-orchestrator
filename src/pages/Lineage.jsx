@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Download, Eye, Search } from "lucide-react";
-import { PlatformIcon } from "@/components/PlatformIcon";
 import moment from "moment";
 
 export default function LineagePage() {
