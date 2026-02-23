@@ -19,6 +19,7 @@ import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon from "@/components/PlatformIcon";
 import { useTenant } from "@/components/useTenant";
+import AirflowSection from "@/components/AirflowSection";
 import moment from "moment";
 
 export default function Dashboard() {
@@ -274,6 +275,12 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </Link>
+      </div>
+
+      {/* Airflow DAGs */}
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Apache Airflow DAGs</h2>
+        <AirflowSection />
       </div>
     </div>
   );

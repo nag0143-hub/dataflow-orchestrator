@@ -15,6 +15,7 @@ const platformConfig = {
   sftp:                 { icon: Network,     color: "bg-teal-100 text-teal-600",    label: "SFTP" },
   nas:                  { icon: FolderOpen,  color: "bg-lime-100 text-lime-700",    label: "NAS / Network Share" },
   local_fs:             { icon: HardDrive,   color: "bg-slate-100 text-slate-600",  label: "Local Filesystem" },
+  airflow:              { icon: Network,     color: "bg-cyan-100 text-cyan-600",    label: "Apache Airflow" },
 };
 
 export default function PlatformIcon({ platform, showLabel = false, size = "default" }) {
