@@ -331,12 +331,17 @@ export default function LineagePage() {
                 </div>
               </div>
 
-              {/* Export Button */}
+              {/* Export Buttons */}
               <div className="flex gap-2">
                 <Button onClick={() => handleExport("json")} variant="outline" className="gap-2">
                   <Download className="w-4 h-4" />
                   Export JSON
                 </Button>
+                <ExportOpenMetadataButton
+                  job={selectedJob}
+                  sourceConn={connections.find((c) => c.id === selectedJob.source_connection_id)}
+                  targetConn={connections.find((c) => c.id === selectedJob.target_connection_id)}
+                />
               </div>
             </div>
           ) : null}
