@@ -16,7 +16,12 @@ import {
   Calendar,
   ArrowRight,
   Filter,
-  RefreshCw
+  RefreshCw,
+  ArrowLeftRight,
+  ShieldCheck,
+  Columns,
+  TableProperties,
+  Construction
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
