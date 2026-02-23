@@ -281,6 +281,7 @@ export default function DataQualityRules({ selectedObjects = [], rules = {}, onC
                   <Button
                     variant="ghost" size="sm"
                     className="h-6 text-xs px-2 text-blue-500 hover:text-blue-700"
+                    type="button"
                     onClick={() => { setAddColRule(col); setNewRule({ rule: "not_null", parameter: "", action: "fail_job" }); }}
                   >
                     <Plus className="w-3 h-3 mr-1" /> Rule
