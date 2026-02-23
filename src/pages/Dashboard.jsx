@@ -50,11 +50,6 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  // Create indexes for O(1) lookups
-  const jobIndex = useEffect(() => {
-    if (jobs.length > 0) return createIndex(jobs, "id");
-  }, [jobs]);
-
   const stats = {
     totalConnections: connections.length,
     activeConnections: connections.filter(c => c.status === "active").length,
