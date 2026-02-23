@@ -836,66 +836,67 @@ export default function Jobs() {
                     <p className="text-xs text-slate-400">This job will only run when triggered manually.</p>
                   )}
 
-                  {/* Include / Exclude Calendars — shown for all non-manual types */}
+                  {/* Custom Calendar toggle + Include/Exclude — shown for all non-manual types */}
                   {formData.schedule_type !== "manual" && (
-                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                      {/* Include Calendar */}
-                      <div>
-                        <Label className="text-xs text-slate-700 font-semibold mb-1 block flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                          Include Dates
-                        </Label>
-                        <p className="text-xs text-slate-400 mb-2">Job will ONLY run on these dates (overrides schedule)</p>
-                        <Input
-                          type="date"
-                          className="text-xs h-8"
-                          onChange={e => {
-                            const val = e.target.value;
-                            if (val && !formData.include_dates.includes(val)) {
-                              setFormData(prev => ({ ...prev, include_dates: [...prev.include_dates, val] }));
-                              e.target.value = "";
-                            }
-                          }}
-                        />
-                        <div className="flex flex-wrap gap-1 mt-2 max-h-20 overflow-y-auto">
-                          {(formData.include_dates || []).map(d => (
-                            <span key={d} className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-2 py-0.5">
-                              {d}
-                              <button type="button" onClick={() => setFormData(prev => ({ ...prev, include_dates: prev.include_dates.filter(x => x !== d) }))} className="hover:text-red-500">×</button>
-                            </span>
-                          ))}
-                          {!(formData.include_dates?.length) && <span className="text-xs text-slate-300 italic">None added</span>}
+                    <div className="pt-2 border-t border-slate-100 space-y-3">
+                      {/* Custom Calendar toggle */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-slate-700">Use Custom Calendar</p>
+                          <p className="text-xs text-slate-400">Apply include/exclude date rules (e.g. bank holidays)</p>
                         </div>
+                        <Switch
+                          checked={!!formData.use_custom_calendar}
+                          onCheckedChange={checked => setFormData(prev => ({ ...prev, use_custom_calendar: checked }))}
+                        />
                       </div>
 
-                      {/* Exclude Calendar */}
-                      <div>
-                        <Label className="text-xs text-slate-700 font-semibold mb-1 block flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
-                          Exclude Dates
-                        </Label>
-                        <p className="text-xs text-slate-400 mb-2">Job will be SKIPPED on these dates (e.g. holidays)</p>
-                        <Input
-                          type="date"
-                          className="text-xs h-8"
-                          onChange={e => {
-                            const val = e.target.value;
-                            if (val && !formData.exclude_dates.includes(val)) {
-                              setFormData(prev => ({ ...prev, exclude_dates: [...prev.exclude_dates, val] }));
-                              e.target.value = "";
-                            }
-                          }}
-                        />
-                        <div className="flex flex-wrap gap-1 mt-2 max-h-20 overflow-y-auto">
-                          {(formData.exclude_dates || []).map(d => (
-                            <span key={d} className="inline-flex items-center gap-1 text-xs bg-red-50 text-red-700 border border-red-200 rounded px-2 py-0.5">
-                              {d}
-                              <button type="button" onClick={() => setFormData(prev => ({ ...prev, exclude_dates: prev.exclude_dates.filter(x => x !== d) }))} className="hover:text-red-700">×</button>
-                            </span>
-                          ))}
-                          {!(formData.exclude_dates?.length) && <span className="text-xs text-slate-300 italic">None added</span>}
+                      {/* Include / Exclude pickers — only when custom calendar is on */}
+                      {formData.use_custom_calendar && (
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Include Calendar */}
+                          <div>
+                            <Label className="text-xs text-slate-700 font-semibold mb-1 block">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1" />
+                              Include Calendar
+                            </Label>
+                            <p className="text-xs text-slate-400 mb-2">Run ONLY on these dates (e.g. bank holidays to include)</p>
+                            <Select
+                              value={formData.include_calendar_id || ""}
+                              onValueChange={v => setFormData(prev => ({ ...prev, include_calendar_id: v || null }))}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue placeholder="Select calendar..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value={null}>None</SelectItem>
+                                <SelectItem value="__coming_soon__" disabled>— No calendars configured yet —</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Exclude Calendar */}
+                          <div>
+                            <Label className="text-xs text-slate-700 font-semibold mb-1 block">
+                              <span className="w-2 h-2 rounded-full bg-red-400 inline-block mr-1" />
+                              Exclude Calendar
+                            </Label>
+                            <p className="text-xs text-slate-400 mb-2">SKIP runs on these dates (e.g. bank holidays to exclude)</p>
+                            <Select
+                              value={formData.exclude_calendar_id || ""}
+                              onValueChange={v => setFormData(prev => ({ ...prev, exclude_calendar_id: v || null }))}
+                            >
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue placeholder="Select calendar..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value={null}>None</SelectItem>
+                                <SelectItem value="__coming_soon__" disabled>— No calendars configured yet —</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   )}
                 </div>
