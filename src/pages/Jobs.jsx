@@ -1178,6 +1178,9 @@ export default function Jobs() {
                   dqRules={formData.dq_rules}
                   onMappingsChange={handleMappingsChange}
                   onRulesChange={handleRulesChange}
+                  isFlatFileSource={isFlatFileSource}
+                  formData={formData}
+                  onObjectsChange={(objects) => setFormData({ ...formData, selected_objects: objects })}
                 />
               </TabsContent>
               {/* ── Job Spec Tab ── */}
