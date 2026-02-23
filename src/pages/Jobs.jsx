@@ -1283,22 +1283,24 @@ export default function Jobs() {
                       })}
                     />
                   </div>
-                {/* ── Advanced Features Toggle ── */}
-                <div className="border border-slate-200 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Advanced Features</p>
-                      <p className="text-xs text-slate-400">Enable advanced options for data quality, column mapping, and cleansing</p>
-                    </div>
-                    <Switch
-                      checked={formData.enable_advanced}
-                      onCheckedChange={(checked) => {
-                        setFormData(prev => ({ ...prev, enable_advanced: checked }));
-                        if (!checked && activeTab === "advanced") setActiveTab("settings");
-                      }}
-                    />
                   </div>
-                </div>
+
+                  {/* ── Advanced Features Toggle ── */}
+                  <div className="border border-slate-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                   <div>
+                     <p className="text-sm font-medium text-slate-700">Advanced Features</p>
+                     <p className="text-xs text-slate-400">Enable advanced options for data quality, column mapping, and cleansing</p>
+                   </div>
+                   <Switch
+                     checked={formData.enable_advanced}
+                     onCheckedChange={(checked) => {
+                       setFormData(prev => ({ ...prev, enable_advanced: checked }));
+                       if (!checked && activeTab === "advanced") setActiveTab("settings");
+                     }}
+                   />
+                  </div>
+                  </div>
               </TabsContent>
 
               {/* ── Advanced Tab ── */}
