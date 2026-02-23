@@ -40,15 +40,41 @@ export default function LineagePage() {
     setLoading(true);
     setLineageData(null);
 
-    const response = await fetch("/api/generateLineage", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobId: job.id }),
-    });
+    try {
+      const response = await fetch("/api/generateLineage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId: job.id }),
+      });
 
-    const data = await response.json();
-    setLineageData(data);
-    setLoading(false);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch lineage: ${response.statusText}`);
+      }
+
+      const text = await response.text();
+      if (!text) {
+        throw new Error("Empty response from lineage API");
+      }
+
+      const data = JSON.parse(text);
+      setLineageData(data);
+    } catch (error) {
+      console.error("Error loading lineage:", error);
+      // Set a minimal lineage structure to display the job info
+      setLineageData({
+        source: connections.find((c) => c.id === job.source_connection_id) || { name: "Unknown", platform: "unknown" },
+        target: connections.find((c) => c.id === job.target_connection_id) || { name: "Unknown", platform: "unknown" },
+        assets: job.selected_datasets || [],
+        execution: {
+          schedule_type: job.schedule_type || "manual",
+          total_runs: job.total_runs || 0,
+          successful_runs: job.successful_runs || 0,
+          next_run: job.next_run,
+        },
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNodeClick = (nodeType, nodeData) => {
