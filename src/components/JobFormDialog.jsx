@@ -135,37 +135,39 @@ export default function JobFormDialog({
               <TabsTrigger value="spec">Job Spec</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="general" className="space-y-4 mt-4">
-              <JobBasicsTab
-                formData={formData}
-                setFormData={setFormData}
-                sourceConnections={sourceConnections}
-                targetConnections={targetConnections}
-              />
-            </TabsContent>
-
-            <TabsContent value="datasets" className="space-y-4 mt-4">
-              <JobDataTab
-                formData={formData}
-                setFormData={setFormData}
-                showDatasetLoadMethods={showDatasetLoadMethods}
-                setShowDatasetLoadMethods={setShowDatasetLoadMethods}
-              />
-            </TabsContent>
-
-            <TabsContent value="settings" className="space-y-4 mt-4">
-              <ScheduleSettings formData={formData} setFormData={setFormData} />
-            </TabsContent>
-
-            {formData.enable_advanced && (
-              <TabsContent value="advanced" className="space-y-5 mt-4">
-                <AdvancedTabContent formData={formData} setFormData={setFormData} />
+            <div className="max-h-[calc(92vh-300px)] overflow-y-auto">
+              <TabsContent value="general" className="space-y-4 mt-4">
+                <JobBasicsTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  sourceConnections={sourceConnections}
+                  targetConnections={targetConnections}
+                />
               </TabsContent>
-            )}
 
-            <TabsContent value="spec" className="mt-4">
-              <JobSpecTabPreview formData={formData} connections={connections} />
-            </TabsContent>
+              <TabsContent value="datasets" className="space-y-4 mt-4">
+                <JobDataTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  showDatasetLoadMethods={showDatasetLoadMethods}
+                  setShowDatasetLoadMethods={setShowDatasetLoadMethods}
+                />
+              </TabsContent>
+
+              <TabsContent value="settings" className="space-y-4 mt-4">
+                <ScheduleSettings formData={formData} setFormData={setFormData} />
+              </TabsContent>
+
+              {formData.enable_advanced && (
+                <TabsContent value="advanced" className="space-y-5 mt-4">
+                  <AdvancedTabContent formData={formData} setFormData={setFormData} />
+                </TabsContent>
+              )}
+
+              <TabsContent value="spec" className="mt-4">
+                <JobSpecTabPreview formData={formData} connections={connections} />
+              </TabsContent>
+            </div>
           </Tabs>
 
           {activeTab === "spec" && (
