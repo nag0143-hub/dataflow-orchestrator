@@ -44,13 +44,13 @@ export default function Layout({ children }) {
   return (
     <div className={cn("min-h-screen", darkMode ? "dark bg-slate-900" : "bg-slate-50")}>
       <style>{`
-        :root {
-          --brand-primary: #0f172a;
-          --brand-accent: #3b82f6;
-          --brand-success: #10b981;
-          --brand-warning: #f59e0b;
-          --brand-error: #ef4444;
-        }
+            :root {
+              --brand-primary: #003478;
+              --brand-accent: #FFB81C;
+              --brand-success: #10b981;
+              --brand-warning: #f59e0b;
+              --brand-error: #ef4444;
+            }
         .dark .dark-card { background: #1e293b; border-color: #334155; }
         .dark .dark-text { color: #f1f5f9; }
         .dark .dark-subtext { color: #94a3b8; }
@@ -67,7 +67,7 @@ export default function Layout({ children }) {
       )}>
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#003478] to-[#001F47] flex items-center justify-center">
               <Database className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -84,8 +84,8 @@ export default function Layout({ children }) {
                 className={cn(
                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                    isActive(item.page)
-                     ? darkMode ? "bg-cyan-600 text-white shadow-lg shadow-cyan-600/30" : "bg-slate-900 text-white"
-                     : darkMode ? "text-slate-300 hover:bg-slate-700 hover:text-white hover:shadow-md" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:shadow-sm"
+                      ? darkMode ? "bg-[#003478] text-white shadow-lg shadow-[#003478]/30" : "bg-[#003478] text-white"
+                      : darkMode ? "text-slate-300 hover:bg-slate-700 hover:text-white hover:shadow-md" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:shadow-sm"
                  )}
               >
                 <item.icon className="w-4 h-4" />
