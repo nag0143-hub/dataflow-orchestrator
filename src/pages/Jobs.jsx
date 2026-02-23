@@ -303,6 +303,9 @@ export default function Jobs() {
   const getConnection = (id) => connections.find(c => c.id === id);
   const getJobRuns = (jobId) => runs.filter(r => r.job_id === jobId);
 
+  const sourceConn = getConnection(formData.source_connection_id);
+  const isFlatFileSource = sourceConn && ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"].includes(sourceConn.platform);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
