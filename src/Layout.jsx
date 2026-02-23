@@ -2,14 +2,15 @@ import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { useState, useEffect } from "react";
 import { 
-  Database, 
-  Home,
-  Cable,
-  Play,
-  FileText,
-  Sun,
-  Moon
-} from "lucide-react";
+        Database, 
+        Home,
+        Cable,
+        Play,
+        FileText,
+        Sun,
+        Moon,
+        GitGraph
+      } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children }) {
@@ -31,7 +32,7 @@ export default function Layout({ children }) {
       { name: "Dashboard", icon: Home, page: "Dashboard" },
       { name: "Connections", icon: Cable, page: "Connections" },
       { name: "Jobs", icon: Play, page: "Jobs" },
-      { name: "Lineage", icon: Database, page: "Lineage" },
+      { name: "Lineage", icon: GitGraph, page: "Lineage" },
       { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
       { name: "Data Model", icon: Database, page: "DataModel" },
     ];
