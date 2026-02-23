@@ -51,6 +51,8 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const [objectConfig, setObjectConfig] = useState({
     filter_query: "",
     target_path: "",
+    target_dataset: "",
+    target_format: "original",
     incremental_column: ""
   });
 
