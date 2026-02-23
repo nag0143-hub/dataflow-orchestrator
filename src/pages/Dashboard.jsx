@@ -109,50 +109,68 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Charts & Activity */}
+      {/* Recent Job Runs + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Transfer Activity Chart */}
+        {/* Recent Job Runs */}
         <Card className="lg:col-span-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
-              <TrendingUp className="w-5 h-5 text-blue-600" />
-              Transfer Activity
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
+                <Play className="w-5 h-5 text-blue-600" />
+                Recent Job Runs
+              </CardTitle>
+              <Link to={createPageUrl("Jobs")}>
+                <Button variant="outline" size="sm" className="gap-1">
+                  View All Jobs
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
           </CardHeader>
           <CardContent>
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorRows" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="rows" 
-                    stroke="#3b82f6" 
-                    fillOpacity={1} 
-                    fill="url(#colorRows)" 
-                    strokeWidth={2}
-                    name="Rows Processed"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+            {recentRuns.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-100 dark:border-slate-700">
+                      <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Job</th>
+                      <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Status</th>
+                      <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Rows</th>
+                      <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Duration</th>
+                      <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Started</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentRuns.map((run) => {
+                      const job = jobs.find(j => j.id === run.job_id);
+                      return (
+                        <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                          <td className="py-3 px-4">
+                            <span className="font-medium text-slate-900 dark:text-slate-100">{job?.name || "Unknown Job"}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <StatusBadge status={run.status} size="sm" />
+                          </td>
+                          <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
+                            {(run.rows_processed || 0).toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
+                            {run.duration_seconds ? `${run.duration_seconds}s` : "-"}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400">
+                            {moment(run.started_at || run.created_date).fromNow()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             ) : (
-              <div className="h-[250px] flex items-center justify-center text-slate-400 dark:text-slate-500">
-                No transfer data yet
+              <div className="text-center py-12">
+                <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 dark:text-slate-400">No job runs yet</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500">Create and run a job to see activity here</p>
               </div>
             )}
           </CardContent>
@@ -177,7 +195,7 @@ export default function Dashboard() {
             <div className="space-y-3">
               {logs.length > 0 ? logs.map((log) => (
                 <div key={log.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                <div className={`w-2 h-2 rounded-full mt-2 ${
+                  <div className={`w-2 h-2 rounded-full mt-2 ${
                     log.log_type === 'error' ? 'bg-red-500' :
                     log.log_type === 'warning' ? 'bg-amber-500' :
                     log.log_type === 'success' ? 'bg-emerald-500' :
@@ -195,68 +213,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Job Runs */}
-      <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold dark:text-white">Recent Job Runs</CardTitle>
-            <Link to={createPageUrl("Jobs")}>
-              <Button variant="outline" size="sm" className="gap-1">
-                View All Jobs
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {recentRuns.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-700">
-                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Job</th>
-                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Status</th>
-                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Rows</th>
-                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Duration</th>
-                    <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Started</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentRuns.map((run) => {
-                    const job = jobs.find(j => j.id === run.job_id);
-                    return (
-                      <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-medium text-slate-900 dark:text-slate-100">{job?.name || "Unknown Job"}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <StatusBadge status={run.status} size="sm" />
-                        </td>
-                        <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
-                          {(run.rows_processed || 0).toLocaleString()}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
-                          {run.duration_seconds ? `${run.duration_seconds}s` : "-"}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400">
-                          {moment(run.started_at || run.created_date).fromNow()}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 dark:text-slate-400">No job runs yet</p>
-              <p className="text-sm text-slate-400 dark:text-slate-500">Create and run a job to see activity here</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
