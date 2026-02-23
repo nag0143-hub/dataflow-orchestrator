@@ -111,6 +111,7 @@ export function buildJobSpec(job, connections) {
 }
 
 export default function JobSpecExport({ job, connections, onClose }) {
+  // legacy standalone dialog — still usable
   const [format, setFormat] = useState("json");
   const [copied, setCopied] = useState(false);
 
