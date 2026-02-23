@@ -240,7 +240,6 @@ const defaultFormData = {
   cost_center: "",
   email: "",
   access_entitlements: [],
-  data_classification: "",
   retry_config: {
     max_retries: 3,
     retry_delay_seconds: 60,
@@ -412,7 +411,6 @@ export default function Jobs() {
       cost_center: job.cost_center || "",
       email: job.email || "",
       access_entitlements: job.access_entitlements || [],
-      data_classification: job.data_classification || "",
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
@@ -1252,23 +1250,6 @@ export default function Jobs() {
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-blue-600" />
                     <h4 className="font-semibold text-slate-900 text-sm">Security & Access Control</h4>
-                  </div>
-                  <div>
-                    <Label>Data Classification</Label>
-                    <Select value={formData.data_classification || ""} onValueChange={(v) => setFormData({ ...formData, data_classification: v })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select classification level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="public">Public</SelectItem>
-                        <SelectItem value="confidential">Confidential</SelectItem>
-                        <SelectItem value="personal_class_1">Personal Class 1</SelectItem>
-                        <SelectItem value="personal_class_1_pci">Personal Class 1 - PCI</SelectItem>
-                        <SelectItem value="personal_class_2">Personal Class 2</SelectItem>
-                        <SelectItem value="personal_class_3">Personal Class 3</SelectItem>
-                        <SelectItem value="personal_class_4">Personal Class 4</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   <div>
                     <Label>Job-Level Access Entitlements</Label>
