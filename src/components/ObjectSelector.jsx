@@ -190,7 +190,7 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0 text-slate-400 hover:text-slate-600"
-                        onClick={() => openConfig(schema.name, table)}
+                        onClick={(e) => { e.stopPropagation(); openConfig(schema.name, table); }}
                       >
                         <Settings2 className="w-3.5 h-3.5" />
                       </Button>
