@@ -1,236 +1,25 @@
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import {
-  Plus,
-  Search,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Play,
-  Pause,
-  RotateCcw,
-  Eye,
-  Clock,
-  Calendar,
-  ArrowRight,
-  Filter,
-  RefreshCw,
-  ArrowLeftRight,
-  ShieldCheck,
-  Copy,
-  Download,
-  Check,
-  Send,
-  Rocket
-} from "lucide-react";
+import { Plus, Search, Play, Filter, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
-import HelpTooltip from "@/components/HelpTooltip";
 import OnboardingWizard from "@/components/OnboardingWizard";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import { createIndex } from "@/components/dataIndexing";
-import JobBasicsTab from "@/components/JobFormTabs/JobBasicsTab";
-import JobDataTab from "@/components/JobFormTabs/JobDataTab";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import StatusBadge from "@/components/StatusBadge";
-import PlatformIcon, { platformConfig } from "@/components/PlatformIcon";
-import ObjectSelector from "@/components/ObjectSelector";
-import PipelineVersionHistory from "@/components/PipelineVersionHistory";
-import ColumnMapper from "@/components/ColumnMapper";
-import DataQualityRules from "@/components/DataQualityRules";
 import { useTenant } from "@/components/useTenant";
 import moment from "moment";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GitCommitHorizontal, FileJson, Wand2 } from "lucide-react";
-import JobSpecExport, { buildJobSpec } from "@/components/JobSpecExport";
-import DataCleansing from "@/components/DataCleansing";
-import DataMaskingConfig from "@/components/DataMaskingConfig";
-import SLAConfig from "@/components/SLAConfig";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ObjectSelector from "@/components/ObjectSelector";
+import PipelineVersionHistory from "@/components/PipelineVersionHistory";
+import JobSpecExport from "@/components/JobSpecExport";
+import JobFormDialog from "@/components/JobFormDialog";
+import JobCard from "@/components/JobCard";
+import JobDetailsDialog from "@/components/JobDetailsDialog";
 
-// Memoized Advanced tab to prevent re-renders from parent form state changes
-const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings, dqRules, cleansing, onMappingsChange, onRulesChange, onCleansingChange }) {
-  return (
-    <div className="space-y-5">
-      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Wand2 className="w-4 h-4 text-indigo-600" />
-          <h4 className="font-semibold text-slate-900 text-sm">Data Cleansing</h4>
-        </div>
-        <p className="text-xs text-slate-500">Remove unprintable characters, control characters, and whitespace anomalies.</p>
-        <DataCleansing
-          selectedObjects={selectedObjects}
-          cleansing={cleansing}
-          onChange={onCleansingChange}
-        />
-      </div>
-      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <ArrowLeftRight className="w-4 h-4 text-violet-600" />
-          <h4 className="font-semibold text-slate-900 text-sm">Column Mapping &amp; Transformations</h4>
-        </div>
-        <p className="text-xs text-slate-500">Map source columns to target columns and apply transformations.</p>
-        <ColumnMapper
-          selectedObjects={selectedObjects}
-          mappings={columnMappings}
-          onChange={onMappingsChange}
-        />
-      </div>
-      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <h4 className="font-semibold text-slate-900 text-sm">Data Quality Rules</h4>
-        </div>
-        <p className="text-xs text-slate-500">Define dataset-level and column-level quality checks with configurable failure actions.</p>
-        <DataQualityRules
-          selectedObjects={selectedObjects}
-          rules={dqRules}
-          onChange={onRulesChange}
-        />
-      </div>
-    </div>
-  );
-});
 
-// Inline spec preview inside the job form
-function JobSpecTabPreview({ formData, connections }) {
-  const [format, setFormat] = useState("yaml");
-  const [copied, setCopied] = useState(false);
-
-  // Build a draft spec from current (unsaved) form state
-  const draftJob = {
-    id: "(unsaved)",
-    ...formData,
-    dq_rules: formData.dq_rules || {},
-  };
-
-  // Inline YAML serializer so this component has no extra deps
-  function toYaml(obj, indent = 0) {
-    const pad = "  ".repeat(indent);
-    if (obj === null || obj === undefined) return "null";
-    if (typeof obj === "boolean") return obj ? "true" : "false";
-    if (typeof obj === "number") return String(obj);
-    if (typeof obj === "string") {
-      if (/[\n:#\[\]{},'"&*?|<>=!%@`]/.test(obj) || obj === "" || /^(true|false|null|yes|no)$/i.test(obj))
-        return `"${obj.replace(/"/g, '\\"')}"`;
-      return obj;
-    }
-    if (Array.isArray(obj)) {
-      if (obj.length === 0) return "[]";
-      return obj.map(item => {
-        const val = toYaml(item, indent + 1);
-        if (typeof item === "object" && item !== null && !Array.isArray(item)) {
-          const lines = val.split("\n");
-          return `${pad}- ${lines[0]}\n${lines.slice(1).join("\n")}`;
-        }
-        return `${pad}- ${val}`;
-      }).join("\n");
-    }
-    if (typeof obj === "object") {
-      const keys = Object.keys(obj);
-      if (keys.length === 0) return "{}";
-      return keys.map(k => {
-        const val = obj[k];
-        if (val !== null && typeof val === "object" && !Array.isArray(val) && Object.keys(val).length > 0)
-          return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
-        if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object")
-          return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
-        return `${pad}${k}: ${toYaml(val, indent)}`;
-      }).join("\n");
-    }
-    return String(obj);
-  }
-
-  // Rebuild on every render so it always reflects current formData
-  const spec = buildJobSpec(draftJob, connections);
-  // Strip undefined values for clean output
-  const cleanSpec = JSON.parse(JSON.stringify(spec));
-  const content = format === "json"
-    ? JSON.stringify(cleanSpec, null, 2)
-    : `# DataFlow Job Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
-
-  const filename = `${(formData.name || "job").replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-jobspec.${format === "json" ? "json" : "yaml"}`;
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownload = () => {
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <FileJson className="w-4 h-4 text-blue-600" />
-        <span className="text-sm font-semibold text-slate-900">Job Spec</span>
-        <span className="text-xs text-slate-400 ml-1">(check this file into git)</span>
-        <div className="flex gap-1.5 ml-auto">
-          {["yaml", "json"].map(f => (
-            <button key={f} type="button" onClick={() => setFormat(f)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
-                format === f ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
-              }`}>
-              {f.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
-      <p className="text-xs text-slate-500">
-        This spec reflects the current (unsaved) form state and includes full connection details. Save the job first, then download to commit.
-      </p>
-      <div className="rounded-lg border border-slate-200 bg-slate-950 overflow-hidden">
-        <pre className="p-4 text-xs text-emerald-300 font-mono whitespace-pre overflow-auto max-h-[50vh] leading-relaxed">
-          {content}
-        </pre>
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-          {copied ? "Copied!" : "Copy"}
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={handleDownload} className="gap-1.5">
-          <Download className="w-3.5 h-3.5" />
-          Download {filename}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 const defaultFormData = {
   name: "",

@@ -48,29 +48,29 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import ActivityLogs from './pages/ActivityLogs';
+import AuditTrail from './pages/AuditTrail';
 import Connections from './pages/Connections';
 import Dashboard from './pages/Dashboard';
+import DataCatalog from './pages/DataCatalog';
 import DataModel from './pages/DataModel';
 import Jobs from './pages/Jobs';
 import Lineage from './pages/Lineage';
 import Requirements from './pages/Requirements';
 import UserGuide from './pages/UserGuide';
-import DataCatalog from './pages/DataCatalog';
-import AuditTrail from './pages/AuditTrail';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "ActivityLogs": ActivityLogs,
+    "AuditTrail": AuditTrail,
     "Connections": Connections,
     "Dashboard": Dashboard,
+    "DataCatalog": DataCatalog,
     "DataModel": DataModel,
     "Jobs": Jobs,
     "Lineage": Lineage,
     "Requirements": Requirements,
     "UserGuide": UserGuide,
-    "DataCatalog": DataCatalog,
-    "AuditTrail": AuditTrail,
 }
 
 export const pagesConfig = {
