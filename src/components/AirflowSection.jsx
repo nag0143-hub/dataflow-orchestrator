@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { RefreshCw, Plus, AlertCircle } from "lucide-react";
+import { RefreshCw, Plus, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import AirflowDAGViewer from "./AirflowDAGViewer";
 
@@ -16,6 +15,9 @@ export default function AirflowSection() {
   const [selectedConnection, setSelectedConnection] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [addingConnection, setAddingConnection] = useState(false);
+  const [newConnForm, setNewConnForm] = useState({ name: "", host: "", username: "" });
+  const [savingConnection, setSavingConnection] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -115,19 +117,91 @@ export default function AirflowSection() {
     );
   }
 
+  const handleAddConnection = async () => {
+    if (!newConnForm.name?.trim() || !newConnForm.host?.trim() || !newConnForm.username?.trim()) {
+      toast.error("All fields are required");
+      return;
+    }
+
+    setSavingConnection(true);
+    try {
+      await base44.entities.Connection.create({
+        name: newConnForm.name,
+        platform: "airflow",
+        connection_type: "source",
+        host: newConnForm.host,
+        username: newConnForm.username,
+        status: "active"
+      });
+
+      toast.success("Airflow instance added");
+      setAddingConnection(false);
+      setNewConnForm({ name: "", host: "", username: "" });
+      loadData();
+    } catch (err) {
+      toast.error(`Error: ${err.message}`);
+    } finally {
+      setSavingConnection(false);
+    }
+  };
+
   if (airflowConnections.length === 0) {
+    if (addingConnection) {
+      return (
+        <Card className="border-slate-200">
+          <CardContent className="p-6 space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-900">Add Airflow Instance</h3>
+              <button onClick={() => setAddingConnection(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div>
+              <Label className="text-sm">Instance Name</Label>
+              <Input
+                placeholder="My Airflow"
+                value={newConnForm.name}
+                onChange={(e) => setNewConnForm({ ...newConnForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label className="text-sm">Airflow URL</Label>
+              <Input
+                placeholder="https://airflow.example.com"
+                value={newConnForm.host}
+                onChange={(e) => setNewConnForm({ ...newConnForm, host: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label className="text-sm">API Token</Label>
+              <Input
+                type="password"
+                placeholder="Your Airflow API token"
+                value={newConnForm.username}
+                onChange={(e) => setNewConnForm({ ...newConnForm, username: e.target.value })}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAddingConnection(false)}>Cancel</Button>
+              <Button onClick={handleAddConnection} disabled={savingConnection}>
+                {savingConnection ? "Adding..." : "Add Instance"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
       <Card className="border-slate-200">
         <CardContent className="py-12 text-center">
           <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">No Airflow Connections</h3>
-          <p className="text-slate-500 mb-4">Add an Airflow connection to view and manage DAGs</p>
-          <Link to={createPageUrl("Connections")}>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Airflow Connection
-            </Button>
-          </Link>
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">No Airflow Instances</h3>
+          <p className="text-slate-500 mb-4">Monitor Airflow DAGs alongside your data transfer jobs</p>
+          <Button onClick={() => setAddingConnection(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add Airflow Instance
+          </Button>
         </CardContent>
       </Card>
     );
