@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Download, Eye, Search } from "lucide-react";
 import moment from "moment";
+import LineageGraph from "@/components/LineageGraph";
+import { ExportOpenMetadataButton } from "@/components/OpenMetadataExporter";
 
 export default function LineagePage() {
   const [searchTerm, setSearchTerm] = useState("");

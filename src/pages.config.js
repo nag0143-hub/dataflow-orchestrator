@@ -51,10 +51,10 @@ import ActivityLogs from './pages/ActivityLogs';
 import Connections from './pages/Connections';
 import Dashboard from './pages/Dashboard';
 import DataModel from './pages/DataModel';
-import Requirements from './pages/Requirements';
-import UserGuide from './pages/UserGuide';
 import Jobs from './pages/Jobs';
 import Lineage from './pages/Lineage';
+import Requirements from './pages/Requirements';
+import UserGuide from './pages/UserGuide';
 import __Layout from './Layout.jsx';
 
 
@@ -63,10 +63,10 @@ export const PAGES = {
     "Connections": Connections,
     "Dashboard": Dashboard,
     "DataModel": DataModel,
-    "Requirements": Requirements,
-    "UserGuide": UserGuide,
     "Jobs": Jobs,
     "Lineage": Lineage,
+    "Requirements": Requirements,
+    "UserGuide": UserGuide,
 }
 
 export const pagesConfig = {
