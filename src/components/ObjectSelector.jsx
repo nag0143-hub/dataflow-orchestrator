@@ -23,15 +23,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SchemaImporter from "@/components/SchemaImporter";
 
-const defaultSchemas = [
-  { name: "dbo", tables: [{ name: "Customers", columns: [] }, { name: "Orders", columns: [] }, { name: "Products", columns: [] }, { name: "Inventory", columns: [] }, { name: "Suppliers", columns: [] }, { name: "Categories", columns: [] }] },
-  { name: "sales", tables: [{ name: "Transactions", columns: [] }, { name: "Returns", columns: [] }, { name: "Discounts", columns: [] }, { name: "Promotions", columns: [] }] },
-  { name: "hr", tables: [{ name: "Employees", columns: [] }, { name: "Departments", columns: [] }, { name: "Salaries", columns: [] }, { name: "Attendance", columns: [] }] }
+const mockSchemas = [
+  { name: "dbo", tables: ["Customers", "Orders", "Products", "Inventory", "Suppliers", "Categories"] },
+  { name: "sales", tables: ["Transactions", "Returns", "Discounts", "Promotions"] },
+  { name: "hr", tables: ["Employees", "Departments", "Salaries", "Attendance"] }
 ];
 
 export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [schemas, setSchemas] = useState(defaultSchemas);
   const [expandedSchemas, setExpandedSchemas] = useState(["dbo"]);
   const [configPanelObject, setConfigPanelObject] = useState(null);
   const [objectConfig, setObjectConfig] = useState({});
@@ -95,31 +94,10 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
     setConfigPanelObject(null);
   };
 
-  const handleImportedSchemas = (importedSchemas) => {
-    // Merge imported schemas into existing (avoid duplicates)
-    setSchemas(prev => {
-      const merged = [...prev];
-      importedSchemas.forEach(incoming => {
-        const existing = merged.find(s => s.name === incoming.name);
-        if (existing) {
-          incoming.tables.forEach(t => {
-            if (!existing.tables.find(et => et.name === t.name)) {
-              existing.tables.push(t);
-            }
-          });
-        } else {
-          merged.push(incoming);
-        }
-      });
-      return merged;
-    });
-    setExpandedSchemas(importedSchemas.map(s => s.name));
-  };
-
-  const filteredSchemas = schemas.map(schema => ({
+  const filteredSchemas = mockSchemas.map(schema => ({
     ...schema,
     tables: schema.tables.filter(t =>
-      t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.toLowerCase().includes(searchTerm.toLowerCase()) ||
       schema.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   })).filter(schema => schema.tables.length > 0);
