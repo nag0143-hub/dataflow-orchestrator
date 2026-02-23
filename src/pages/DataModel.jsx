@@ -514,10 +514,18 @@ export default function DataModel() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
+      <DDLModal open={showDDL} onClose={() => setShowDDL(false)} />
+
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Model</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">Entity schemas and relationships for the DataFlow platform</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Model</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Entity schemas and relationships for the DataFlow platform</p>
+        </div>
+        <Button onClick={() => setShowDDL(true)} variant="outline" className="gap-2">
+          <Code2 className="w-4 h-4" />
+          Generate DDL
+        </Button>
       </div>
 
       {/* Relationships */}
