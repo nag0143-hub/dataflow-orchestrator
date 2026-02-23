@@ -97,6 +97,9 @@ export default function Jobs() {
   const [commitMessage, setCommitMessage] = useState("");
   const [historyDialogJob, setHistoryDialogJob] = useState(null);
 
+  const handleMappingsChange = useCallback((mappings) => setFormData(prev => ({ ...prev, column_mappings: mappings })), []);
+  const handleRulesChange = useCallback((rules) => setFormData(prev => ({ ...prev, dq_rules: rules })), []);
+
   useEffect(() => {
     loadData();
   }, []);
