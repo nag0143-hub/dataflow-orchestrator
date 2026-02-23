@@ -915,6 +915,43 @@ export default function Jobs() {
                     onChange={(objects) => setFormData({ ...formData, selected_objects: objects })}
                   />
                 </div>
+
+                {formData.selected_objects?.length > 0 && (
+                  <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <h4 className="font-semibold text-slate-900 text-sm">Object-Level Access Entitlements</h4>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Configure access for individual objects. Leave empty to inherit job-level entitlements: <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">{formData.access_entitlements?.length > 0 ? formData.access_entitlements.join(", ") : "(none set)"}</code>
+                    </p>
+                    
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {formData.selected_objects.map((obj, idx) => (
+                        <div key={idx} className="border border-slate-200 rounded-lg p-3 space-y-2 bg-slate-50">
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium text-sm text-slate-900">
+                              {obj.schema}.{obj.table}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs text-slate-600 block mb-1">Access Entitlements</label>
+                            <Input
+                              value={obj.access_entitlements?.join(", ") || ""}
+                              onChange={(e) => {
+                                const updated = [...formData.selected_objects];
+                                updated[idx].access_entitlements = e.target.value.split(",").map(s => s.trim()).filter(s => s);
+                                setFormData({ ...formData, selected_objects: updated });
+                              }}
+                              placeholder="e.g. data_analyst, finance_user (empty = inherit job-level)"
+                              className="text-xs"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="settings" className="space-y-5 mt-4">
