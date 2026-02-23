@@ -147,6 +147,7 @@ CREATE TABLE activity_log (
 );
 
 CREATE INDEX idx_activity_log_category ON activity_log(category);
+CREATE INDEX idx_activity_log_log_type ON activity_log(log_type);
 CREATE INDEX idx_activity_log_job      ON activity_log(job_id);
 CREATE INDEX idx_activity_log_conn     ON activity_log(connection_id);
 CREATE INDEX idx_activity_log_created  ON activity_log(created_date DESC);
