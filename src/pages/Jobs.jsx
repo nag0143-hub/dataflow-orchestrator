@@ -835,11 +835,12 @@ export default function Jobs() {
 
           <form onSubmit={handleSubmit}>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full gap-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))' }}>
                 <TabsTrigger value="general">Basics</TabsTrigger>
                 <TabsTrigger value="datasets">Data</TabsTrigger>
                 <TabsTrigger value="settings">Schedule</TabsTrigger>
                 {formData.enable_advanced && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
+                <TabsTrigger value="spec">Job Spec</TabsTrigger>
               </TabsList>
 
               <TabsContent value="general" className="space-y-4 mt-4">
