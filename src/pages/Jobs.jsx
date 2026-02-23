@@ -91,6 +91,121 @@ const AdvancedTab = memo(function AdvancedTab({ selectedObjects, columnMappings,
   );
 });
 
+// Inline spec preview inside the job form
+function JobSpecTabPreview({ formData, connections }) {
+  const [format, setFormat] = useState("yaml");
+  const [copied, setCopied] = useState(false);
+
+  // Build a draft spec from current (unsaved) form state
+  const draftJob = {
+    id: "(unsaved)",
+    ...formData,
+    dq_rules: formData.dq_rules || {},
+  };
+
+  const { buildJobSpec: _build } = require ? (() => {
+    try { return require("@/components/JobSpecExport"); } catch { return {}; }
+  })() : {};
+
+  // Inline YAML serializer so this component has no extra deps
+  function toYaml(obj, indent = 0) {
+    const pad = "  ".repeat(indent);
+    if (obj === null || obj === undefined) return "null";
+    if (typeof obj === "boolean") return obj ? "true" : "false";
+    if (typeof obj === "number") return String(obj);
+    if (typeof obj === "string") {
+      if (/[\n:#\[\]{},'"&*?|<>=!%@`]/.test(obj) || obj === "" || /^(true|false|null|yes|no)$/i.test(obj))
+        return `"${obj.replace(/"/g, '\\"')}"`;
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      if (obj.length === 0) return "[]";
+      return obj.map(item => {
+        const val = toYaml(item, indent + 1);
+        if (typeof item === "object" && item !== null && !Array.isArray(item)) {
+          const lines = val.split("\n");
+          return `${pad}- ${lines[0]}\n${lines.slice(1).join("\n")}`;
+        }
+        return `${pad}- ${val}`;
+      }).join("\n");
+    }
+    if (typeof obj === "object") {
+      const keys = Object.keys(obj);
+      if (keys.length === 0) return "{}";
+      return keys.map(k => {
+        const val = obj[k];
+        if (val !== null && typeof val === "object" && !Array.isArray(val) && Object.keys(val).length > 0)
+          return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
+        if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object")
+          return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
+        return `${pad}${k}: ${toYaml(val, indent)}`;
+      }).join("\n");
+    }
+    return String(obj);
+  }
+
+  const spec = buildJobSpec(draftJob, connections);
+  const content = format === "json"
+    ? JSON.stringify(spec, null, 2)
+    : `# DataFlow Job Spec — ${formData.name || "untitled"}\n` + toYaml(spec);
+
+  const filename = `${(formData.name || "job").replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-jobspec.${format === "json" ? "json" : "yaml"}`;
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <FileJson className="w-4 h-4 text-blue-600" />
+        <span className="text-sm font-semibold text-slate-900">Job Spec</span>
+        <span className="text-xs text-slate-400 ml-1">(check this file into git)</span>
+        <div className="flex gap-1.5 ml-auto">
+          {["yaml", "json"].map(f => (
+            <button key={f} type="button" onClick={() => setFormat(f)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
+                format === f ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+              }`}>
+              {f.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className="text-xs text-slate-500">
+        This spec reflects the current (unsaved) form state and includes full connection details. Save the job first, then download to commit.
+      </p>
+      <div className="rounded-lg border border-slate-200 bg-slate-950 overflow-hidden">
+        <pre className="p-4 text-xs text-emerald-300 font-mono whitespace-pre overflow-auto max-h-[50vh] leading-relaxed">
+          {content}
+        </pre>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? "Copied!" : "Copy"}
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={handleDownload} className="gap-1.5">
+          <Download className="w-3.5 h-3.5" />
+          Download {filename}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 const defaultFormData = {
   name: "",
   description: "",
