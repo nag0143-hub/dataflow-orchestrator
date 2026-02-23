@@ -239,6 +239,7 @@ const defaultFormData = {
   assignment_group: "",
   cost_center: "",
   email: "",
+  access_entitlements: [],
   retry_config: {
     max_retries: 3,
     retry_delay_seconds: 60,
@@ -409,6 +410,7 @@ export default function Jobs() {
       assignment_group: job.assignment_group || "",
       cost_center: job.cost_center || "",
       email: job.email || "",
+      access_entitlements: job.access_entitlements || [],
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
@@ -841,6 +843,19 @@ export default function Jobs() {
                       placeholder="notification@example.com"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label>Job-Level Access Entitlements</Label>
+                  <p className="text-xs text-slate-500 mb-2">Roles/entitlements that can access this job. Objects inherit these unless overridden.</p>
+                  <Input
+                    value={formData.access_entitlements?.join(", ") || ""}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      access_entitlements: e.target.value.split(",").map(s => s.trim()).filter(s => s)
+                    })}
+                    placeholder="e.g. data_analyst, data_engineer, admin"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
