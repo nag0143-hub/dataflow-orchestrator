@@ -36,6 +36,7 @@ export default function LineagePage() {
 
   const handleViewLineage = async (job) => {
     setSelectedJob(job);
+    setSelectedNode(null);
     setLoading(true);
     setLineageData(null);
 
@@ -48,6 +49,10 @@ export default function LineagePage() {
     const data = await response.json();
     setLineageData(data);
     setLoading(false);
+  };
+
+  const handleNodeClick = (nodeType, nodeData) => {
+    setSelectedNode({ type: nodeType, data: nodeData });
   };
 
   const handleExport = (format) => {
