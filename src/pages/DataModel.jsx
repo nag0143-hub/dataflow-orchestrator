@@ -235,6 +235,29 @@ CREATE TABLE connection_profile (
 );
 
 -- ------------------------------------------------------------
+-- RETENTION POLICY - Activity Log Purge (30-day retention)
+-- Run this periodically via cron job or scheduled task
+-- ------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION purge_old_activity_logs()
+RETURNS TABLE(deleted_count INTEGER) LANGUAGE plpgsql AS $$
+DECLARE
+  count_deleted INTEGER;
+BEGIN
+  DELETE FROM activity_log
+  WHERE created_date < (now() - INTERVAL '30 days');
+  
+  GET DIAGNOSTICS count_deleted = ROW_COUNT;
+  RETURN QUERY SELECT count_deleted;
+END;
+$$;
+
+-- Example: Run daily at 2 AM (using pg_cron extension if available)
+-- SELECT cron.schedule('purge_activity_logs', '0 2 * * *', 'SELECT purge_old_activity_logs()');
+
+-- Or manually run: SELECT purge_old_activity_logs();
+
+-- ------------------------------------------------------------
 -- updated_date trigger (apply to tables that have it)
 -- ------------------------------------------------------------
 
