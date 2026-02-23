@@ -632,70 +632,252 @@ export default function Jobs() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="settings" className="space-y-6 mt-4">
-                <div>
-                  <Label>Schedule Type</Label>
-                  <Select
-                    value={formData.schedule_type}
-                    onValueChange={(v) => setFormData({ ...formData, schedule_type: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="manual">Manual</SelectItem>
-                      <SelectItem value="hourly">Hourly</SelectItem>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="custom">Custom (Cron)</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <TabsContent value="settings" className="space-y-5 mt-4">
+
+                {/* ── Schedule ── */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-semibold text-slate-900 text-sm">Schedule</h4>
+                  </div>
+
+                  {/* Schedule type selector as button group */}
+                  <div>
+                    <Label className="text-xs text-slate-500 mb-2 block">Run Frequency</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { value: "manual", label: "Manual" },
+                        { value: "hourly", label: "Hourly" },
+                        { value: "daily",  label: "Daily" },
+                        { value: "weekly", label: "Weekly" },
+                        { value: "custom", label: "Custom Cron" },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            const cronMap = { hourly: "0 * * * *", daily: "0 6 * * *", weekly: "0 6 * * 1" };
+                            setFormData(prev => ({
+                              ...prev,
+                              schedule_type: opt.value,
+                              cron_expression: cronMap[opt.value] || prev.cron_expression
+                            }));
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+                            formData.schedule_type === opt.value
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Hourly: minute offset */}
+                  {formData.schedule_type === "hourly" && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">At minute</Label>
+                        <Select
+                          value={formData.cron_expression?.split(" ")[0] || "0"}
+                          onValueChange={v => setFormData(prev => ({ ...prev, cron_expression: `${v} * * * *` }))}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {[0,5,10,15,20,30,45].map(m => (
+                              <SelectItem key={m} value={String(m)}>:{String(m).padStart(2,"0")}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-slate-400 mt-1">Runs at HH:{(formData.cron_expression?.split(" ")[0] || "0").padStart(2,"0")} every hour</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Daily: time of day */}
+                  {formData.schedule_type === "daily" && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Hour (UTC)</Label>
+                        <Select
+                          value={formData.cron_expression?.split(" ")[1] || "6"}
+                          onValueChange={v => {
+                            const min = formData.cron_expression?.split(" ")[0] || "0";
+                            setFormData(prev => ({ ...prev, cron_expression: `${min} ${v} * * *` }));
+                          }}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Array.from({length:24},(_,i)=>i).map(h => (
+                              <SelectItem key={h} value={String(h)}>{String(h).padStart(2,"0")}:00 UTC</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Minute</Label>
+                        <Select
+                          value={formData.cron_expression?.split(" ")[0] || "0"}
+                          onValueChange={v => {
+                            const hr = formData.cron_expression?.split(" ")[1] || "6";
+                            setFormData(prev => ({ ...prev, cron_expression: `${v} ${hr} * * *` }));
+                          }}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {[0,5,10,15,20,30,45].map(m => (
+                              <SelectItem key={m} value={String(m)}>:{String(m).padStart(2,"0")}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-2 text-xs text-slate-400">
+                        Cron: <code className="font-mono">{formData.cron_expression || "0 6 * * *"}</code>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Weekly: day + time */}
+                  {formData.schedule_type === "weekly" && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs">Day of Week</Label>
+                        <Select
+                          value={formData.cron_expression?.split(" ")[4] || "1"}
+                          onValueChange={v => {
+                            const parts = (formData.cron_expression || "0 6 * * 1").split(" ");
+                            parts[4] = v;
+                            setFormData(prev => ({ ...prev, cron_expression: parts.join(" ") }));
+                          }}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].map((d,i) => (
+                              <SelectItem key={i} value={String(i)}>{d}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Hour (UTC)</Label>
+                        <Select
+                          value={formData.cron_expression?.split(" ")[1] || "6"}
+                          onValueChange={v => {
+                            const parts = (formData.cron_expression || "0 6 * * 1").split(" ");
+                            parts[1] = v;
+                            setFormData(prev => ({ ...prev, cron_expression: parts.join(" ") }));
+                          }}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Array.from({length:24},(_,i)=>i).map(h => (
+                              <SelectItem key={h} value={String(h)}>{String(h).padStart(2,"0")}:00 UTC</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-2 text-xs text-slate-400">
+                        Cron: <code className="font-mono">{formData.cron_expression || "0 6 * * 1"}</code>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom cron */}
+                  {formData.schedule_type === "custom" && (
+                    <div>
+                      <Label className="text-xs">Cron Expression</Label>
+                      <Input
+                        value={formData.cron_expression}
+                        onChange={(e) => setFormData({ ...formData, cron_expression: e.target.value })}
+                        placeholder="0 0 * * *"
+                        className="font-mono"
+                      />
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {[
+                          { label: "Every hour",     value: "0 * * * *" },
+                          { label: "Daily 6am",      value: "0 6 * * *" },
+                          { label: "Mon 8am",        value: "0 8 * * 1" },
+                          { label: "Every 15 min",   value: "*/15 * * * *" },
+                          { label: "1st of month",   value: "0 6 1 * *" },
+                        ].map(preset => (
+                          <button
+                            key={preset.value}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, cron_expression: preset.value }))}
+                            className="text-xs px-2 py-1 rounded border border-slate-200 hover:border-blue-400 hover:text-blue-700 text-slate-500 transition-colors"
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-slate-400 mt-2">Format: minute hour day-of-month month day-of-week</p>
+                    </div>
+                  )}
+
+                  {formData.schedule_type === "manual" && (
+                    <p className="text-xs text-slate-400">This job will only run when triggered manually.</p>
+                  )}
                 </div>
 
-                {formData.schedule_type === "custom" && (
-                  <div>
-                    <Label>Cron Expression</Label>
-                    <Input
-                      value={formData.cron_expression}
-                      onChange={(e) => setFormData({ ...formData, cron_expression: e.target.value })}
-                      placeholder="0 0 * * *"
-                    />
-                    <p className="text-xs text-slate-500 mt-1">Standard cron format</p>
+                {/* ── Retry Configuration ── */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <RotateCcw className="w-4 h-4 text-amber-600" />
+                    <h4 className="font-semibold text-slate-900 text-sm">Retry Configuration</h4>
                   </div>
-                )}
-
-                <div className="border border-slate-200 rounded-lg p-4 space-y-4">
-                  <h4 className="font-medium text-slate-900">Retry Configuration</h4>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>Max Retries</Label>
-                      <Input
-                        type="number"
-                        value={formData.retry_config.max_retries}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          retry_config: { ...formData.retry_config, max_retries: Number(e.target.value) }
-                        })}
-                      />
+                      <Label className="text-xs">Max Retries</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={10}
+                          value={formData.retry_config.max_retries}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            retry_config: { ...formData.retry_config, max_retries: Number(e.target.value) }
+                          })}
+                        />
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1">0 = no retries</p>
                     </div>
                     <div>
-                      <Label>Retry Delay (seconds)</Label>
-                      <Input
-                        type="number"
-                        value={formData.retry_config.retry_delay_seconds}
-                        onChange={(e) => setFormData({
+                      <Label className="text-xs">Initial Delay (seconds)</Label>
+                      <Select
+                        value={String(formData.retry_config.retry_delay_seconds)}
+                        onValueChange={v => setFormData({
                           ...formData,
-                          retry_config: { ...formData.retry_config, retry_delay_seconds: Number(e.target.value) }
+                          retry_config: { ...formData.retry_config, retry_delay_seconds: Number(v) }
                         })}
-                      />
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {[15,30,60,120,300,600,1800,3600].map(s => (
+                            <SelectItem key={s} value={String(s)}>
+                              {s < 60 ? `${s}s` : s < 3600 ? `${s/60}m` : `${s/3600}h`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
                     <div>
-                      <Label>Exponential Backoff</Label>
-                      <p className="text-xs text-slate-500">Increase delay between retries</p>
+                      <p className="text-sm font-medium text-slate-700">Exponential Backoff</p>
+                      <p className="text-xs text-slate-400">
+                        {formData.retry_config.exponential_backoff
+                          ? `Delays: ${[...Array(Math.min(formData.retry_config.max_retries || 3, 4))].map((_,i) => {
+                              const d = formData.retry_config.retry_delay_seconds * Math.pow(2, i);
+                              return d < 60 ? `${d}s` : `${Math.round(d/60)}m`;
+                            }).join(" → ")}${(formData.retry_config.max_retries||3) > 4 ? " →…" : ""}`
+                          : "Fixed delay between retries"
+                        }
+                      </p>
                     </div>
                     <Switch
                       checked={formData.retry_config.exponential_backoff}
