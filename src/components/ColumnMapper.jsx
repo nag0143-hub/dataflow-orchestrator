@@ -161,18 +161,37 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
           {/* Active mappings */}
           {tableMappings.length > 0 && (
             <div className="border border-blue-100 rounded-xl overflow-hidden">
-              <div className="bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 flex items-center justify-between">
-                <span>{tableMappings.length} Active Mappings</span>
-                <button type="button" onClick={() => onChange({ ...mappings, [tableKey]: [] })} className="text-red-400 hover:text-red-600 text-xs">Clear all</button>
+              <div className="bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 flex items-center justify-between gap-2">
+                <span className="shrink-0">{tableMappings.length} Active Mappings</span>
+                <div className="relative flex-1 max-w-xs">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-blue-400" />
+                  <input
+                    type="text"
+                    placeholder="Search mappings..."
+                    value={mappingSearch}
+                    onChange={e => setMappingSearch(e.target.value)}
+                    className="w-full pl-6 pr-2 h-6 text-xs rounded border border-blue-200 bg-white text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                  />
+                </div>
+                {mappingSearch && (
+                  <span className="text-blue-500 shrink-0">{filteredMappings.length} shown</span>
+                )}
+                <button type="button" onClick={() => onChange({ ...mappings, [tableKey]: [] })} className="text-red-400 hover:text-red-600 text-xs shrink-0">Clear all</button>
               </div>
-              <div className="max-h-48 overflow-y-auto overflow-x-auto">
+              <div className="max-h-64 overflow-y-auto overflow-x-auto">
                 {/* Header */}
-                <div className="grid gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0 min-w-[520px]" style={{gridTemplateColumns:"1fr 20px 1fr 160px 28px"}}>
+                <div className="grid gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0 min-w-[580px]" style={{gridTemplateColumns:"1fr 20px 1fr 160px 52px"}}>
                   <span>Source Column</span><span></span><span>Target Column</span><span>Transformation</span><span></span>
                 </div>
-                {tableMappings.map((m, i) => (
-                  <div key={i} className="grid gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs min-w-[520px]" style={{gridTemplateColumns:"1fr 20px 1fr 160px 28px"}}>
-                    <span className="font-mono text-slate-700 truncate" title={m.source}>{m.source}</span>
+                {filteredMappings.length === 0 && (
+                  <div className="text-center py-4 text-xs text-slate-400">No mappings match "{mappingSearch}"</div>
+                )}
+                {filteredMappings.map((m, i) => (
+                  <div key={`${m.source}-${i}`} className={cn("grid gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs min-w-[580px]", m.derived && "bg-amber-50/40")} style={{gridTemplateColumns:"1fr 20px 1fr 160px 52px"}}>
+                    <span className="font-mono text-slate-700 truncate" title={m.source}>
+                      {m.derived && <span className="text-amber-500 mr-1" title="Derived column">◆</span>}
+                      {m.source}
+                    </span>
                     <ArrowRight className="w-3 h-3 text-slate-300 shrink-0" />
                     <Input
                       value={m.target}
@@ -189,9 +208,14 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                         ))}
                       </SelectContent>
                     </Select>
-                    <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-400 shrink-0">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button type="button" onClick={() => duplicateMapping(m)} title="Add derived column (keep original)" className="text-slate-300 hover:text-amber-500">
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-400">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
