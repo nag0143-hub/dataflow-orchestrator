@@ -49,18 +49,18 @@
  */
 import ActivityLogs from './pages/ActivityLogs';
 import Connections from './pages/Connections';
+import Dashboard from './pages/Dashboard';
 import DataModel from './pages/DataModel';
 import Jobs from './pages/Jobs';
-import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "ActivityLogs": ActivityLogs,
     "Connections": Connections,
+    "Dashboard": Dashboard,
     "DataModel": DataModel,
     "Jobs": Jobs,
-    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {
