@@ -54,6 +54,7 @@ import DataModel from './pages/DataModel';
 import Requirements from './pages/Requirements';
 import UserGuide from './pages/UserGuide';
 import Jobs from './pages/Jobs';
+import Lineage from './pages/Lineage';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "Requirements": Requirements,
     "UserGuide": UserGuide,
     "Jobs": Jobs,
+    "Lineage": Lineage,
 }
 
 export const pagesConfig = {

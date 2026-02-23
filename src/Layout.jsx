@@ -28,12 +28,13 @@ export default function Layout({ children }) {
   }, [darkMode]);
 
   const navItems = [
-    { name: "Dashboard", icon: Home, page: "Dashboard" },
-    { name: "Connections", icon: Cable, page: "Connections" },
-    { name: "Jobs", icon: Play, page: "Jobs" },
-    { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
-    { name: "Data Model", icon: Database, page: "DataModel" },
-  ];
+      { name: "Dashboard", icon: Home, page: "Dashboard" },
+      { name: "Connections", icon: Cable, page: "Connections" },
+      { name: "Jobs", icon: Play, page: "Jobs" },
+      { name: "Lineage", icon: Database, page: "Lineage" },
+      { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
+      { name: "Data Model", icon: Database, page: "DataModel" },
+    ];
 
   const isActive = (page) => {
     const path = location.pathname.toLowerCase();
