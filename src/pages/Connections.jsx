@@ -716,9 +716,12 @@ Return a JSON with:
               </TabsContent>
             </Tabs>
 
-            <div className="flex justify-end gap-3 pt-4 mt-4 border-t">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={saving}>{saving ? "Saving..." : editingConnection ? "Update" : "Create"}</Button>
+            <div className="flex items-center justify-between pt-4 mt-4 border-t">
+              <SaveAsProfileButton formData={formData} />
+              <div className="flex gap-3">
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={saving}>{saving ? "Saving..." : editingConnection ? "Update" : "Create"}</Button>
+              </div>
             </div>
           </form>
         </DialogContent>
