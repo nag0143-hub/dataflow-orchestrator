@@ -866,6 +866,16 @@ export default function Connections() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Schema Discovery Modal */}
+      <SchemaDiscoveryModal
+        connection={discoveryModalConn}
+        open={!!discoveryModalConn}
+        onClose={() => setDiscoveryModalConn(null)}
+        onSelect={(tables) => {
+          toast.success(`Selected ${tables.length} table(s) for discovery`);
+        }}
+      />
     </div>
   );
 }
