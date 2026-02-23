@@ -216,6 +216,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                     <span className="text-slate-400 truncate font-mono">{col.dataType}</span>
                     <button
                       onClick={() => isMapped ? removeMapping(col.name) : addMapping(col)}
+                      type="button"
                       className={cn(
                         "text-xs rounded px-1.5 py-0.5 shrink-0",
                         isMapped
