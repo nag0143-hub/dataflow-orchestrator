@@ -1047,6 +1047,10 @@ export default function Jobs() {
                   onRulesChange={handleRulesChange}
                 />
               </TabsContent>
+              {/* ── Job Spec Tab ── */}
+              <TabsContent value="spec" className="mt-4">
+                <JobSpecTabPreview formData={formData} connections={connections} />
+              </TabsContent>
             </Tabs>
 
             <div className="mt-6 pt-4 border-t space-y-3">
