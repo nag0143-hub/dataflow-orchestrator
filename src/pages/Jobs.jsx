@@ -845,18 +845,7 @@ export default function Jobs() {
                   </div>
                 </div>
 
-                <div>
-                  <Label>Job-Level Access Entitlements</Label>
-                  <p className="text-xs text-slate-500 mb-2">Roles/entitlements that can access this job. Datasets inherit these unless overridden.</p>
-                  <Input
-                    value={formData.access_entitlements?.join(", ") || ""}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      access_entitlements: e.target.value.split(",").map(s => s.trim()).filter(s => s)
-                    })}
-                    placeholder="e.g. data_analyst, data_engineer, admin"
-                  />
-                </div>
+
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1291,6 +1280,26 @@ export default function Jobs() {
 
               {/* ── Advanced Tab ── */}
               <TabsContent value="advanced" className="space-y-5 mt-4">
+                {/* Security Section */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-semibold text-slate-900 text-sm">Security & Access Control</h4>
+                  </div>
+                  <div>
+                    <Label>Job-Level Access Entitlements</Label>
+                    <p className="text-xs text-slate-500 mb-2">Roles/entitlements that can access this job. Datasets inherit these unless overridden.</p>
+                    <Input
+                      value={formData.access_entitlements?.join(", ") || ""}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        access_entitlements: e.target.value.split(",").map(s => s.trim()).filter(s => s)
+                      })}
+                      placeholder="e.g. data_analyst, data_engineer, admin"
+                    />
+                  </div>
+                </div>
+
                 <AdvancedTab
                    selectedObjects={formData.selected_datasets}
                   columnMappings={formData.column_mappings}
