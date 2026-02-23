@@ -63,6 +63,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
   const [search, setSearch] = useState("");
   const [mappingSearch, setMappingSearch] = useState("");
   const [page, setPage] = useState(0);
+  const [mappingPage, setMappingPage] = useState(0);
   const autoMappedRef = useRef(new Set());
 
   const tableKey = selectedTable;
