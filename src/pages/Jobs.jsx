@@ -236,6 +236,9 @@ const defaultFormData = {
   column_mappings: {},
   dq_rules: {},
   data_cleansing: {},
+  assignment_group: "",
+  cost_center: "",
+  email: "",
   retry_config: {
     max_retries: 3,
     retry_delay_seconds: 60,
@@ -403,6 +406,9 @@ export default function Jobs() {
       column_mappings: job.column_mappings || {},
       dq_rules: job.dq_rules || {},
       data_cleansing: job.data_cleansing || {},
+      assignment_group: job.assignment_group || "",
+      cost_center: job.cost_center || "",
+      email: job.email || "",
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
@@ -807,6 +813,34 @@ export default function Jobs() {
                     placeholder="Optional description..."
                     rows={2}
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Assignment Group</Label>
+                    <Input
+                      value={formData.assignment_group}
+                      onChange={(e) => setFormData({ ...formData, assignment_group: e.target.value })}
+                      placeholder="e.g. Data Engineering"
+                    />
+                  </div>
+                  <div>
+                    <Label>Cost Center</Label>
+                    <Input
+                      value={formData.cost_center}
+                      onChange={(e) => setFormData({ ...formData, cost_center: e.target.value })}
+                      placeholder="e.g. CC-12345"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Email (Optional)</Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="notification@example.com"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
