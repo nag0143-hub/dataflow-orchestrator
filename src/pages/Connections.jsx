@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import SchemaDiscoveryModal from "@/components/SchemaDiscoveryModal";
 import {
   Select,
   SelectContent,
