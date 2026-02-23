@@ -131,7 +131,14 @@ export default function Jobs() {
   const [historyDialogJob, setHistoryDialogJob] = useState(null);
   const [exportJob, setExportJob] = useState(null);
 
-  const handleMappingsChange = useCallback((mappings) => setFormData(prev => ({ ...prev, column_mappings: mappings })), []);
+  const handleMappingsChange = useCallback((mappingsOrUpdater) => {
+    setFormData(prev => ({
+      ...prev,
+      column_mappings: typeof mappingsOrUpdater === "function"
+        ? mappingsOrUpdater(prev.column_mappings)
+        : mappingsOrUpdater
+    }));
+  }, []);
   const handleRulesChange = useCallback((rules) => setFormData(prev => ({ ...prev, dq_rules: rules })), []);
 
   useEffect(() => {
