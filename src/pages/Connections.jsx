@@ -133,6 +133,9 @@ const PLATFORM_TEMPLATES = {
 
 const defaultFormData = {
   name: "",
+  source_system_name: "",
+  description: "",
+  car_id: "",
   connection_type: "source",
   platform: "",
   host: "",
@@ -238,6 +241,9 @@ export default function Connections() {
     setEditingConnection(connection);
     setFormData({
       name: connection.name || "",
+      source_system_name: connection.source_system_name || "",
+      description: connection.description || "",
+      car_id: connection.car_id || "",
       connection_type: connection.connection_type || "source",
       platform: connection.platform || "",
       host: connection.host || "",
@@ -423,31 +429,43 @@ export default function Connections() {
                 </div>
 
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Platform</span>
-                    <span className="text-slate-700 font-medium">
-                      {platformConfig[connection.platform]?.label || connection.platform}
-                    </span>
-                  </div>
-                  {connection.host && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Host</span>
-                      <span className="text-slate-700 truncate ml-2 max-w-[150px]">{connection.host}</span>
-                    </div>
-                  )}
-                  {connection.database && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Database</span>
-                      <span className="text-slate-700">{connection.database}</span>
-                    </div>
-                  )}
-                  {connection.bucket_container && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Container</span>
-                      <span className="text-slate-700">{connection.bucket_container}</span>
-                    </div>
-                  )}
-                </div>
+                   <div className="flex justify-between">
+                     <span className="text-slate-500">Platform</span>
+                     <span className="text-slate-700 font-medium">
+                       {platformConfig[connection.platform]?.label || connection.platform}
+                     </span>
+                   </div>
+                   {connection.source_system_name && (
+                     <div className="flex justify-between">
+                       <span className="text-slate-500">System</span>
+                       <span className="text-slate-700">{connection.source_system_name}</span>
+                     </div>
+                   )}
+                   {connection.car_id && (
+                     <div className="flex justify-between">
+                       <span className="text-slate-500">CarID</span>
+                       <span className="text-slate-700">{connection.car_id}</span>
+                     </div>
+                   )}
+                   {connection.host && (
+                     <div className="flex justify-between">
+                       <span className="text-slate-500">Host</span>
+                       <span className="text-slate-700 truncate ml-2 max-w-[150px]">{connection.host}</span>
+                     </div>
+                   )}
+                   {connection.database && (
+                     <div className="flex justify-between">
+                       <span className="text-slate-500">Database</span>
+                       <span className="text-slate-700">{connection.database}</span>
+                     </div>
+                   )}
+                   {connection.bucket_container && (
+                     <div className="flex justify-between">
+                       <span className="text-slate-500">Container</span>
+                       <span className="text-slate-700">{connection.bucket_container}</span>
+                     </div>
+                   )}
+                 </div>
 
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2">
                   <StatusBadge status={connection.status} size="sm" />
@@ -525,6 +543,21 @@ export default function Connections() {
                       placeholder="My Database Connection"
                       required
                     />
+                  </div>
+                  
+                  <div>
+                    <Label>Source System Name</Label>
+                    <Input value={formData.source_system_name} onChange={(e) => setFormData({...formData, source_system_name: e.target.value})} placeholder="System name" />
+                  </div>
+                  
+                  <div>
+                    <Label>CarID</Label>
+                    <Input value={formData.car_id} onChange={(e) => setFormData({...formData, car_id: e.target.value})} placeholder="CAR ID" />
+                  </div>
+                  
+                  <div className="col-span-2">
+                    <Label>Description</Label>
+                    <Input value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} placeholder="Connection description" />
                   </div>
                   
                   <div>
