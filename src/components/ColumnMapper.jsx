@@ -166,7 +166,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                         ))}
                       </SelectContent>
                     </Select>
-                    <button onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-400 shrink-0">
+                    <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-400 shrink-0">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
