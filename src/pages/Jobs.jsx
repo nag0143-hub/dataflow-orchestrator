@@ -1451,6 +1451,49 @@ export default function Jobs() {
                   )}
                 </div>
 
+                {/* Spark Properties Section */}
+                <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Wand2 className="w-4 h-4 text-orange-600" />
+                    <h4 className="font-semibold text-slate-900 text-sm">Spark Properties Overrides</h4>
+                  </div>
+                  {formData.selected_datasets?.length > 0 ? (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {formData.selected_datasets.map((obj, idx) => (
+                        <div key={idx} className="border border-slate-200 rounded-lg p-3 space-y-2 bg-slate-50">
+                          <div className="font-medium text-sm text-slate-900 mb-2">
+                            {obj.schema}.{obj.table}
+                          </div>
+                          <Textarea
+                            value={
+                              obj.spark_properties 
+                                ? Object.entries(obj.spark_properties)
+                                    .map(([k, v]) => `${k}=${v}`)
+                                    .join("\n")
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const updated = [...formData.selected_datasets];
+                              const props = {};
+                              e.target.value.split("\n").forEach(line => {
+                                const [k, v] = line.split("=");
+                                if (k && v) props[k.trim()] = v.trim();
+                              });
+                              updated[idx].spark_properties = Object.keys(props).length > 0 ? props : undefined;
+                              setFormData({ ...formData, selected_datasets: updated });
+                            }}
+                            placeholder="e.g. spark.sql.shuffle.partitions=200&#10;spark.executor.memory=4g"
+                            className="text-xs font-mono"
+                            rows={3}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500">Select datasets to configure Spark properties</p>
+                  )}
+                </div>
+
                 <AdvancedTab
                    selectedObjects={formData.selected_datasets}
                   columnMappings={formData.column_mappings}
