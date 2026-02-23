@@ -1,0 +1,1 @@
+export { generateLineage, generateLineageBatch } from "./function.js";
