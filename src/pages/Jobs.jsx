@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, memo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { cn } from "@/lib/utils";
 import {
   Plus,
   Search,
@@ -244,9 +243,6 @@ const defaultFormData = {
   email: "",
   access_entitlements: [],
   enable_advanced: false,
-  enable_sla_alerting: false,
-  sla_timeout_minutes: 60,
-  sla_warning_threshold_percent: 80,
   retry_config: {
     max_retries: 3,
     retry_delay_seconds: 60,
@@ -420,9 +416,6 @@ export default function Jobs() {
       email: job.email || "",
       access_entitlements: job.access_entitlements || [],
       enable_advanced: job.enable_advanced || false,
-      enable_sla_alerting: job.enable_sla_alerting || false,
-      sla_timeout_minutes: job.sla_timeout_minutes || 60,
-      sla_warning_threshold_percent: job.sla_warning_threshold_percent || 80,
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
@@ -1290,52 +1283,6 @@ export default function Jobs() {
                       })}
                     />
                   </div>
-                  </div>
-
-                  {/* ── SLA Alerting Toggle ── */}
-                  <div className="border border-slate-200 rounded-xl p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className={cn("text-sm font-medium", formData.schedule_type === "manual" ? "text-slate-400" : "text-slate-700")}>SLA Alerting</p>
-                        <p className="text-xs text-slate-400">Send alerts if job misses SLA thresholds</p>
-                      </div>
-                      <Switch
-                        checked={formData.enable_sla_alerting || false}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, enable_sla_alerting: checked }))}
-                        disabled={formData.schedule_type === "manual"}
-                      />
-                    </div>
-
-                    {formData.enable_sla_alerting && formData.schedule_type !== "manual" && (
-                      <div className="pt-3 border-t border-slate-100 space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-xs">SLA Timeout (minutes)</Label>
-                            <Input
-                              type="number"
-                              min={1}
-                              max={1440}
-                              value={formData.sla_timeout_minutes}
-                              onChange={(e) => setFormData(prev => ({ ...prev, sla_timeout_minutes: Number(e.target.value) }))}
-                              placeholder="60"
-                            />
-                            <p className="text-xs text-slate-400 mt-1">Max time allowed for job to complete</p>
-                          </div>
-                          <div>
-                            <Label className="text-xs">Warning Threshold (%)</Label>
-                            <Input
-                              type="number"
-                              min={1}
-                              max={100}
-                              value={formData.sla_warning_threshold_percent}
-                              onChange={(e) => setFormData(prev => ({ ...prev, sla_warning_threshold_percent: Number(e.target.value) }))}
-                              placeholder="80"
-                            />
-                            <p className="text-xs text-slate-400 mt-1">Alert when % of timeout is used</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* ── Advanced Features Toggle ── */}
