@@ -1,6 +1,246 @@
 import { useState } from "react";
-import { Database, Table2, Link2, ChevronDown, ChevronRight, Key, Hash, Type, Calendar, ToggleLeft, List } from "lucide-react";
+import { Database, Table2, Link2, ChevronDown, ChevronRight, Key, Hash, Type, Calendar, ToggleLeft, List, Code2, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+const DDL = `-- ============================================================
+-- DataFlow Platform — PostgreSQL DDL
+-- Generated: ${new Date().toISOString().slice(0, 10)}
+-- ============================================================
+
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- ------------------------------------------------------------
+-- ENUM TYPES
+-- ------------------------------------------------------------
+
+CREATE TYPE connection_type_enum    AS ENUM ('source', 'target');
+CREATE TYPE platform_enum           AS ENUM ('sql_server','oracle','postgresql','mysql','mongodb','adls2','s3','flat_file_delimited','flat_file_fixed_width','cobol_ebcdic','sftp','nas','local_fs');
+CREATE TYPE auth_method_enum        AS ENUM ('password','key','connection_string','managed_identity','sftp_key','none');
+CREATE TYPE connection_status_enum  AS ENUM ('active','inactive','error','pending_setup');
+CREATE TYPE schedule_type_enum      AS ENUM ('manual','hourly','daily','weekly','custom');
+CREATE TYPE job_status_enum         AS ENUM ('idle','running','completed','failed','paused');
+CREATE TYPE run_status_enum         AS ENUM ('running','completed','failed','cancelled','retrying');
+CREATE TYPE triggered_by_enum       AS ENUM ('manual','schedule','retry');
+CREATE TYPE log_type_enum           AS ENUM ('info','warning','error','success');
+CREATE TYPE log_category_enum       AS ENUM ('connection','job','system','authentication');
+CREATE TYPE change_type_enum        AS ENUM ('created','updated','paused','resumed','deleted');
+CREATE TYPE prereq_type_enum        AS ENUM ('nsg_rule','egress_rule','nas_path','dba_access','firewall_rule','service_account','vpn_tunnel','other');
+CREATE TYPE assigned_team_enum      AS ENUM ('networking','dba','security','storage','platform','other');
+CREATE TYPE prereq_status_enum      AS ENUM ('pending','in_progress','completed','rejected','not_required');
+CREATE TYPE priority_enum           AS ENUM ('high','medium','low');
+
+-- ------------------------------------------------------------
+-- CONNECTION
+-- ------------------------------------------------------------
+
+CREATE TABLE connection (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by      TEXT NOT NULL,
+
+    name            TEXT NOT NULL,
+    connection_type connection_type_enum NOT NULL,
+    platform        platform_enum NOT NULL,
+    host            TEXT,
+    port            INTEGER,
+    database        TEXT,
+    username        TEXT,
+    auth_method     auth_method_enum DEFAULT 'password',
+    region          TEXT,
+    bucket_container TEXT,
+    file_config     JSONB,          -- delimiter, encoding, has_header, quote_char, …
+    status          connection_status_enum DEFAULT 'active',
+    last_tested     TIMESTAMPTZ,
+    notes           TEXT
+);
+
+CREATE INDEX idx_connection_status   ON connection(status);
+CREATE INDEX idx_connection_platform ON connection(platform);
+
+-- ------------------------------------------------------------
+-- INGESTION JOB
+-- ------------------------------------------------------------
+
+CREATE TABLE ingestion_job (
+    id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by           TEXT NOT NULL,
+
+    name                 TEXT NOT NULL,
+    description          TEXT,
+    source_connection_id UUID NOT NULL REFERENCES connection(id) ON DELETE RESTRICT,
+    target_connection_id UUID NOT NULL REFERENCES connection(id) ON DELETE RESTRICT,
+    selected_objects     JSONB,      -- [{schema, table, filter_query, target_path, incremental_column, last_value}]
+    schedule_type        schedule_type_enum DEFAULT 'manual',
+    cron_expression      TEXT,
+    status               job_status_enum DEFAULT 'idle',
+    retry_config         JSONB,      -- {max_retries, retry_delay_seconds, exponential_backoff}
+    last_run             TIMESTAMPTZ,
+    next_run             TIMESTAMPTZ,
+    total_runs           INTEGER DEFAULT 0,
+    successful_runs      INTEGER DEFAULT 0,
+    failed_runs          INTEGER DEFAULT 0
+);
+
+CREATE INDEX idx_ingestion_job_status ON ingestion_job(status);
+CREATE INDEX idx_ingestion_job_source ON ingestion_job(source_connection_id);
+CREATE INDEX idx_ingestion_job_target ON ingestion_job(target_connection_id);
+
+-- ------------------------------------------------------------
+-- JOB RUN
+-- ------------------------------------------------------------
+
+CREATE TABLE job_run (
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    job_id            UUID NOT NULL REFERENCES ingestion_job(id) ON DELETE CASCADE,
+    run_number        INTEGER,
+    status            run_status_enum NOT NULL,
+    started_at        TIMESTAMPTZ,
+    completed_at      TIMESTAMPTZ,
+    duration_seconds  NUMERIC,
+    rows_processed    BIGINT DEFAULT 0,
+    bytes_transferred BIGINT DEFAULT 0,
+    objects_completed TEXT[],
+    objects_failed    TEXT[],
+    retry_count       INTEGER DEFAULT 0,
+    error_message     TEXT,
+    triggered_by      triggered_by_enum DEFAULT 'manual'
+);
+
+CREATE INDEX idx_job_run_job_id ON job_run(job_id);
+CREATE INDEX idx_job_run_status ON job_run(status);
+CREATE INDEX idx_job_run_started ON job_run(started_at DESC);
+
+-- ------------------------------------------------------------
+-- ACTIVITY LOG
+-- ------------------------------------------------------------
+
+CREATE TABLE activity_log (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date  TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    log_type      log_type_enum NOT NULL,
+    category      log_category_enum NOT NULL,
+    message       TEXT NOT NULL,
+    job_id        UUID REFERENCES ingestion_job(id) ON DELETE SET NULL,
+    run_id        UUID REFERENCES job_run(id) ON DELETE SET NULL,
+    connection_id UUID REFERENCES connection(id) ON DELETE SET NULL,
+    object_name   TEXT,
+    details       JSONB,
+    stack_trace   TEXT
+);
+
+CREATE INDEX idx_activity_log_category ON activity_log(category);
+CREATE INDEX idx_activity_log_job      ON activity_log(job_id);
+CREATE INDEX idx_activity_log_conn     ON activity_log(connection_id);
+CREATE INDEX idx_activity_log_created  ON activity_log(created_date DESC);
+
+-- ------------------------------------------------------------
+-- PIPELINE VERSION
+-- ------------------------------------------------------------
+
+CREATE TABLE pipeline_version (
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date   TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    job_id         UUID NOT NULL REFERENCES ingestion_job(id) ON DELETE CASCADE,
+    version_number INTEGER NOT NULL,
+    label          TEXT,
+    commit_message TEXT,
+    snapshot       JSONB NOT NULL,  -- full copy of ingestion_job at this point in time
+    changed_by     TEXT,
+    change_type    change_type_enum NOT NULL,
+
+    UNIQUE (job_id, version_number)
+);
+
+CREATE INDEX idx_pipeline_version_job ON pipeline_version(job_id, version_number DESC);
+
+-- ------------------------------------------------------------
+-- CONNECTION PREREQUISITE
+-- ------------------------------------------------------------
+
+CREATE TABLE connection_prerequisite (
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date     TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    connection_id    UUID NOT NULL REFERENCES connection(id) ON DELETE CASCADE,
+    prereq_type      prereq_type_enum NOT NULL,
+    title            TEXT NOT NULL,
+    description      TEXT,
+    assigned_team    assigned_team_enum NOT NULL,
+    status           prereq_status_enum NOT NULL DEFAULT 'pending',
+    priority         priority_enum DEFAULT 'medium',
+    requested_by     TEXT,
+    ticket_reference TEXT,
+    due_date         TIMESTAMPTZ,
+    completed_at     TIMESTAMPTZ,
+    notes            TEXT
+);
+
+CREATE INDEX idx_prereq_connection ON connection_prerequisite(connection_id);
+CREATE INDEX idx_prereq_status     ON connection_prerequisite(status);
+
+-- ------------------------------------------------------------
+-- CONNECTION PROFILE  (reusable template)
+-- ------------------------------------------------------------
+
+CREATE TABLE connection_profile (
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by       TEXT NOT NULL,
+
+    name             TEXT NOT NULL,
+    description      TEXT,
+    connection_type  connection_type_enum,
+    platform         platform_enum NOT NULL,
+    host             TEXT,
+    port             INTEGER,
+    database         TEXT,
+    username         TEXT,
+    auth_method      auth_method_enum,
+    region           TEXT,
+    bucket_container TEXT,
+    file_config      JSONB,
+    notes            TEXT
+);
+
+-- ------------------------------------------------------------
+-- updated_date trigger (apply to tables that have it)
+-- ------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION set_updated_date()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_date = now();
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_connection_updated
+  BEFORE UPDATE ON connection
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+
+CREATE TRIGGER trg_ingestion_job_updated
+  BEFORE UPDATE ON ingestion_job
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+
+CREATE TRIGGER trg_connection_prerequisite_updated
+  BEFORE UPDATE ON connection_prerequisite
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+
+CREATE TRIGGER trg_connection_profile_updated
+  BEFORE UPDATE ON connection_profile
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+`;
 
 const typeIcon = (type) => {
   if (type === "string") return <Type className="w-3 h-3 text-emerald-500" />;
