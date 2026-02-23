@@ -242,6 +242,7 @@ const defaultFormData = {
   cost_center: "",
   email: "",
   access_entitlements: [],
+  enable_advanced: false,
   retry_config: {
     max_retries: 3,
     retry_delay_seconds: 60,
@@ -414,6 +415,7 @@ export default function Jobs() {
       cost_center: job.cost_center || "",
       email: job.email || "",
       access_entitlements: job.access_entitlements || [],
+      enable_advanced: job.enable_advanced || false,
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
@@ -795,7 +797,7 @@ export default function Jobs() {
                 <TabsTrigger value="general">General</TabsTrigger>
                 <TabsTrigger value="datasets">Datasets</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
-                <TabsTrigger value="advanced">Advanced</TabsTrigger>
+                {formData.enable_advanced && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
                 <TabsTrigger value="spec">Job Spec</TabsTrigger>
               </TabsList>
 
@@ -1281,10 +1283,26 @@ export default function Jobs() {
                       })}
                     />
                   </div>
+                {/* ── Advanced Features Toggle ── */}
+                <div className="border border-slate-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">Advanced Features</p>
+                      <p className="text-xs text-slate-400">Enable advanced options for data quality, column mapping, and cleansing</p>
+                    </div>
+                    <Switch
+                      checked={formData.enable_advanced}
+                      onCheckedChange={(checked) => {
+                        setFormData(prev => ({ ...prev, enable_advanced: checked }));
+                        if (!checked && activeTab === "advanced") setActiveTab("settings");
+                      }}
+                    />
+                  </div>
                 </div>
               </TabsContent>
 
               {/* ── Advanced Tab ── */}
+              {formData.enable_advanced && (
               <TabsContent value="advanced" className="space-y-5 mt-4">
                 {/* Security Section */}
                 <div className="border border-slate-200 rounded-xl p-4 space-y-4">
@@ -1370,6 +1388,7 @@ export default function Jobs() {
                   onCleansingChange={handleCleansingChange}
                 />
               </TabsContent>
+              )}
               {/* ── Job Spec Tab ── */}
               <TabsContent value="spec" className="mt-4">
                 <JobSpecTabPreview formData={formData} connections={connections} />
