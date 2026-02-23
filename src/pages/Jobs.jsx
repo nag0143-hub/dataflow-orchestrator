@@ -468,6 +468,15 @@ export default function Jobs() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => setCodeGenJob(job)}
+                        className="gap-1 text-slate-500"
+                      >
+                        <Code2 className="w-4 h-4" />
+                        PySpark
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => { setViewingJob(job); setDetailsDialogOpen(true); }}
                         className="gap-1"
                       >
