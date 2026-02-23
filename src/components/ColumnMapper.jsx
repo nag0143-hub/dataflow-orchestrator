@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Search, X, Plus, ArrowRight, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const MAPPING_PAGE_SIZE = 50;
 
 const TRANSFORMATIONS = [
   { value: "direct",          label: "Direct Copy" },
