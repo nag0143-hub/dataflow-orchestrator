@@ -269,6 +269,7 @@ export default function Jobs() {
   const [commitMessage, setCommitMessage] = useState("");
   const [historyDialogJob, setHistoryDialogJob] = useState(null);
   const [exportJob, setExportJob] = useState(null);
+  const [showDatasetLoadMethods, setShowDatasetLoadMethods] = useState(false);
 
   const handleMappingsChange = useCallback((mappingsOrUpdater) => {
     setFormData(prev => ({
@@ -934,11 +935,23 @@ export default function Jobs() {
                   </div>
                 </div>
 
-                {/* Dataset-Level Load Methods */}
+                {/* Dataset-Level Load Methods Toggle */}
                 {formData.selected_datasets?.length > 0 && (
+                  <div className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">Dataset-Level Load Methods</p>
+                      <p className="text-xs text-slate-400">Override the job-level load method for specific datasets</p>
+                    </div>
+                    <Switch
+                      checked={showDatasetLoadMethods}
+                      onCheckedChange={setShowDatasetLoadMethods}
+                    />
+                  </div>
+                )}
+
+                {/* Dataset-Level Load Methods */}
+                {formData.selected_datasets?.length > 0 && showDatasetLoadMethods && (
                   <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-                    <Label className="text-sm font-semibold">Dataset-Level Load Methods</Label>
-                    <p className="text-xs text-slate-500 mb-3">Override the job-level load method for specific datasets</p>
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {formData.selected_datasets.map((obj, idx) => (
                         <div key={idx} className="border border-slate-200 rounded-lg p-3 space-y-2 bg-slate-50">
