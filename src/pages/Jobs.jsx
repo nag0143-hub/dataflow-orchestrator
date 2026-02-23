@@ -576,9 +576,9 @@ export default function Jobs() {
           <p className="text-slate-500 mt-1">Configure and run data transfer jobs</p>
         </div>
         <Button
-          onClick={() => { setEditingJob(null); setFormData(defaultFormData); setDialogOpen(true); setActiveTab("general"); }}
-          className="bg-slate-900 hover:bg-slate-800 gap-2"
-        >
+           onClick={() => { setEditingJob(null); setFormData(defaultFormData); setDialogOpen(true); setActiveTab("general"); }}
+           className="gap-2"
+         >
           <Plus className="w-4 h-4" />
           New Job
         </Button>
@@ -1232,7 +1232,7 @@ export default function Jobs() {
                   value={commitMessage}
                   onChange={e => setCommitMessage(e.target.value)}
                   placeholder="Describe what changed..."
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
               <div className="flex justify-end gap-3">

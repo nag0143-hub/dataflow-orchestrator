@@ -342,9 +342,9 @@ export default function Connections() {
           <p className="text-slate-500 mt-1">Manage your data sources and targets</p>
         </div>
         <Button 
-          onClick={() => { setEditingConnection(null); setFormData(defaultFormData); setDialogOpen(true); }}
-          className="bg-slate-900 hover:bg-slate-800 gap-2"
-        >
+           onClick={() => { setEditingConnection(null); setFormData(defaultFormData); setDialogOpen(true); }}
+           className="gap-2"
+         >
           <Plus className="w-4 h-4" />
           New Connection
         </Button>
