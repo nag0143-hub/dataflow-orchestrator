@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { useState, useEffect } from "react";
 import { 
-        Database, 
+        Workflow,
         Home,
         Cable,
         Play,
@@ -70,8 +70,8 @@ export default function Layout({ children }) {
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#003478] to-[#001F47] flex items-center justify-center">
-              <Database className="w-5 h-5 text-white" />
-            </div>
+                <Workflow className="w-5 h-5 text-white" />
+              </div>
             <div>
               <h1 className={cn("text-lg font-semibold tracking-tight", darkMode ? "text-white" : "text-slate-900")}>DataFlow</h1>
               <p className={cn("text-xs", darkMode ? "text-slate-400" : "text-slate-500")}>Data Connector Platform</p>
