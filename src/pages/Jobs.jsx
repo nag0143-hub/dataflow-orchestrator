@@ -736,7 +736,7 @@ export default function Jobs() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="general">General</TabsTrigger>
-                <TabsTrigger value="objects">Objects</TabsTrigger>
+                <TabsTrigger value="objects" disabled={isFlatFileSource}>Objects</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
                 <TabsTrigger value="advanced">Advanced</TabsTrigger>
                 <TabsTrigger value="spec">Job Spec</TabsTrigger>
