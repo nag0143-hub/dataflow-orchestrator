@@ -350,7 +350,6 @@ export default function Jobs() {
     e.preventDefault();
     
     if (!validateJob()) {
-      setSaving(false);
       return;
     }
 
