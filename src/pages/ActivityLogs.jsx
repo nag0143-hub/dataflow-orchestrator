@@ -13,7 +13,17 @@ import {
   ChevronDown,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  User,
+  Calendar,
+  FileEdit,
+  Trash2,
+  Plus,
+  Play,
+  Pause,
+  Copy,
+  Eye,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +47,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import moment from "moment";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const logTypeConfig = {
   info: { icon: Info, color: "bg-blue-100 text-blue-700 border-blue-200", dotColor: "bg-blue-500" },
@@ -54,6 +65,7 @@ const categoryConfig = {
 
 export default function ActivityLogs() {
   const [logs, setLogs] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +76,10 @@ export default function ActivityLogs() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const logsPerPage = 20;
+  const [selectedAction, setSelectedAction] = useState("all");
+  const [selectedEntity, setSelectedEntity] = useState("all");
+  const [viewAuditDetails, setViewAuditDetails] = useState(null);
+  const [activeTab, setActiveTab] = useState("activity");
 
   useEffect(() => {
     loadData();
@@ -71,12 +87,14 @@ export default function ActivityLogs() {
 
   const loadData = async () => {
     setLoading(true);
-    const [logsData, jobsData, connectionsData] = await Promise.all([
+    const [logsData, auditLogsData, jobsData, connectionsData] = await Promise.all([
       base44.entities.ActivityLog.list("-created_date", 500),
+      base44.entities.AuditLog.list("-created_date", 1000),
       base44.entities.IngestionJob.list(),
       base44.entities.Connection.list()
     ]);
     setLogs(logsData);
+    setAuditLogs(auditLogsData);
     setJobs(jobsData);
     setConnections(connectionsData);
     setLoading(false);
@@ -136,12 +154,54 @@ export default function ActivityLogs() {
 
   const hasFilters = searchTerm || filterType !== "all" || filterCategory !== "all";
 
+  const actionIcons = {
+    create: Plus,
+    update: FileEdit,
+    delete: Trash2,
+    execute: Play,
+    pause: Pause,
+    resume: Play,
+    clone: Copy
+  };
+
+  const actionColors = {
+    create: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    update: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    delete: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    execute: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+    pause: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+    resume: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
+    clone: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300"
+  };
+
   const stats = {
     total: logs.length,
     errors: logs.filter(l => l.log_type === "error").length,
     warnings: logs.filter(l => l.log_type === "warning").length,
     today: logs.filter(l => moment(l.created_date).isSame(moment(), 'day')).length
   };
+
+  const auditStats = {
+    total: auditLogs.length,
+    creates: auditLogs.filter(l => l.action === 'create').length,
+    updates: auditLogs.filter(l => l.action === 'update').length,
+    deletes: auditLogs.filter(l => l.action === 'delete').length
+  };
+
+  const filteredAuditLogs = auditLogs.filter(log => {
+    const matchesSearch = !searchTerm ||
+      log.entity_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.user_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesAction = selectedAction === "all" || log.action === selectedAction;
+    const matchesEntity = selectedEntity === "all" || log.entity_type === selectedEntity;
+
+    return matchesSearch && matchesAction && matchesEntity;
+  });
+
+  const paginatedAuditLogs = filteredAuditLogs.slice((currentPage - 1) * logsPerPage, currentPage * logsPerPage);
+  const totalAuditPages = Math.ceil(filteredAuditLogs.length / logsPerPage);
 
   if (loading) {
     return (
@@ -165,125 +225,140 @@ export default function ActivityLogs() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Activity Logs</h1>
-          <p className="text-slate-500 mt-1">Monitor all system activities and errors</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Activity & Audit Logs</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Monitor system activities and track user changes</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={loadData} className="gap-2">
+          <Button variant="outline" onClick={loadData} className="gap-2 dark:dark-input dark:dark-text">
             <RefreshCw className="w-4 h-4" />
             Refresh
           </Button>
-          <Button variant="outline" onClick={handleExport} className="gap-2">
+          <Button variant="outline" onClick={handleExport} className="gap-2 dark:dark-input dark:dark-text">
             <Download className="w-4 h-4" />
             Export
           </Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-slate-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-slate-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-                <p className="text-sm text-slate-500">Total Logs</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-red-600">{stats.errors}</p>
-                <p className="text-sm text-slate-500">Errors</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-amber-600">{stats.warnings}</p>
-                <p className="text-sm text-slate-500">Warnings</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{stats.today}</p>
-                <p className="text-sm text-slate-500">Today</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="dark:bg-slate-800">
+          <TabsTrigger value="activity" className="gap-2 dark:data-[state=active]:bg-slate-700">
+            <AlertCircle className="w-4 h-4" />
+            Activity Logs
+          </TabsTrigger>
+          <TabsTrigger value="audit" className="gap-2 dark:data-[state=active]:bg-slate-700">
+            <Shield className="w-4 h-4" />
+            Audit Trail
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            placeholder="Search logs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        <TabsContent value="activity" className="space-y-6 mt-6">
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="border-slate-200 dark:dark-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Total Logs</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-slate-200 dark:dark-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-300" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.errors}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Errors</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-slate-200 dark:dark-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-300" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.warnings}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Warnings</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-slate-200 dark:dark-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.today}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Today</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="info">Info</SelectItem>
-            <SelectItem value="success">Success</SelectItem>
-            <SelectItem value="warning">Warning</SelectItem>
-            <SelectItem value="error">Error</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={filterCategory} onValueChange={setFilterCategory}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="connection">Connection</SelectItem>
-            <SelectItem value="job">Job</SelectItem>
-            <SelectItem value="system">System</SelectItem>
-            <SelectItem value="authentication">Authentication</SelectItem>
-          </SelectContent>
-        </Select>
-        {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
-            <X className="w-4 h-4" />
-            Clear
-          </Button>
-        )}
-      </div>
 
-      {/* Logs List */}
-      <Card className="border-slate-200">
-        <CardContent className="p-0">
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Search logs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 dark:dark-input dark:dark-text"
+            />
+          </div>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-36 dark:dark-input dark:dark-text">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="info">Info</SelectItem>
+              <SelectItem value="success">Success</SelectItem>
+              <SelectItem value="warning">Warning</SelectItem>
+              <SelectItem value="error">Error</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="connection">Connection</SelectItem>
+              <SelectItem value="job">Job</SelectItem>
+              <SelectItem value="system">System</SelectItem>
+              <SelectItem value="authentication">Authentication</SelectItem>
+            </SelectContent>
+          </Select>
+          {hasFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 dark:dark-text">
+              <X className="w-4 h-4" />
+              Clear
+            </Button>
+          )}
+        </div>
+
+        {/* Logs List */}
+        <Card className="border-slate-200 dark:dark-card">
+          <CardContent className="p-0">
           {paginatedLogs.length > 0 ? (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 dark:dark-divide">
               {paginatedLogs.map((log) => {
                 const typeConfig = logTypeConfig[log.log_type] || logTypeConfig.info;
                 const catConfig = categoryConfig[log.category] || categoryConfig.system;
@@ -292,7 +367,7 @@ export default function ActivityLogs() {
                 return (
                   <div
                     key={log.id}
-                    className="flex items-start gap-4 p-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                    className="flex items-start gap-4 p-4 hover:bg-slate-50 dark:dark-hover cursor-pointer transition-colors"
                     onClick={() => { setSelectedLog(log); setDetailsOpen(true); }}
                   >
                     {/* Type Indicator */}
@@ -306,32 +381,32 @@ export default function ActivityLogs() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <Badge variant="outline" className={cn("text-xs", catConfig.color)}>
+                        <Badge variant="outline" className={cn("text-xs dark:border-slate-600", catConfig.color)}>
                           {catConfig.label}
                         </Badge>
                         {log.job_id && (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
                             Job: {getJobName(log.job_id)}
                           </span>
                         )}
                         {log.connection_id && (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
                             Connection: {getConnectionName(log.connection_id)}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-900">{log.message}</p>
+                      <p className="text-sm text-slate-900 dark:text-slate-100">{log.message}</p>
                       {log.object_name && (
-                        <p className="text-xs text-slate-500 mt-1">Object: {log.object_name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Object: {log.object_name}</p>
                       )}
                     </div>
 
                     {/* Timestamp */}
                     <div className="text-right shrink-0">
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
                         {moment(log.created_date).format("h:mm A")}
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
                         {moment(log.created_date).format("MMM D")}
                       </p>
                     </div>
@@ -341,69 +416,299 @@ export default function ActivityLogs() {
             </div>
           ) : (
             <div className="py-16 text-center">
-              <Clock className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No logs found</h3>
-              <p className="text-slate-500">
+              <Clock className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No logs found</h3>
+              <p className="text-slate-500 dark:text-slate-400">
                 {hasFilters ? "Try adjusting your filters" : "Activity logs will appear here"}
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-500">
-            Showing {(currentPage - 1) * logsPerPage + 1} to {Math.min(currentPage * logsPerPage, filteredLogs.length)} of {filteredLogs.length} logs
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </Button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = i + 1;
-                return (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 rounded text-sm font-medium ${
-                      currentPage === page
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-slate-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-              {totalPages > 5 && <span className="text-slate-400">...</span>}
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Showing {(currentPage - 1) * logsPerPage + 1} to {Math.min(currentPage * logsPerPage, filteredLogs.length)} of {filteredLogs.length} logs
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="dark:dark-input dark:dark-text"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + 1;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded text-sm font-medium ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white"
+                          : "hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                {totalPages > 5 && <span className="text-slate-400">...</span>}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="dark:dark-input dark:dark-text"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </Button>
           </div>
-        </div>
-      )}
+        )}
+        </TabsContent>
+
+        <TabsContent value="audit" className="space-y-6 mt-6">
+          {/* Audit Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <Card className="dark:dark-card">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-blue-600">{auditStats.total}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total Events</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="dark:dark-card">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-green-600">{auditStats.creates}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Creates</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="dark:dark-card">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-amber-600">{auditStats.updates}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Updates</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="dark:dark-card">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-red-600">{auditStats.deletes}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Deletes</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Audit Filters */}
+          <div className="flex flex-wrap gap-3">
+            <div className="flex-1 min-w-[300px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Search by entity name, user..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 dark:dark-input dark:dark-text"
+                />
+              </div>
+            </div>
+
+            <Select value={selectedAction} onValueChange={setSelectedAction}>
+              <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
+                <SelectValue placeholder="All Actions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Actions</SelectItem>
+                <SelectItem value="create">Create</SelectItem>
+                <SelectItem value="update">Update</SelectItem>
+                <SelectItem value="delete">Delete</SelectItem>
+                <SelectItem value="execute">Execute</SelectItem>
+                <SelectItem value="pause">Pause</SelectItem>
+                <SelectItem value="resume">Resume</SelectItem>
+                <SelectItem value="clone">Clone</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedEntity} onValueChange={setSelectedEntity}>
+              <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
+                <SelectValue placeholder="All Entities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Entities</SelectItem>
+                <SelectItem value="connection">Connection</SelectItem>
+                <SelectItem value="job">Job</SelectItem>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="prerequisite">Prerequisite</SelectItem>
+                <SelectItem value="catalog_entry">Catalog Entry</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Audit Logs */}
+          <div className="space-y-3">
+            {paginatedAuditLogs.length === 0 ? (
+              <Card className="dark:dark-card">
+                <CardContent className="py-12 text-center">
+                  <Clock className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-500 dark:text-slate-400">
+                    {searchTerm || selectedAction !== "all" || selectedEntity !== "all"
+                      ? "No audit logs match your filters"
+                      : "No audit logs yet"}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              paginatedAuditLogs.map(log => {
+                const ActionIcon = actionIcons[log.action] || FileEdit;
+                return (
+                  <Card key={log.id} className="dark:dark-card hover:shadow-md transition-shadow">
+                    <CardContent className="py-4">
+                      <div className="flex items-start gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                          actionColors[log.action] || "bg-slate-100"
+                        )}>
+                          <ActionIcon className="w-5 h-5" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4 mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge className={actionColors[log.action]} variant="secondary">
+                                  {log.action}
+                                </Badge>
+                                <Badge variant="outline" className="dark:border-slate-600">
+                                  {log.entity_type}
+                                </Badge>
+                              </div>
+                              <p className="font-medium text-slate-900 dark:text-white">
+                                {log.entity_name || log.entity_id}
+                              </p>
+                            </div>
+
+                            {log.changes && (
+                              <button
+                                onClick={() => setViewAuditDetails(log)}
+                                className="text-blue-600 dark:text-blue-400 hover:underline text-sm flex items-center gap-1"
+                              >
+                                <Eye className="w-4 h-4" />
+                                View Changes
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600 dark:text-slate-400">
+                            <div className="flex items-center gap-1.5">
+                              <User className="w-4 h-4" />
+                              <span>{log.user_name || log.user_email}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-4 h-4" />
+                              <span>{moment(log.created_date).format("MMM D, YYYY [at] h:mm A")}</span>
+                            </div>
+                            {log.ip_address && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs">IP: {log.ip_address}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+
+          {/* Audit Pagination */}
+          {totalAuditPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Showing {(currentPage - 1) * logsPerPage + 1}-{Math.min(currentPage * logsPerPage, filteredAuditLogs.length)} of {filteredAuditLogs.length}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="dark:dark-input dark:dark-text"
+                >
+                  Previous
+                </Button>
+                <span className="px-3 py-1 text-sm dark:text-white">
+                  Page {currentPage} of {totalAuditPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalAuditPages, p + 1))}
+                  disabled={currentPage === totalAuditPages}
+                  className="dark:dark-input dark:dark-text"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Audit Details Dialog */}
+          {viewAuditDetails && (
+            <Dialog open={!!viewAuditDetails} onOpenChange={() => setViewAuditDetails(null)}>
+              <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto dark:dark-card">
+                <DialogHeader>
+                  <DialogTitle className="dark:dark-text">Change Details</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium mb-1 dark:dark-text">Entity:</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{viewAuditDetails.entity_name}</p>
+                  </div>
+                  {viewAuditDetails.changes?.before && (
+                    <div>
+                      <p className="text-sm font-medium mb-2 dark:dark-text">Before:</p>
+                      <pre className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-xs overflow-x-auto dark:text-slate-300">
+                        {JSON.stringify(viewAuditDetails.changes.before, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  {viewAuditDetails.changes?.after && (
+                    <div>
+                      <p className="text-sm font-medium mb-2 dark:dark-text">After:</p>
+                      <pre className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-xs overflow-x-auto dark:text-slate-300">
+                        {JSON.stringify(viewAuditDetails.changes.after, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Log Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg dark:dark-card">
           <DialogHeader>
-            <DialogTitle>Log Details</DialogTitle>
+            <DialogTitle className="dark:dark-text">Log Details</DialogTitle>
           </DialogHeader>
 
           {selectedLog && (
@@ -422,51 +727,51 @@ export default function ActivityLogs() {
                   );
                 })()}
                 <div>
-                  <p className="font-medium text-slate-900 capitalize">{selectedLog.log_type}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="font-medium text-slate-900 dark:text-white capitalize">{selectedLog.log_type}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     {moment(selectedLog.created_date).format("MMM D, YYYY h:mm:ss A")}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-lg p-4">
-                <p className="text-sm text-slate-900">{selectedLog.message}</p>
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                <p className="text-sm text-slate-900 dark:text-slate-100">{selectedLog.message}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-slate-500">Category</p>
-                  <p className="font-medium capitalize">{selectedLog.category}</p>
+                  <p className="text-slate-500 dark:text-slate-400">Category</p>
+                  <p className="font-medium dark:text-white capitalize">{selectedLog.category}</p>
                 </div>
                 {selectedLog.job_id && (
                   <div>
-                    <p className="text-slate-500">Job</p>
-                    <p className="font-medium">{getJobName(selectedLog.job_id)}</p>
+                    <p className="text-slate-500 dark:text-slate-400">Job</p>
+                    <p className="font-medium dark:text-white">{getJobName(selectedLog.job_id)}</p>
                   </div>
                 )}
                 {selectedLog.connection_id && (
                   <div>
-                    <p className="text-slate-500">Connection</p>
-                    <p className="font-medium">{getConnectionName(selectedLog.connection_id)}</p>
+                    <p className="text-slate-500 dark:text-slate-400">Connection</p>
+                    <p className="font-medium dark:text-white">{getConnectionName(selectedLog.connection_id)}</p>
                   </div>
                 )}
                 {selectedLog.run_id && (
                   <div>
-                    <p className="text-slate-500">Run ID</p>
-                    <p className="font-medium font-mono text-xs">{selectedLog.run_id}</p>
+                    <p className="text-slate-500 dark:text-slate-400">Run ID</p>
+                    <p className="font-medium dark:text-white font-mono text-xs">{selectedLog.run_id}</p>
                   </div>
                 )}
                 {selectedLog.object_name && (
                   <div>
-                    <p className="text-slate-500">Object</p>
-                    <p className="font-medium">{selectedLog.object_name}</p>
+                    <p className="text-slate-500 dark:text-slate-400">Object</p>
+                    <p className="font-medium dark:text-white">{selectedLog.object_name}</p>
                   </div>
                 )}
               </div>
 
               {selectedLog.stack_trace && (
                 <div>
-                  <p className="text-sm text-slate-500 mb-2">Stack Trace</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Stack Trace</p>
                   <pre className="bg-slate-900 text-slate-100 rounded-lg p-3 text-xs overflow-x-auto">
                     {selectedLog.stack_trace}
                   </pre>
@@ -475,8 +780,8 @@ export default function ActivityLogs() {
 
               {selectedLog.details && (
                 <div>
-                  <p className="text-sm text-slate-500 mb-2">Additional Details</p>
-                  <pre className="bg-slate-50 rounded-lg p-3 text-xs overflow-x-auto">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Additional Details</p>
+                  <pre className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-xs overflow-x-auto dark:text-slate-300">
                     {JSON.stringify(selectedLog.details, null, 2)}
                   </pre>
                 </div>

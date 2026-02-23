@@ -37,7 +37,6 @@ export default function Layout({ children }) {
       { name: "Jobs", icon: Play, page: "Jobs" },
       { name: "Data Catalog", icon: BookOpen, page: "DataCatalog" },
       { name: "Lineage", icon: GitGraph, page: "Lineage" },
-      { name: "Audit Trail", icon: Shield, page: "AuditTrail" },
       { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
     ];
 
