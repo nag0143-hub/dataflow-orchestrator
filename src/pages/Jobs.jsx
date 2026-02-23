@@ -182,8 +182,9 @@ export default function Jobs() {
       schedule_type: job.schedule_type || "manual",
       cron_expression: job.cron_expression || "",
       status: job.status || "idle",
-      include_dates: job.include_dates || [],
-      exclude_dates: job.exclude_dates || [],
+      use_custom_calendar: job.use_custom_calendar || false,
+      include_calendar_id: job.include_calendar_id || "",
+      exclude_calendar_id: job.exclude_calendar_id || "",
       retry_config: job.retry_config || defaultFormData.retry_config
     });
     setDialogOpen(true);
