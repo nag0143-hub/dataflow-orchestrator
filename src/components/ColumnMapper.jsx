@@ -146,12 +146,20 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     [tableMappings, mappingSearch]
   );
 
-  const addAllVisible = () => {
-    const newCols = pageColumns
-      .filter(c => !mappedSourceCols.has(c.name))
-      .map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
-    onChange({ ...mappings, [tableKey]: [...tableMappings, ...newCols] });
-  };
+  const totalMappingPages = Math.ceil(filteredMappings.length / MAPPING_PAGE_SIZE);
+  const pageMappings = filteredMappings.slice(mappingPage * MAPPING_PAGE_SIZE, (mappingPage + 1) * MAPPING_PAGE_SIZE);
+
+  const addAllVisible = useCallback(() => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      const mapped = new Set(tbl.map(m => m.source));
+      const newCols = pageColumns
+        .filter(c => !mapped.has(c.name))
+        .map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
+      return { ...prev, [key]: [...tbl, ...newCols] };
+    });
+  }, [selectedTable, pageColumns, onChange]);
 
   if (selectedObjects.length === 0) {
     return (
