@@ -144,8 +144,9 @@ export default function LineagePage() {
       <Dialog open={!!selectedJob} onOpenChange={() => {
         setSelectedJob(null);
         setLineageData(null);
+        setSelectedNode(null);
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Lineage — {selectedJob?.name}</DialogTitle>
           </DialogHeader>
@@ -154,7 +155,7 @@ export default function LineagePage() {
             <div className="flex items-center justify-center py-12">
               <p className="text-slate-500">Loading lineage...</p>
             </div>
-          ) : lineageData ? (
+          ) : lineageData && selectedJob ? (
             <div className="space-y-6">
               {/* Source → Target Flow */}
               <div className="bg-slate-50 rounded-lg p-4">
