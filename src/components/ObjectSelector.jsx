@@ -210,9 +210,14 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
         </p>
       </div>
 
-      {/* Config Dialog */}
-      <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
-        <DialogContent onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+      {/* Config Dialog — rendered via portal to avoid nested Dialog conflicts */}
+      <Dialog open={configDialogOpen} onOpenChange={(open) => { if (!open) setConfigDialogOpen(false); }}>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={() => setConfigDialogOpen(false)}
+          style={{ zIndex: 9999 }}
+        >
           <DialogHeader>
             <DialogTitle>
               Configure {currentObject?.schema}.{currentObject?.table}
