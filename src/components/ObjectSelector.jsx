@@ -23,15 +23,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SchemaImporter from "@/components/SchemaImporter";
 
-const defaultSchemas = [
-  { name: "dbo", tables: [{ name: "Customers", columns: [] }, { name: "Orders", columns: [] }, { name: "Products", columns: [] }, { name: "Inventory", columns: [] }, { name: "Suppliers", columns: [] }, { name: "Categories", columns: [] }] },
-  { name: "sales", tables: [{ name: "Transactions", columns: [] }, { name: "Returns", columns: [] }, { name: "Discounts", columns: [] }, { name: "Promotions", columns: [] }] },
-  { name: "hr", tables: [{ name: "Employees", columns: [] }, { name: "Departments", columns: [] }, { name: "Salaries", columns: [] }, { name: "Attendance", columns: [] }] }
+const mockSchemas = [
+  { name: "dbo", tables: ["Customers", "Orders", "Products", "Inventory", "Suppliers", "Categories"] },
+  { name: "sales", tables: ["Transactions", "Returns", "Discounts", "Promotions"] },
+  { name: "hr", tables: ["Employees", "Departments", "Salaries", "Attendance"] }
 ];
 
 export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [schemas, setSchemas] = useState(defaultSchemas);
   const [expandedSchemas, setExpandedSchemas] = useState(["dbo"]);
   const [configPanelObject, setConfigPanelObject] = useState(null);
   const [objectConfig, setObjectConfig] = useState({});
@@ -62,14 +61,14 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
 
   const selectAllInSchema = (schema, tables) => {
     const toAdd = tables
-      .filter(t => !isSelected(schema, t.name))
-      .map(t => ({ schema, table: t.name, target_path: `/${schema}/${t.name}`, target_format: "original" }));
+      .filter(t => !isSelected(schema, t))
+      .map(t => ({ schema, table: t, target_path: `/${schema}/${t}`, target_format: "original" }));
     onChange([...selectedObjects, ...toAdd]);
   };
 
   const deselectAllInSchema = (schema, tables) => {
     onChange(selectedObjects.filter(obj => obj.schema !== schema));
-    if (configPanelObject && tables.find(t => t.name === configPanelObject.table) && configPanelObject.schema === schema) {
+    if (configPanelObject && tables.includes(configPanelObject.table) && configPanelObject.schema === schema) {
       setConfigPanelObject(null);
     }
   };
@@ -95,38 +94,27 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
     setConfigPanelObject(null);
   };
 
-  const handleImportedSchemas = (importedSchemas) => {
-    // Merge imported schemas into existing (avoid duplicates)
-    setSchemas(prev => {
-      const merged = [...prev];
-      importedSchemas.forEach(incoming => {
-        const existing = merged.find(s => s.name === incoming.name);
-        if (existing) {
-          incoming.tables.forEach(t => {
-            if (!existing.tables.find(et => et.name === t.name)) {
-              existing.tables.push(t);
-            }
-          });
-        } else {
-          merged.push(incoming);
-        }
-      });
-      return merged;
+  const handleImportedObjects = (importedObjects) => {
+    const merged = [...selectedObjects];
+    importedObjects.forEach(obj => {
+      if (!merged.some(o => o.schema === obj.schema && o.table === obj.table)) {
+        merged.push(obj);
+      }
     });
-    setExpandedSchemas(importedSchemas.map(s => s.name));
+    onChange(merged);
   };
 
-  const filteredSchemas = schemas.map(schema => ({
+  const filteredSchemas = mockSchemas.map(schema => ({
     ...schema,
     tables: schema.tables.filter(t =>
-      t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.toLowerCase().includes(searchTerm.toLowerCase()) ||
       schema.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
   })).filter(schema => schema.tables.length > 0);
 
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden">
-      {/* Search + Import */}
+      {/* Search + Import toggle */}
       <div className="p-3 border-b border-slate-200 bg-slate-50 space-y-2">
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -138,24 +126,25 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
               className="pl-9 bg-white"
             />
           </div>
-          <Button
+          <button
             type="button"
-            variant="outline"
-            size="sm"
-            className="gap-1.5 shrink-0 text-xs"
             onClick={() => setShowImporter(v => !v)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
+              showImporter
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+            )}
           >
             <Upload className="w-3.5 h-3.5" />
             Import Schema
-          </Button>
+          </button>
         </div>
         {showImporter && (
-          <div className="bg-white border border-slate-200 rounded-lg p-3">
-            <SchemaImporter
-              onImport={handleImportedSchemas}
-              onClose={() => setShowImporter(false)}
-            />
-          </div>
+          <SchemaImporter
+            onImport={handleImportedObjects}
+            onClose={() => setShowImporter(false)}
+          />
         )}
       </div>
 
