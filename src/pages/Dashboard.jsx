@@ -9,7 +9,9 @@ import {
   XCircle, 
   Clock,
   ArrowRight,
-  Activity
+  Activity,
+  BookOpen,
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -230,11 +232,45 @@ export default function Dashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
-                  Create Ingestion Job
+                  Create Data Transfer Job
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Set up bulk data transfers with retry logic</p>
               </div>
               <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to={createPageUrl("UserGuide")}>
+          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 hover:shadow-md transition-all cursor-pointer group">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                <BookOpen className="w-7 h-7 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors">
+                  User Guide
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Learn how to use DataFlow step-by-step</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to={createPageUrl("Requirements")}>
+          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-md transition-all cursor-pointer group">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                <FileText className="w-7 h-7 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-purple-600 transition-colors">
+                  Requirements & Use Cases
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">View platform features and capabilities</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
             </CardContent>
           </Card>
         </Link>
