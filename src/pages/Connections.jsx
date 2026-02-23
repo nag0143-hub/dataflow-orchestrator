@@ -174,6 +174,7 @@ export default function Connections() {
   const [formTab, setFormTab] = useState("general");
   const [testingId, setTestingId] = useState(null);
   const [testResult, setTestResult] = useState(null); // { connection, success, error, latency }
+  const [discoveryModalConn, setDiscoveryModalConn] = useState(null);
 
   useEffect(() => {
     loadData();
