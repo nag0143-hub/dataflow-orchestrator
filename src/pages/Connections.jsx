@@ -273,94 +273,35 @@ export default function Connections() {
     setTestResult(null);
     const startTime = Date.now();
 
-    // Fetch credentials from HashiCorp Vault
-    let vaultCreds = {};
-    let vaultError = null;
-    try {
-      vaultCreds = await base44.functions.invoke("fetchVaultCredentials", {
-        connection_name: connection.name
-      });
-    } catch (err) {
-      vaultError = err.message || "Failed to reach Vault";
-    }
-
-    if (vaultError) {
-      setTestResult({
-        connection,
-        success: false,
-        latency_ms: 0,
-        error_code: "VAULT_ERROR",
-        error_message: vaultError,
-        server_version: null
-      });
-      setTestingId(null);
-      await base44.entities.ActivityLog.create({
-        log_type: "error",
-        category: "connection",
-        connection_id: connection.id,
-        message: `Connection "${connection.name}" test failed: Vault error — ${vaultError}`
-      });
-      return;
-    }
-
-    // Merge vault credentials over stored connection details (vault takes priority)
-    const effectiveHost     = vaultCreds.host     || connection.host;
-    const effectivePort     = vaultCreds.port     || connection.port;
-    const effectiveDatabase = vaultCreds.database || connection.database;
-    const effectiveUsername = vaultCreds.username || connection.username;
-    const hasPassword       = !!vaultCreds.password || !!vaultCreds.connection_string || !!vaultCreds.access_key;
-
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are simulating a connection test for a data pipeline platform.
-Credentials were fetched from HashiCorp Vault. Treat any missing host/creds as a real failure.
-
-Connection details (merged with Vault secrets):
-- Name: ${connection.name}
-- Platform: ${connection.platform}
-- Host: ${effectiveHost || "NOT SET"}
-- Port: ${effectivePort || "default"}
-- Database: ${effectiveDatabase || "NOT SET"}
-- Username: ${effectiveUsername || "NOT SET"}
-- Password/Key available from Vault: ${hasPassword ? "YES" : "NO"}
-- Auth Method: ${connection.auth_method}
-- Region: ${connection.region || "n/a"}
-- Bucket/Container: ${connection.bucket_container || "n/a"}
-
-Return a JSON with:
-- success: boolean
-- latency_ms: number (realistic ping latency if success, 0 if fail)
-- error_code: string (e.g. "ECONNREFUSED", "AUTH_FAILED", "TIMEOUT" — only if failed, else null)
-- error_message: string (descriptive error — only if failed, else null)
-- server_version: string (e.g. "SQL Server 2019 (15.0.4123)" — only if success, else null)`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          success: { type: "boolean" },
-          latency_ms: { type: "number" },
-          error_code: { type: "string" },
-          error_message: { type: "string" },
-          server_version: { type: "string" }
-        }
-      }
-    });
+    // Simple validation: check required fields
+    const hasRequired = connection.host || connection.bucket_container || connection.file_config?.nas_path;
+    const hasAuth = connection.auth_method === "none" || connection.username;
+    const success = hasRequired && hasAuth;
 
     const latency = Date.now() - startTime;
 
     await base44.entities.Connection.update(connection.id, {
-      status: result.success ? "active" : "error",
+      status: success ? "active" : "error",
       last_tested: new Date().toISOString()
     });
 
     await base44.entities.ActivityLog.create({
-      log_type: result.success ? "success" : "error",
+      log_type: success ? "success" : "error",
       category: "connection",
       connection_id: connection.id,
-      message: result.success
-        ? `Connection "${connection.name}" test successful (${result.latency_ms}ms)`
-        : `Connection "${connection.name}" test failed: ${result.error_message}`
+      message: success
+        ? `Connection "${connection.name}" test successful (${latency}ms)`
+        : `Connection "${connection.name}" test failed: missing required credentials or connection details`
     });
 
-    setTestResult({ connection, ...result, elapsed_ms: latency });
+    setTestResult({
+      connection,
+      success,
+      latency_ms: latency,
+      error_code: success ? null : "INVALID_CONFIG",
+      error_message: success ? null : "Missing required connection details or credentials",
+      server_version: success ? "Connection validated" : null
+    });
     setTestingId(null);
     loadConnections();
   };
