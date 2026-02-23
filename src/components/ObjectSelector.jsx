@@ -162,7 +162,7 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
       {/* Object Tree */}
       <div className="max-h-[300px] overflow-y-auto">
         {filteredSchemas.map(schema => {
-          const selectedCount = schema.tables.filter(t => isSelected(schema.name, t)).length;
+          const selectedCount = schema.tables.filter(t => isSelected(schema.name, t.name)).length;
           const allSelected = selectedCount === schema.tables.length;
 
           return (
