@@ -247,6 +247,14 @@ const defaultFormData = {
   column_mappings: {},
   dq_rules: {},
   data_cleansing: {},
+  data_masking_rules: [],
+  sla_config: {
+    enabled: false,
+    max_duration_minutes: 60,
+    alert_threshold_percent: 80,
+    escalation_enabled: false,
+    escalation_email: ""
+  },
   assignment_group: "",
   cost_center: "",
   email: "",
@@ -442,6 +450,8 @@ export default function Jobs() {
       column_mappings: job.column_mappings || {},
       dq_rules: job.dq_rules || {},
       data_cleansing: job.data_cleansing || {},
+      data_masking_rules: job.data_masking_rules || [],
+      sla_config: job.sla_config || defaultFormData.sla_config,
       assignment_group: job.assignment_group || "",
       cost_center: job.cost_center || "",
       email: job.email || "",
@@ -615,6 +625,8 @@ export default function Jobs() {
       column_mappings: job.column_mappings || {},
       dq_rules: job.dq_rules || {},
       data_cleansing: job.data_cleansing || {},
+      data_masking_rules: job.data_masking_rules || [],
+      sla_config: job.sla_config || defaultFormData.sla_config,
       assignment_group: job.assignment_group || "",
       cost_center: job.cost_center || "",
       email: job.email || "",
@@ -757,6 +769,14 @@ export default function Jobs() {
                           {job.total_runs ? Math.round((job.successful_runs || 0) / job.total_runs * 100) : 0}%
                         </p>
                       </div>
+                      {job.sla_config?.enabled && (
+                        <div className="text-center">
+                          <p className="text-slate-400">SLA</p>
+                          <p className={`font-semibold ${job.sla_compliance_rate >= 95 ? 'text-emerald-600' : job.sla_compliance_rate >= 80 ? 'text-amber-600' : 'text-red-600'}`}>
+                            {job.sla_compliance_rate || 0}%
+                          </p>
+                        </div>
+                      )}
                       {job.last_run && (
                         <div className="text-center">
                           <p className="text-slate-400">Last Run</p>
@@ -1331,6 +1351,18 @@ export default function Jobs() {
                   onMappingsChange={handleMappingsChange}
                   onRulesChange={handleRulesChange}
                   onCleansingChange={handleCleansingChange}
+                />
+
+                {/* Data Masking & Encryption */}
+                <DataMaskingConfig
+                  value={formData.data_masking_rules}
+                  onChange={(rules) => setFormData({ ...formData, data_masking_rules: rules })}
+                />
+
+                {/* SLA Management */}
+                <SLAConfig
+                  value={formData.sla_config}
+                  onChange={(sla) => setFormData({ ...formData, sla_config: sla })}
                 />
               </TabsContent>
               )}
