@@ -220,14 +220,45 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
           </DialogHeader>
           
           <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Target Path</Label>
+                <Input
+                  value={objectConfig.target_path}
+                  onChange={(e) => setObjectConfig({...objectConfig, target_path: e.target.value})}
+                  placeholder="/schema/table"
+                />
+                <p className="text-xs text-slate-500 mt-1">Path in target storage</p>
+              </div>
+              <div>
+                <Label>Target Dataset Name</Label>
+                <Input
+                  value={objectConfig.target_dataset}
+                  onChange={(e) => setObjectConfig({...objectConfig, target_dataset: e.target.value})}
+                  placeholder="e.g. dim_customers"
+                />
+                <p className="text-xs text-slate-500 mt-1">Override table/dataset name at target</p>
+              </div>
+            </div>
+
             <div>
-              <Label>Target Path</Label>
-              <Input
-                value={objectConfig.target_path}
-                onChange={(e) => setObjectConfig({...objectConfig, target_path: e.target.value})}
-                placeholder="/schema/table"
-              />
-              <p className="text-xs text-slate-500 mt-1">Path in target storage</p>
+              <Label>Target Format</Label>
+              <Select value={objectConfig.target_format} onValueChange={v => setObjectConfig({...objectConfig, target_format: v})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="original">Original (keep source format)</SelectItem>
+                  <SelectItem value="parquet">Parquet</SelectItem>
+                  <SelectItem value="delta">Delta Lake</SelectItem>
+                  <SelectItem value="iceberg">Apache Iceberg</SelectItem>
+                  <SelectItem value="csv">CSV</SelectItem>
+                  <SelectItem value="json">JSON (line-delimited)</SelectItem>
+                  <SelectItem value="avro">Avro</SelectItem>
+                  <SelectItem value="orc">ORC</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">Output format for data at target</p>
             </div>
             
             <div>
