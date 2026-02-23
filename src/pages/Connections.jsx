@@ -479,7 +479,14 @@ Return a JSON with:
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingConnection ? "Edit Connection" : "New Connection"}</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>{editingConnection ? "Edit Connection" : "New Connection"}</DialogTitle>
+              {!editingConnection && (
+                <ConnectionProfilePicker
+                  onApply={(fields) => setFormData(prev => ({ ...prev, ...fields }))}
+                />
+              )}
+            </div>
           </DialogHeader>
           
           <form onSubmit={handleSubmit}>
