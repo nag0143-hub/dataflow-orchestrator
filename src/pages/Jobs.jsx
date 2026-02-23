@@ -22,13 +22,19 @@ import {
   Copy,
   Download,
   Check,
-  Send
+  Send,
+  Rocket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
 import HelpTooltip from "@/components/HelpTooltip";
+import OnboardingWizard from "@/components/OnboardingWizard";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import { createIndex } from "@/components/dataIndexing";
+import JobBasicsTab from "@/components/JobFormTabs/JobBasicsTab";
+import JobDataTab from "@/components/JobFormTabs/JobDataTab";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -272,6 +278,18 @@ export default function Jobs() {
   const [historyDialogJob, setHistoryDialogJob] = useState(null);
   const [exportJob, setExportJob] = useState(null);
   const [showDatasetLoadMethods, setShowDatasetLoadMethods] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check if first time user
+  useEffect(() => {
+    if (!loading && jobs.length === 0 && connections.length > 0) {
+      const hasSeenOnboarding = localStorage.getItem("dataflow-onboarding-seen");
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+        localStorage.setItem("dataflow-onboarding-seen", "true");
+      }
+    }
+  }, [loading, jobs, connections]);
 
   const handleMappingsChange = useCallback((mappingsOrUpdater) => {
     setFormData(prev => ({
@@ -326,8 +344,16 @@ export default function Jobs() {
   const sourceConnections = connections.filter(c => c.connection_type === "source");
   const targetConnections = connections.filter(c => c.connection_type === "target");
 
-  const getConnection = (id) => connections.find(c => c.id === id);
-  const getJobRuns = (jobId) => runs.filter(r => r.job_id === jobId);
+  // Indexed lookups for performance
+  const connectionIndex = createIndex(connections, "id");
+  const runsByJob = runs.reduce((acc, run) => {
+    if (!acc[run.job_id]) acc[run.job_id] = [];
+    acc[run.job_id].push(run);
+    return acc;
+  }, {});
+
+  const getConnection = (id) => connectionIndex.get(id);
+  const getJobRuns = (jobId) => runsByJob[jobId] || [];
 
   const validateJob = () => {
     if (!formData.name?.trim()) {
@@ -610,8 +636,12 @@ export default function Jobs() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="space-y-2">
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-64 animate-pulse" />
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-96 animate-pulse" />
+        </div>
+        <SkeletonLoader count={5} height="h-32" />
       </div>
     );
   }
@@ -621,16 +651,26 @@ export default function Jobs() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Data Transfer Jobs</h1>
-          <p className="text-slate-500 mt-1">Configure and run data transfer jobs between connections</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Transfer Jobs</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Configure and run data transfer jobs between connections</p>
         </div>
-        <Button
-           onClick={() => { setEditingJob(null); setFormData(defaultFormData); setDialogOpen(true); setActiveTab("general"); }}
-           className="gap-2"
-         >
-          <Plus className="w-4 h-4" />
-          New Job
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowOnboarding(true)}
+            className="gap-2"
+          >
+            <Rocket className="w-4 h-4" />
+            Quick Start
+          </Button>
+          <Button
+            onClick={() => { setEditingJob(null); setFormData(defaultFormData); setDialogOpen(true); setActiveTab("general"); }}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Job
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -844,190 +884,21 @@ export default function Jobs() {
               </TabsList>
 
               <TabsContent value="general" className="space-y-4 mt-4">
-                <div>
-                  <Label>Job Name *</Label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Daily Sales Sync"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Source Connection *</Label>
-                    <Select
-                      value={formData.source_connection_id}
-                      onValueChange={(v) => setFormData({ ...formData, source_connection_id: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select source" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sourceConnections.map(c => (
-                          <SelectItem key={c.id} value={c.id}>
-                            <div className="flex items-center gap-2">
-                              <span>{platformConfig[c.platform]?.label}</span>
-                              <span className="text-slate-400">-</span>
-                              <span>{c.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Target Connection *</Label>
-                    <Select
-                      value={formData.target_connection_id}
-                      onValueChange={(v) => setFormData({ ...formData, target_connection_id: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select target" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {targetConnections.map(c => (
-                          <SelectItem key={c.id} value={c.id}>
-                            <div className="flex items-center gap-2">
-                              <span>{platformConfig[c.platform]?.label}</span>
-                              <span className="text-slate-400">-</span>
-                              <span>{c.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Description</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="What does this job do?"
-                    rows={2}
-                  />
-                </div>
-
-                <details className="border border-slate-200 rounded-lg p-3">
-                  <summary className="cursor-pointer font-medium text-sm text-slate-700 hover:text-slate-900">Organization & Notifications</summary>
-                  <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-200">
-                    <div>
-                      <Label className="text-xs">Assignment Group</Label>
-                      <Input
-                        value={formData.assignment_group}
-                        onChange={(e) => setFormData({ ...formData, assignment_group: e.target.value })}
-                        placeholder="Data Engineering"
-                        className="text-sm"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs">Cost Center</Label>
-                      <Input
-                        value={formData.cost_center}
-                        onChange={(e) => setFormData({ ...formData, cost_center: e.target.value })}
-                        placeholder="CC-12345"
-                        className="text-sm"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Label className="text-xs">Notification Email</Label>
-                      <Input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="alerts@company.com"
-                        className="text-sm"
-                      />
-                    </div>
-                  </div>
-                </details>
+                <JobBasicsTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  sourceConnections={sourceConnections}
+                  targetConnections={targetConnections}
+                />
               </TabsContent>
 
               <TabsContent value="datasets" className="space-y-4 mt-4">
-                <div>
-                   <div className="flex items-center gap-2 mb-2">
-                     <Label className="block">Select Tables/Datasets to Transfer</Label>
-                     <HelpTooltip text="Choose which tables or datasets from the source system to include in this job. You can override load methods per dataset." />
-                   </div>
-                   <ObjectSelector
-                     selectedObjects={formData.selected_datasets}
-                     onChange={(objects) => setFormData({ ...formData, selected_datasets: objects })}
-                   />
-                 </div>
-
-                {/* Job-Level Load Method */}
-                <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-                  <div>
-                    <Label className="text-sm font-semibold">Job-Level Load Method</Label>
-                    <p className="text-xs text-slate-500 mb-3">Default method for all datasets. Can be overridden per dataset.</p>
-                    <Select
-                      value={formData.load_method || "append"}
-                      onValueChange={(v) => setFormData({ ...formData, load_method: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="append">Append - Add rows to existing data</SelectItem>
-                        <SelectItem value="replace">Replace - Clear and reload all data</SelectItem>
-                        <SelectItem value="upsert">Upsert - Insert or update based on key</SelectItem>
-                        <SelectItem value="merge">Merge - Advanced merge strategy</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Dataset-Level Load Methods Toggle */}
-                {formData.selected_datasets?.length > 0 && (
-                  <div className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Dataset-Level Load Methods</p>
-                      <p className="text-xs text-slate-400">Override the job-level load method for specific datasets</p>
-                    </div>
-                    <Switch
-                      checked={showDatasetLoadMethods}
-                      onCheckedChange={setShowDatasetLoadMethods}
-                    />
-                  </div>
-                )}
-
-                {/* Dataset-Level Load Methods */}
-                {formData.selected_datasets?.length > 0 && showDatasetLoadMethods && (
-                  <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {formData.selected_datasets.map((obj, idx) => (
-                        <div key={idx} className="border border-slate-200 rounded-lg p-3 space-y-2 bg-slate-50">
-                          <div className="font-medium text-sm text-slate-900">
-                            {obj.schema}.{obj.table}
-                          </div>
-                          <Select
-                            value={obj.load_method || "append"}
-                            onValueChange={(v) => {
-                              const updated = [...formData.selected_datasets];
-                              updated[idx].load_method = v;
-                              setFormData({ ...formData, selected_datasets: updated });
-                            }}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="append">Append</SelectItem>
-                              <SelectItem value="replace">Replace</SelectItem>
-                              <SelectItem value="upsert">Upsert</SelectItem>
-                              <SelectItem value="merge">Merge</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
+                <JobDataTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  showDatasetLoadMethods={showDatasetLoadMethods}
+                  setShowDatasetLoadMethods={setShowDatasetLoadMethods}
+                />
               </TabsContent>
 
               <TabsContent value="settings" className="space-y-4 mt-4">
@@ -1628,6 +1499,14 @@ export default function Jobs() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Onboarding Wizard */}
+      <OnboardingWizard
+        open={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        connections={connections}
+        jobs={jobs}
+      />
     </div>
   );
 }
