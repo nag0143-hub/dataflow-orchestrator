@@ -201,14 +201,14 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                     type="text"
                     placeholder="Search mappings..."
                     value={mappingSearch}
-                    onChange={e => setMappingSearch(e.target.value)}
+                    onChange={e => { setMappingSearch(e.target.value); setMappingPage(0); }}
                     className="w-full pl-6 pr-2 h-6 text-xs rounded border border-blue-200 bg-white text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-300"
                   />
                 </div>
                 {mappingSearch && (
                   <span className="text-blue-500 shrink-0">{filteredMappings.length} shown</span>
                 )}
-                <button type="button" onClick={() => onChange({ ...mappings, [tableKey]: [] })} className="text-red-400 hover:text-red-600 text-xs shrink-0">Clear all</button>
+                <button type="button" onClick={() => onChange(prev => ({ ...prev, [tableKey]: [] }))} className="text-red-400 hover:text-red-600 text-xs shrink-0">Clear all</button>
               </div>
               <div className="max-h-64 overflow-y-auto overflow-x-auto">
                 {/* Header */}
@@ -218,7 +218,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                 {filteredMappings.length === 0 && (
                   <div className="text-center py-4 text-xs text-slate-400">No mappings match "{mappingSearch}"</div>
                 )}
-                {filteredMappings.map((m, i) => (
+                {pageMappings.map((m, i) => (
                   <div key={`${m.source}-${i}`} className={cn("grid gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs min-w-[580px]", m.derived && "bg-amber-50/40")} style={{gridTemplateColumns:"1fr 20px 1fr 160px 52px"}}>
                     <span className="font-mono text-slate-700 truncate" title={m.source}>
                       {m.derived && <span className="text-amber-500 mr-1" title="Derived column">◆</span>}
@@ -251,6 +251,19 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                   </div>
                 ))}
               </div>
+              {totalMappingPages > 1 && (
+                <div className="flex items-center justify-between px-3 py-2 border-t border-blue-100 bg-blue-50 text-xs text-blue-600">
+                  <span>Page {mappingPage + 1} of {totalMappingPages} ({filteredMappings.length} mappings)</span>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-6 w-6" disabled={mappingPage === 0} onClick={() => setMappingPage(p => p - 1)}>
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" disabled={mappingPage >= totalMappingPages - 1} onClick={() => setMappingPage(p => p + 1)}>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
