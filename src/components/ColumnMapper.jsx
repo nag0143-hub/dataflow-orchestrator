@@ -34,18 +34,26 @@ const TRANSFORMATIONS = [
 
 const PAGE_SIZE = 50;
 
-// Generate mock source columns for a table (scales to large datasets)
+const DATA_TYPES = ["varchar(255)", "int", "datetime", "decimal(18,2)", "bit", "bigint", "nvarchar(max)"];
+
+// Seeded pseudo-random so data types are stable across renders
+function seededRand(seed) {
+  let s = seed;
+  return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return Math.abs(s) / 0x7fffffff; };
+}
+
+// Cache columns per table key so they're never regenerated
+const columnCache = new Map();
+
 function getMockColumns(schema, table) {
-  const base = [
-    "id", "created_at", "updated_at", "created_by", "updated_by",
-    "status", "is_active", "name", "description", "code", "type",
-    "reference_id", "parent_id", "sequence", "priority", "category",
-  ];
+  const key = `${schema}.${table}`;
+  if (columnCache.has(key)) return columnCache.get(key);
+  const rand = seededRand(key.split("").reduce((a, c) => a + c.charCodeAt(0), 0));
+  const base = ["id","created_at","updated_at","created_by","updated_by","status","is_active","name","description","code","type","reference_id","parent_id","sequence","priority","category"];
   const extras = Array.from({ length: 984 }, (_, i) => `col_${String(i + 1).padStart(4, "0")}`);
-  return [...base, ...extras].map(col => ({
-    name: col,
-    dataType: ["varchar(255)", "int", "datetime", "decimal(18,2)", "bit", "bigint", "nvarchar(max)"][Math.floor(Math.random() * 7)],
-  }));
+  const cols = [...base, ...extras].map(col => ({ name: col, dataType: DATA_TYPES[Math.floor(rand() * DATA_TYPES.length)] }));
+  columnCache.set(key, cols);
+  return cols;
 }
 
 export default function ColumnMapper({ selectedObjects = [], mappings = [], onChange }) {
