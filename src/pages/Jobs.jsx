@@ -143,10 +143,13 @@ function JobSpecTabPreview({ formData, connections }) {
     return String(obj);
   }
 
+  // Rebuild on every render so it always reflects current formData
   const spec = buildJobSpec(draftJob, connections);
+  // Strip undefined values for clean output
+  const cleanSpec = JSON.parse(JSON.stringify(spec));
   const content = format === "json"
-    ? JSON.stringify(spec, null, 2)
-    : `# DataFlow Job Spec — ${formData.name || "untitled"}\n` + toYaml(spec);
+    ? JSON.stringify(cleanSpec, null, 2)
+    : `# DataFlow Job Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
 
   const filename = `${(formData.name || "job").replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-jobspec.${format === "json" ? "json" : "yaml"}`;
 
