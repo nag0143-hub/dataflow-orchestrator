@@ -44,7 +44,26 @@ function toYaml(obj, indent = 0) {
   return String(obj);
 }
 
-function buildJobSpec(job, connections) {
+function connDetails(conn) {
+  if (!conn) return {};
+  // Omit secrets; include only structural/config fields safe for git
+  return {
+    name: conn.name,
+    platform: conn.platform,
+    connection_type: conn.connection_type,
+    host: conn.host || undefined,
+    port: conn.port || undefined,
+    database: conn.database || undefined,
+    username: conn.username || undefined,
+    auth_method: conn.auth_method || undefined,
+    region: conn.region || undefined,
+    bucket_container: conn.bucket_container || undefined,
+    ...(conn.file_config && Object.keys(conn.file_config).length ? { file_config: conn.file_config } : {}),
+    notes: conn.notes || undefined,
+  };
+}
+
+export function buildJobSpec(job, connections) {
   const sourceConn = connections.find(c => c.id === job.source_connection_id);
   const targetConn = connections.find(c => c.id === job.target_connection_id);
 
@@ -60,13 +79,11 @@ function buildJobSpec(job, connections) {
     spec: {
       source: {
         connection_id: job.source_connection_id,
-        connection_name: sourceConn?.name || "",
-        platform: sourceConn?.platform || "",
+        ...connDetails(sourceConn),
       },
       target: {
         connection_id: job.target_connection_id,
-        connection_name: targetConn?.name || "",
-        platform: targetConn?.platform || "",
+        ...connDetails(targetConn),
       },
       objects: (job.selected_objects || []).map(o => ({
         schema: o.schema,
