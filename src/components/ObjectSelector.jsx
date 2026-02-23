@@ -212,7 +212,7 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
 
       {/* Config Dialog */}
       <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
-        <DialogContent>
+        <DialogContent onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>
               Configure {currentObject?.schema}.{currentObject?.table}
