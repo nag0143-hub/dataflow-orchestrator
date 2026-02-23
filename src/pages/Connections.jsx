@@ -35,7 +35,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import SchemaDiscoveryModal from "@/components/SchemaDiscoveryModal";
 import {
   Select,
   SelectContent,
@@ -174,7 +173,6 @@ export default function Connections() {
   const [formTab, setFormTab] = useState("general");
   const [testingId, setTestingId] = useState(null);
   const [testResult, setTestResult] = useState(null); // { connection, success, error, latency }
-  const [discoveryModalConn, setDiscoveryModalConn] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -404,12 +402,6 @@ export default function Connections() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {connection.connection_type === "source" && (
-                          <DropdownMenuItem onClick={() => setDiscoveryModalConn(connection)}>
-                            <Database className="w-4 h-4 mr-2" />
-                            Discover Schema
-                          </DropdownMenuItem>
-                        )}
                         <DropdownMenuItem onClick={() => handleTestConnection(connection)}>
                           <TestTube className="w-4 h-4 mr-2" />
                           Test Connection
@@ -866,16 +858,6 @@ export default function Connections() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Schema Discovery Modal */}
-      <SchemaDiscoveryModal
-        connection={discoveryModalConn}
-        open={!!discoveryModalConn}
-        onClose={() => setDiscoveryModalConn(null)}
-        onSelect={(tables) => {
-          toast.success(`Selected ${tables.length} table(s) for discovery`);
-        }}
-      />
     </div>
   );
 }
