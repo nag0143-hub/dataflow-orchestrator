@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { RefreshCw, Plus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import AirflowDAGViewer from "./AirflowDAGViewer";
 
@@ -16,9 +16,6 @@ export default function AirflowSection() {
   const [selectedConnection, setSelectedConnection] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: "", host: "", username: "" });
-  const [savingConnection, setSavingConnection] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -107,36 +104,6 @@ export default function AirflowSection() {
     }
   };
 
-  const handleAddConnection = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.name?.trim() || !formData.host?.trim() || !formData.username?.trim()) {
-      toast.error("All fields are required");
-      return;
-    }
-
-    setSavingConnection(true);
-    try {
-      const newConn = await base44.entities.Connection.create({
-        name: formData.name,
-        platform: "airflow",
-        connection_type: "source",
-        host: formData.host,
-        username: formData.username,
-        status: "active"
-      });
-
-      toast.success("Airflow connection added");
-      setAddDialogOpen(false);
-      setFormData({ name: "", host: "", username: "" });
-      loadData();
-    } catch (err) {
-      toast.error(`Error: ${err.message}`);
-    } finally {
-      setSavingConnection(false);
-    }
-  };
-
   const filteredDags = dags.filter(d => d.airflow_connection_id === selectedConnection);
   const selectedConnData = airflowConnections.find(c => c.id === selectedConnection);
 
@@ -155,10 +122,12 @@ export default function AirflowSection() {
           <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-slate-900 mb-2">No Airflow Connections</h3>
           <p className="text-slate-500 mb-4">Add an Airflow connection to view and manage DAGs</p>
-          <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Airflow Connection
-          </Button>
+          <Link to={createPageUrl("Connections")}>
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Airflow Connection
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     );
@@ -215,53 +184,6 @@ export default function AirflowSection() {
           </CardContent>
         </Card>
       )}
-
-      {/* Add Connection Dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Airflow Connection</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddConnection} className="space-y-4">
-            <div>
-              <Label className="text-sm">Connection Name</Label>
-              <Input
-                placeholder="My Airflow Instance"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-sm">Airflow URL</Label>
-              <Input
-                placeholder="https://airflow.example.com"
-                value={formData.host}
-                onChange={(e) => setFormData({ ...formData, host: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-sm">API Token</Label>
-              <Input
-                type="password"
-                placeholder="Your Airflow API token"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                required
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setAddDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={savingConnection}>
-                {savingConnection ? "Adding..." : "Add Connection"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
