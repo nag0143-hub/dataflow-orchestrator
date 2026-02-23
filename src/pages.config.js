@@ -55,6 +55,8 @@ import Jobs from './pages/Jobs';
 import Lineage from './pages/Lineage';
 import Requirements from './pages/Requirements';
 import UserGuide from './pages/UserGuide';
+import DataCatalog from './pages/DataCatalog';
+import AuditTrail from './pages/AuditTrail';
 import __Layout from './Layout.jsx';
 
 
@@ -67,6 +69,8 @@ export const PAGES = {
     "Lineage": Lineage,
     "Requirements": Requirements,
     "UserGuide": UserGuide,
+    "DataCatalog": DataCatalog,
+    "AuditTrail": AuditTrail,
 }
 
 export const pagesConfig = {

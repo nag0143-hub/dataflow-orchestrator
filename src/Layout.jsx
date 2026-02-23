@@ -10,7 +10,9 @@ import {
         FileText,
         Sun,
         Moon,
-        GitGraph
+        GitGraph,
+        BookOpen,
+        Shield
       } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,9 +35,10 @@ export default function Layout({ children }) {
       { name: "Dashboard", icon: Home, page: "Dashboard" },
       { name: "Connections", icon: Cable, page: "Connections" },
       { name: "Jobs", icon: Play, page: "Jobs" },
+      { name: "Data Catalog", icon: BookOpen, page: "DataCatalog" },
       { name: "Lineage", icon: GitGraph, page: "Lineage" },
+      { name: "Audit Trail", icon: Shield, page: "AuditTrail" },
       { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
-      { name: "Data Model", icon: Database, page: "DataModel" },
     ];
 
   const isActive = (page) => {
