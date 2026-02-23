@@ -1,0 +1,186 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { GitCommitHorizontal } from "lucide-react";
+import JobBasicsTab from "@/components/JobFormTabs/JobBasicsTab";
+import JobDataTab from "@/components/JobFormTabs/JobDataTab";
+import AdvancedTabContent from "@/components/JobFormTabs/AdvancedTabContent";
+import JobSpecTabPreview from "@/components/JobSpecTabPreview";
+import ScheduleSettings from "@/components/JobFormTabs/ScheduleSettings";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
+
+export default function JobFormDialog({
+  open,
+  onOpenChange,
+  editingJob,
+  formData,
+  setFormData,
+  connections,
+  onSaveSuccess,
+  currentUser
+}) {
+  const [activeTab, setActiveTab] = useState("general");
+  const [commitMessage, setCommitMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [showDatasetLoadMethods, setShowDatasetLoadMethods] = useState(false);
+
+  const sourceConnections = connections.filter(c => c.connection_type === "source");
+  const targetConnections = connections.filter(c => c.connection_type === "target");
+
+  const validateJob = () => {
+    if (!formData.name?.trim()) {
+      toast.error("Job name is required");
+      return false;
+    }
+    if (!formData.source_connection_id) {
+      toast.error("Source connection is required");
+      return false;
+    }
+    if (!formData.target_connection_id) {
+      toast.error("Target connection is required");
+      return false;
+    }
+    if (formData.source_connection_id === formData.target_connection_id) {
+      toast.error("Source and target connections must be different");
+      return false;
+    }
+    if (!formData.selected_datasets || formData.selected_datasets.length === 0) {
+      toast.error("At least one dataset must be selected");
+      return false;
+    }
+    if (formData.schedule_type === "custom" && !formData.cron_expression?.trim()) {
+      toast.error("Cron expression is required for custom schedule");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateJob()) return;
+
+    setSaving(true);
+
+    const payload = {
+      ...formData,
+      total_runs: editingJob?.total_runs || 0,
+      successful_runs: editingJob?.successful_runs || 0,
+      failed_runs: editingJob?.failed_runs || 0,
+    };
+
+    try {
+      if (editingJob) {
+        await base44.entities.IngestionJob.update(editingJob.id, payload);
+        await Promise.all([
+          base44.entities.ActivityLog.create({
+            log_type: "info",
+            category: "job",
+            job_id: editingJob.id,
+            message: `Job "${formData.name}" updated`,
+          }),
+        ]);
+        toast.success("Job updated");
+      } else {
+        const created = await base44.entities.IngestionJob.create(payload);
+        await Promise.all([
+          base44.entities.ActivityLog.create({
+            log_type: "success",
+            category: "job",
+            job_id: created.id,
+            message: `Job "${formData.name}" created`,
+          }),
+        ]);
+        toast.success("Job created");
+      }
+
+      onOpenChange(false);
+      setCommitMessage("");
+      onSaveSuccess?.();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {editingJob ? "Edit Job" : "New Data Transfer Job"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit}>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full gap-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))' }}>
+              <TabsTrigger value="general">Basics</TabsTrigger>
+              <TabsTrigger value="datasets">Data</TabsTrigger>
+              <TabsTrigger value="settings">Schedule</TabsTrigger>
+              {formData.enable_advanced && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
+              <TabsTrigger value="spec">Job Spec</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="general" className="space-y-4 mt-4">
+              <JobBasicsTab
+                formData={formData}
+                setFormData={setFormData}
+                sourceConnections={sourceConnections}
+                targetConnections={targetConnections}
+              />
+            </TabsContent>
+
+            <TabsContent value="datasets" className="space-y-4 mt-4">
+              <JobDataTab
+                formData={formData}
+                setFormData={setFormData}
+                showDatasetLoadMethods={showDatasetLoadMethods}
+                setShowDatasetLoadMethods={setShowDatasetLoadMethods}
+              />
+            </TabsContent>
+
+            <TabsContent value="settings" className="space-y-4 mt-4">
+              <ScheduleSettings formData={formData} setFormData={setFormData} />
+            </TabsContent>
+
+            {formData.enable_advanced && (
+              <TabsContent value="advanced" className="space-y-5 mt-4">
+                <AdvancedTabContent formData={formData} setFormData={setFormData} />
+              </TabsContent>
+            )}
+
+            <TabsContent value="spec" className="mt-4">
+              <JobSpecTabPreview formData={formData} connections={connections} />
+            </TabsContent>
+          </Tabs>
+
+          <div className="mt-6 pt-4 border-t space-y-3">
+            <div>
+              <Label className="text-xs text-slate-500 flex items-center gap-1.5 mb-1">
+                <GitCommitHorizontal className="w-3.5 h-3.5" />
+                Commit message (optional)
+              </Label>
+              <input
+                type="text"
+                value={commitMessage}
+                onChange={(e) => setCommitMessage(e.target.value)}
+                placeholder="Describe what changed..."
+                className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Saving..." : editingJob ? "Update Job" : "Create Job"}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
