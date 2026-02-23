@@ -136,7 +136,7 @@ export default function DataQualityRules({ selectedObjects = [], rules = {}, onC
                 <TableProperties className="w-3.5 h-3.5 text-purple-600" />
                 <span className="text-xs font-semibold text-purple-700">Dataset-Level Rules ({datasetRules.length})</span>
               </div>
-              <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-purple-600 hover:text-purple-800"
+              <Button type="button" variant="ghost" size="sm" className="h-6 text-xs px-2 text-purple-600 hover:text-purple-800"
                 onClick={() => { setAddDatasetRule(true); setNewRule({ rule: "row_count_min", parameter: "", action: "fail_job" }); }}>
                 <Plus className="w-3 h-3 mr-1" /> Add Rule
               </Button>
