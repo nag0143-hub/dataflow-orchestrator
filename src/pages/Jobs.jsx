@@ -73,6 +73,8 @@ const defaultFormData = {
   use_custom_calendar: false,
   include_calendar_id: "",
   exclude_calendar_id: "",
+  column_mappings: {},
+  dq_rules: {},
   retry_config: {
     max_retries: 3,
     retry_delay_seconds: 60,
