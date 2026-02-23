@@ -21,7 +21,8 @@ import {
   ShieldCheck,
   Copy,
   Download,
-  Check
+  Check,
+  Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
