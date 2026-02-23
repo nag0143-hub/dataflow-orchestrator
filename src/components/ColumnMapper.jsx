@@ -53,6 +53,15 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
+  // Persist auto-mappings when table columns are first loaded
+  const autoMappedRef = useState(() => new Set())[0];
+  useMemo(() => {
+    if (!tableKey || !tableColumns.length || mappings[tableKey] || autoMappedRef.has(tableKey)) return;
+    autoMappedRef.add(tableKey);
+    const auto = tableColumns.map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
+    setTimeout(() => onChange({ ...mappings, [tableKey]: auto }), 0);
+  }, [tableKey, tableColumns]);
+
   const tableKey = selectedTable;
   const tableColumns = useMemo(() => {
     if (!selectedTable) return [];
