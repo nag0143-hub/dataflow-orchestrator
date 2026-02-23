@@ -90,16 +90,7 @@ export default function Jobs() {
     }
   }, [loading, jobs, connections]);
 
-  const handleMappingsChange = useCallback((mappingsOrUpdater) => {
-    setFormData(prev => ({
-      ...prev,
-      column_mappings: typeof mappingsOrUpdater === "function"
-        ? mappingsOrUpdater(prev.column_mappings)
-        : mappingsOrUpdater
-    }));
-  }, []);
-  const handleRulesChange = useCallback((rules) => setFormData(prev => ({ ...prev, dq_rules: rules })), []);
-  const handleCleansingChange = useCallback((cleansing) => setFormData(prev => ({ ...prev, data_cleansing: cleansing })), []);
+
 
   useEffect(() => {
     loadData();
@@ -154,73 +145,7 @@ export default function Jobs() {
   const getConnection = (id) => connectionIndex.get(id);
   const getJobRuns = (jobId) => runsByJob[jobId] || [];
 
-  const validateJob = () => {
-    if (!formData.name?.trim()) {
-      toast.error("Job name is required");
-      return false;
-    }
-    if (!formData.source_connection_id) {
-      toast.error("Source connection is required");
-      return false;
-    }
-    if (!formData.target_connection_id) {
-      toast.error("Target connection is required");
-      return false;
-    }
-    if (formData.source_connection_id === formData.target_connection_id) {
-      toast.error("Source and target connections must be different");
-      return false;
-    }
-    if (!formData.selected_datasets || formData.selected_datasets.length === 0) {
-       toast.error("At least one dataset must be selected");
-       return false;
-     }
-    if (formData.schedule_type === "custom" && !formData.cron_expression?.trim()) {
-      toast.error("Cron expression is required for custom schedule");
-      return false;
-    }
-    return true;
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateJob()) {
-      return;
-    }
-
-    setSaving(true);
-
-    const payload = {
-      ...formData,
-      total_runs: editingJob?.total_runs || 0,
-      successful_runs: editingJob?.successful_runs || 0,
-      failed_runs: editingJob?.failed_runs || 0
-    };
-
-    if (editingJob) {
-      await base44.entities.IngestionJob.update(editingJob.id, payload);
-      await Promise.all([
-        base44.entities.ActivityLog.create({ log_type: "info", category: "job", job_id: editingJob.id, message: `Job "${formData.name}" updated` }),
-        saveVersion({ ...editingJob, ...payload }, "updated", commitMessage || `Updated by ${currentUser?.email || "user"}`)
-      ]);
-      toast.success("Job updated");
-    } else {
-      const created = await base44.entities.IngestionJob.create(payload);
-      await Promise.all([
-        base44.entities.ActivityLog.create({ log_type: "success", category: "job", job_id: created.id, message: `Job "${formData.name}" created` }),
-        saveVersion({ ...created, ...payload }, "created", commitMessage || `Created by ${currentUser?.email || "user"}`)
-      ]);
-      toast.success("Job created");
-    }
-
-    setDialogOpen(false);
-    setEditingJob(null);
-    setFormData(defaultFormData);
-    setCommitMessage("");
-    setSaving(false);
-    loadData();
-  };
 
   const handleEdit = (job) => {
     setEditingJob(job);
