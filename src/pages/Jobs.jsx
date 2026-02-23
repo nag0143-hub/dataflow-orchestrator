@@ -1265,6 +1265,8 @@ export default function Jobs() {
                         <SelectItem value="personal_class_1">Personal Class 1</SelectItem>
                         <SelectItem value="personal_class_1_pci">Personal Class 1 - PCI</SelectItem>
                         <SelectItem value="personal_class_2">Personal Class 2</SelectItem>
+                        <SelectItem value="personal_class_3">Personal Class 3</SelectItem>
+                        <SelectItem value="personal_class_4">Personal Class 4</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
