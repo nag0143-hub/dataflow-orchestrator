@@ -157,6 +157,83 @@ export default function LineagePage() {
             </div>
           ) : lineageData && selectedJob ? (
             <div className="space-y-6">
+              {/* Graph Visualization */}
+              <LineageGraph
+                job={selectedJob}
+                connections={connections}
+                onNodeClick={handleNodeClick}
+              />
+
+              {/* Selected Node Details */}
+              {selectedNode && (
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {selectedNode.type === "source" && "Source System Details"}
+                      {selectedNode.type === "target" && "Target System Details"}
+                      {selectedNode.type === "job" && "Job Details"}
+                      {selectedNode.type === "dataset" && `Dataset: ${selectedNode.data.id}`}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    {(selectedNode.type === "source" || selectedNode.type === "target") && (
+                      <>
+                        <div>
+                          <span className="text-slate-600 font-medium">Connection Name:</span>
+                          <p className="text-slate-900">{selectedNode.data.name}</p>
+                        </div>
+                        <div>
+                          <span className="text-slate-600 font-medium">Platform:</span>
+                          <p className="text-slate-900">{selectedNode.data.platform}</p>
+                        </div>
+                        <div>
+                          <span className="text-slate-600 font-medium">Host:</span>
+                          <p className="text-slate-900">{selectedNode.data.host || "N/A"}</p>
+                        </div>
+                        <div>
+                          <span className="text-slate-600 font-medium">Status:</span>
+                          <Badge className="mt-1">{selectedNode.data.status}</Badge>
+                        </div>
+                      </>
+                    )}
+                    {selectedNode.type === "job" && (
+                      <>
+                        <div>
+                          <span className="text-slate-600 font-medium">Schedule:</span>
+                          <p className="text-slate-900 capitalize">{selectedNode.data.schedule_type}</p>
+                        </div>
+                        <div>
+                          <span className="text-slate-600 font-medium">Total Runs:</span>
+                          <p className="text-slate-900">{selectedNode.data.total_runs || 0}</p>
+                        </div>
+                      </>
+                    )}
+                    {selectedNode.type === "dataset" && (
+                      <>
+                        <div>
+                          <span className="text-slate-600 font-medium">Load Method:</span>
+                          <Badge className="mt-1">{selectedNode.data.load_method || "append"}</Badge>
+                        </div>
+                        {selectedNode.data.filter_query && (
+                          <div>
+                            <span className="text-slate-600 font-medium">Filter:</span>
+                            <code className="block bg-white rounded p-2 text-xs mt-1 overflow-x-auto">
+                              {selectedNode.data.filter_query}
+                            </code>
+                          </div>
+                        )}
+                        {selectedNode.data.incremental_column && (
+                          <div>
+                            <span className="text-slate-600 font-medium">Incremental Column:</span>
+                            <p className="text-slate-900">{selectedNode.data.incremental_column}</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Source → Target Flow */}
               <div className="bg-slate-50 rounded-lg p-4">
                 <h4 className="font-semibold text-slate-900 mb-4">Data Flow</h4>
