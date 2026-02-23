@@ -63,6 +63,8 @@ const defaultFormData = {
   schedule_type: "manual",
   cron_expression: "",
   status: "idle",
+  include_dates: [],
+  exclude_dates: [],
   retry_config: {
     max_retries: 3,
     retry_delay_seconds: 60,
