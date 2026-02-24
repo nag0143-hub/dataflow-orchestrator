@@ -298,6 +298,133 @@ export default function ScheduleSettings({ formData, setFormData }) {
           <p className="text-xs text-slate-400">This job will only run when triggered manually.</p>
         )}
 
+        {/* Event Driven */}
+        {schedType === "event_driven" && (
+          <div className="space-y-3">
+            <Label className="text-xs font-semibold text-slate-700">Sensor / Trigger Type</Label>
+            <div className="grid grid-cols-1 gap-2">
+              {EVENT_SENSOR_OPTS.map(opt => {
+                const isSelected = formData.event_sensor_type === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => update({ event_sensor_type: opt.value })}
+                    className={`flex items-start gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
+                      isSelected
+                        ? "bg-purple-50 border-purple-400 text-purple-900"
+                        : "bg-white border-slate-200 hover:border-purple-300 text-slate-700"
+                    }`}
+                  >
+                    <div className={`w-3.5 h-3.5 rounded-full border-2 mt-0.5 shrink-0 ${
+                      isSelected ? "border-purple-500 bg-purple-500" : "border-slate-300"
+                    }`} />
+                    <div>
+                      <p className="text-sm font-medium">{opt.label}</p>
+                      <p className="text-xs text-slate-500">{opt.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {formData.event_sensor_type && (
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                {(formData.event_sensor_type === "file_watcher" || formData.event_sensor_type === "sftp_sensor") && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Watch Path / Pattern</Label>
+                    <Input
+                      value={formData.event_config?.watch_path || ""}
+                      onChange={e => update({ event_config: { ...formData.event_config, watch_path: e.target.value } })}
+                      placeholder="/data/inbound/*.csv"
+                      className="font-mono text-sm"
+                    />
+                    <p className="text-xs text-slate-400">Supports glob patterns (e.g. <code>*.csv</code>, <code>orders_*.parquet</code>)</p>
+                  </div>
+                )}
+                {formData.event_sensor_type === "s3_event" && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Bucket / Container Prefix</Label>
+                    <Input
+                      value={formData.event_config?.watch_path || ""}
+                      onChange={e => update({ event_config: { ...formData.event_config, watch_path: e.target.value } })}
+                      placeholder="s3://my-bucket/prefix/"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                )}
+                {formData.event_sensor_type === "db_sensor" && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">SQL Condition (must return true to trigger)</Label>
+                    <Input
+                      value={formData.event_config?.sql_condition || ""}
+                      onChange={e => update({ event_config: { ...formData.event_config, sql_condition: e.target.value } })}
+                      placeholder="SELECT COUNT(*) > 0 FROM control_table WHERE status='ready'"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                )}
+                {formData.event_sensor_type === "api_webhook" && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Webhook Endpoint (read-only)</Label>
+                    <Input
+                      value={`/api/webhooks/job/${formData.name || "<job-name>"}/trigger`}
+                      readOnly
+                      className="font-mono text-sm bg-slate-50 text-slate-500"
+                    />
+                    <p className="text-xs text-slate-400">POST to this endpoint with a valid API key to trigger the job.</p>
+                  </div>
+                )}
+                {formData.event_sensor_type === "upstream_job" && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Upstream Pipeline Name</Label>
+                    <Input
+                      value={formData.event_config?.upstream_job || ""}
+                      onChange={e => update({ event_config: { ...formData.event_config, upstream_job: e.target.value } })}
+                      placeholder="my-upstream-pipeline"
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Polling Interval</Label>
+                    <Select
+                      value={formData.event_config?.poll_interval || "60"}
+                      onValueChange={v => update({ event_config: { ...formData.event_config, poll_interval: v } })}
+                    >
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">30 seconds</SelectItem>
+                        <SelectItem value="60">1 minute</SelectItem>
+                        <SelectItem value="300">5 minutes</SelectItem>
+                        <SelectItem value="600">10 minutes</SelectItem>
+                        <SelectItem value="1800">30 minutes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Timeout</Label>
+                    <Select
+                      value={formData.event_config?.timeout_hours || "24"}
+                      onValueChange={v => update({ event_config: { ...formData.event_config, timeout_hours: v } })}
+                    >
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 hour</SelectItem>
+                        <SelectItem value="4">4 hours</SelectItem>
+                        <SelectItem value="8">8 hours</SelectItem>
+                        <SelectItem value="24">24 hours</SelectItem>
+                        <SelectItem value="72">72 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {formData.schedule_type !== "manual" && (
           <div className="pt-2 border-t border-slate-100 space-y-3">
             <div className="flex items-center justify-between">
