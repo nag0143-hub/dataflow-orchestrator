@@ -29,7 +29,7 @@ function FieldLabel({ children, required, help }) {
   );
 }
 
-export default function JobBasicsTab({ formData, setFormData, sourceConnections, targetConnections }) {
+export default function JobBasicsTab({ formData, setFormData, sourceConnections, targetConnections, errors = {} }) {
   const srcConn = sourceConnections.find(c => c.id === formData.source_connection_id);
   const tgtConn = targetConnections.find(c => c.id === formData.target_connection_id);
   const sameConn = formData.source_connection_id && formData.source_connection_id === formData.target_connection_id;
