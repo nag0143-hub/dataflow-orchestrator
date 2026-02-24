@@ -7,6 +7,7 @@ import { generateAirflowDAG } from "@/components/AirflowDAGGenerator";
 export default function JobSpecTabPreview({ formData, connections }) {
   const [format, setFormat] = useState("yaml");
   const [view, setView] = useState("spec");
+  const [gitCheckInFormat, setGitCheckInFormat] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const getMissingFields = () => {
