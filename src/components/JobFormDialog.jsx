@@ -104,11 +104,7 @@ export default function JobFormDialog({
         });
         toast.success("Pipeline updated");
         onOpenChange(false);
-        setCommitMessage("");
         onSaveSuccess?.();
-        // Show git check-in dialog after update
-        setGitCheckinData({ ...formData, id: editingJob.id, _isUpdate: true });
-        setGitCheckinOpen(true);
         return;
       } else {
         const created = await base44.entities.IngestionJob.create(payload);
@@ -120,11 +116,7 @@ export default function JobFormDialog({
         });
         toast.success("Pipeline created");
         onOpenChange(false);
-        setCommitMessage("");
         onSaveSuccess?.();
-        // Show git check-in dialog after creation
-        setGitCheckinData({ ...formData, id: created.id });
-        setGitCheckinOpen(true);
         return;
       }
     } finally {
