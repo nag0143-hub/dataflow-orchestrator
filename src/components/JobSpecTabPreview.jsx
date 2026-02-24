@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, Download, Check, FileJson, AlertCircle } from "lucide-react";
 import { buildJobSpec } from "@/components/JobSpecExport";
+import { generateAirflowDAG } from "@/components/AirflowDAGGenerator";
 
 export default function JobSpecTabPreview({ formData, connections }) {
   const [format, setFormat] = useState("yaml");
