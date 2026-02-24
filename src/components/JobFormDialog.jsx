@@ -12,6 +12,7 @@ import JobSpecTabPreview from "@/components/JobSpecTabPreview";
 import ScheduleSettings from "@/components/JobFormTabs/ScheduleSettings";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import GitCheckinDialog from "@/components/GitCheckinDialog";
 
 export default function JobFormDialog({
   open,
