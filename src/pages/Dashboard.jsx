@@ -60,6 +60,7 @@ export default function Dashboard() {
   };
 
   const recentRuns = runs.slice(0, 10);
+  const jobIndex = createIndex(jobs, "id");
 
   if (loading) {
     return (
