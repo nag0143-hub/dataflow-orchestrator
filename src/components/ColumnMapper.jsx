@@ -345,108 +345,75 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                 <button type="button" onClick={() => onChange(prev => ({ ...prev, [tableKey]: prev[tableKey].filter(m => m.is_audit) }))} className="text-red-500 hover:text-red-700 text-xs shrink-0">Clear mappings</button>
               </div>
               <div className="overflow-x-auto overflow-y-auto max-h-96 border-t border-slate-100">
-                <DragDropContext onDragEnd={(result) => {
-                  const { source, destination } = result;
-                  if (!destination) return;
-                  const newMappings = [...tableMappings];
-                  const item = newMappings.splice(source.index, 1)[0];
-                  newMappings.splice(destination.index, 0, item);
-                  onChange({ ...mappings, [tableKey]: newMappings });
-                }}>
-                  <Droppable droppableId="mappings-list">
-                    {(provided, snapshot) => (
-                      <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-max">
-                      {/* Header */}
-                      <div className="grid gap-2 px-4 py-3 text-xs font-semibold text-slate-700 bg-white border-b border-slate-200 sticky top-0 z-10" style={{gridTemplateColumns:"32px 1fr"}}>
-                        <span></span><span>Source → Target</span>
-                      </div>
-                      {filteredMappings.filter(m => !m.is_audit).length === 0 && (
-                        <div className="text-center py-6 text-xs text-slate-400">No column mappings yet</div>
-                      )}
-                      {pageMappings.filter(m => !m.is_audit).map((m, i) => {
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-12"></th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-40">Source</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-40">Target</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-48">Transformation</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-32">Encryption</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-8"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMappings.filter(m => !m.is_audit).length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-6 text-xs text-slate-400">No column mappings yet</td>
+                      </tr>
+                    ) : (
+                      pageMappings.filter(m => !m.is_audit).map((m, i) => {
                         const sourceCol = tableColumns.find(c => c.name === m.source);
-                        const isExpanded = expandedRow === m.source;
                         return (
-                          <Draggable key={`${m.source}-${i}`} draggableId={`${m.source}-${i}`} index={tableMappings.indexOf(m)}>
-                            {(provided, snapshot) => (
-                              <div ref={provided.innerRef} {...provided.draggableProps}>
-                                <div
-                                  className={cn("grid gap-2 items-center px-4 py-2 border-b border-slate-100 cursor-pointer hover:bg-blue-50 text-xs transition-colors", snapshot.isDragging && "bg-slate-100 shadow-md")}
-                                  style={{gridTemplateColumns:"32px 1fr", ...provided.draggableProps.style}}
-                                  onClick={() => setExpandedRow(isExpanded ? null : m.source)}
-                                >
-                                  <div {...provided.dragHandleProps} className="flex items-center justify-center">
-                                    <GripVertical className="w-3 h-3 text-slate-300" />
-                                  </div>
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div>
-                                      <div className="font-mono text-slate-900 text-xs"><strong>{m.source}</strong> <span className="text-slate-400">→</span> <strong>{m.target}</strong></div>
-                                      <div className="text-slate-500 text-xs mt-0.5">{sourceCol?.dataType || '-'}</div>
-                                    </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                      <span className={cn("text-xs px-2 py-0.5 rounded", m.transformation === 'direct' ? 'bg-slate-100 text-slate-600' : 'bg-blue-100 text-blue-700 font-medium')}>
-                                        {TRANSFORMATIONS.find(t => t.value === m.transformation)?.label || 'Direct'}
-                                      </span>
-                                      {m.encrypted && <span className="text-green-600"><Lock className="w-3 h-3" /></span>}
-                                      <button type="button" onClick={e => { e.stopPropagation(); removeMapping(m.source); }} className="text-slate-400 hover:text-red-500 p-1">
-                                        <X className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                                {isExpanded && (
-                                  <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 space-y-3">
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <label className="text-xs font-medium text-slate-700 block mb-1">Target Column</label>
-                                        <Input
-                                          value={m.target}
-                                          onChange={e => updateMapping(m.source, "target", e.target.value)}
-                                          className="h-7 text-xs px-2"
-                                          placeholder="target"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-xs font-medium text-slate-700 block mb-1">Transformation</label>
-                                        <Select value={m.transformation || "direct"} onValueChange={v => updateMapping(m.source, "transformation", v)}>
-                                          <SelectTrigger className="h-7 text-xs">
-                                            <SelectValue />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            {TRANSFORMATIONS.map(t => (
-                                              <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <label className="text-xs font-medium text-slate-700 block mb-1">Encryption</label>
-                                      <Select value={m.encryption_type || ""} onValueChange={v => updateMapping(m.source, "encryption_type", v)}>
-                                        <SelectTrigger className="h-7 text-xs">
-                                          <SelectValue placeholder="None" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value={null}>None</SelectItem>
-                                          {ENCRYPTION_TYPES.map(e => (
-                                            <SelectItem key={e.value} value={e.value} className="text-xs">{e.label}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </Draggable>
+                          <tr key={`${m.source}-${i}`} className="border-b border-slate-100 hover:bg-blue-50 transition-colors">
+                            <td className="px-3 py-2">
+                              <GripVertical className="w-3 h-3 text-slate-300 cursor-move" />
+                            </td>
+                            <td className="px-3 py-2 text-xs font-mono text-slate-900">{m.source}</td>
+                            <td className="px-3 py-2">
+                              <Input
+                                value={m.target}
+                                onChange={e => updateMapping(m.source, "target", e.target.value)}
+                                className="h-6 text-xs px-2 border-slate-200"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Select value={m.transformation || "direct"} onValueChange={v => updateMapping(m.source, "transformation", v)}>
+                                <SelectTrigger className="h-6 text-xs border-slate-200">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {TRANSFORMATIONS.map(t => (
+                                    <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="px-3 py-2">
+                              <Select value={m.encryption_type || ""} onValueChange={v => updateMapping(m.source, "encryption_type", v)}>
+                                <SelectTrigger className="h-6 text-xs border-slate-200">
+                                  <SelectValue placeholder="None" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value={null}>None</SelectItem>
+                                  {ENCRYPTION_TYPES.map(e => (
+                                    <SelectItem key={e.value} value={e.value} className="text-xs">{e.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="px-3 py-2">
+                              <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-400 hover:text-red-500">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </td>
+                          </tr>
                         );
-                      })}
-                      {provided.placeholder}
-                    </div>
+                      })
                     )}
-                    </Droppable>
-                    </DragDropContext>
-                    </div>
+                  </tbody>
+                </table>
+              </div>
               {totalMappingPages > 1 && (
                 <div className="flex items-center justify-between px-3 py-2 border-t border-slate-100 bg-slate-50 text-xs text-slate-600">
                   <span>Page {mappingPage + 1} of {totalMappingPages}</span>
