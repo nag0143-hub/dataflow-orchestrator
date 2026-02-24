@@ -16,6 +16,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const MAPPING_PAGE_SIZE = 50;
 
+const GLOBAL_RULES = [
+  { value: "date_standardize", label: "Date Columns → Standardize (ISO 8601)", pattern: /date|time|timestamp|created|updated/i },
+  { value: "text_trim", label: "Text Columns → Trim Whitespace", pattern: /varchar|text|char|string|name|description|title/i },
+  { value: "number_remove_leading", label: "Number Columns → Remove Leading Zeros", pattern: /int|decimal|numeric|number|float/i },
+  { value: "phone_format", label: "Phone Columns → Format", pattern: /phone|telephone|mobile/i },
+  { value: "email_lower", label: "Email Columns → Lowercase", pattern: /email|mail/i },
+];
+
 const DQ_RULES = [
   { value: "not_null", label: "Not Null" },
   { value: "unique", label: "Unique" },
