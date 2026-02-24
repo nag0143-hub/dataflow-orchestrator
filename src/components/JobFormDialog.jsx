@@ -118,6 +118,13 @@ export default function JobFormDialog({
           }),
         ]);
         toast.success("Pipeline created");
+        onOpenChange(false);
+        setCommitMessage("");
+        onSaveSuccess?.();
+        // Show git check-in dialog after creation
+        setGitCheckinData({ ...formData, id: created.id });
+        setGitCheckinOpen(true);
+        return;
       }
 
       onOpenChange(false);
