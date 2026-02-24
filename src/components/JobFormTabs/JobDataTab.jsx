@@ -35,14 +35,19 @@ function LoadMethodSelect({ value, onChange, size = "default" }) {
 }
 
 function DatasetCard({ ds, index, formData, setFormData }) {
-  const [expanded, setExpanded] = useState(false);
-  const method = ds.load_method || formData.load_method || "append";
+   const [expanded, setExpanded] = useState(false);
+   const method = ds.load_method || formData.load_method || "append";
 
-  const update = (field, value) => {
-    const updated = [...formData.selected_datasets];
-    updated[index] = { ...updated[index], [field]: value };
-    setFormData({ ...formData, selected_datasets: updated });
-  };
+   const update = (field, value) => {
+     const updated = [...formData.selected_datasets];
+     updated[index] = { ...updated[index], [field]: value };
+     setFormData({ ...formData, selected_datasets: updated });
+   };
+
+   const deleteDataset = () => {
+     const updated = formData.selected_datasets.filter((_, i) => i !== index);
+     setFormData({ ...formData, selected_datasets: updated });
+   };
 
   const LOAD_COLORS = {
     append: "bg-green-100 text-green-700 border-green-200",
