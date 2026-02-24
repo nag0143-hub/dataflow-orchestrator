@@ -44,15 +44,6 @@ const ACTIONS = [
 
 const PAGE_SIZE = 50;
 
-function getMockColumns(schema, table) {
-  const base = [
-    "id", "created_at", "updated_at", "created_by", "status",
-    "is_active", "name", "description", "code", "reference_id", "amount", "email",
-  ];
-  const extras = Array.from({ length: 988 }, (_, i) => `col_${String(i + 1).padStart(4, "0")}`);
-  return [...base, ...extras];
-}
-
 export default function DataQualityRules({ selectedObjects = [], rules = {}, onChange }) {
   const [selectedTable, setSelectedTable] = useState(selectedObjects[0] ? `${selectedObjects[0].schema}.${selectedObjects[0].table}` : "");
   const [colSearch, setColSearch] = useState("");
@@ -62,7 +53,12 @@ export default function DataQualityRules({ selectedObjects = [], rules = {}, onC
   const [newRule, setNewRule] = useState({ rule: "not_null", parameter: "", action: "fail_job" });
 
   const tableKey = selectedTable;
-  const tableColumns = useMemo(() => selectedTable ? getMockColumns(...selectedTable.split(".")) : [], [selectedTable]);
+  const selectedObj = useMemo(() => selectedObjects.find(o => `${o.schema}.${o.table}` === selectedTable), [selectedObjects, selectedTable]);
+  
+  const tableColumns = useMemo(() => 
+    selectedObj?.columns?.map(c => c.name) || [], 
+    [selectedObj]
+  );
 
   const columnRules = useMemo(() => rules[tableKey]?.column || [], [rules, tableKey]);
   const datasetRules = useMemo(() => rules[tableKey]?.dataset || [], [rules, tableKey]);
