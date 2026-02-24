@@ -88,8 +88,9 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
    const [mappingSearch, setMappingSearch] = useState("");
    const [page, setPage] = useState(0);
    const [mappingPage, setMappingPage] = useState(0);
-   const [expandedRow, setExpandedRow] = useState(null);
-   const autoMappedRef = useRef(new Set());
+    const [expandedRow, setExpandedRow] = useState(null);
+    const [globalRules, setGlobalRules] = useState([]);
+    const autoMappedRef = useRef(new Set());
 
   const tableKey = selectedTable;
 
