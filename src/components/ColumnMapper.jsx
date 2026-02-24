@@ -150,15 +150,15 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     });
   }, [selectedTable, onChange]);
 
-  const filteredMappings = useMemo(() =>
-    mappingSearch
-      ? tableMappings.filter(m =>
-          m.source.toLowerCase().includes(mappingSearch.toLowerCase()) ||
-          m.target.toLowerCase().includes(mappingSearch.toLowerCase())
-        )
-      : tableMappings,
-    [tableMappings, mappingSearch]
-  );
+  // Search across all mappings, not just current page
+  const filteredMappings = useMemo(() => {
+    if (!mappingSearch) return tableMappings;
+    return tableMappings.filter(m =>
+      (m.source && m.source.toLowerCase().includes(mappingSearch.toLowerCase())) ||
+      (m.target && m.target.toLowerCase().includes(mappingSearch.toLowerCase())) ||
+      (m.transformation && m.transformation.toLowerCase().includes(mappingSearch.toLowerCase()))
+    );
+  }, [tableMappings, mappingSearch]);
 
   const totalMappingPages = Math.ceil(filteredMappings.length / MAPPING_PAGE_SIZE);
   const pageMappings = filteredMappings.slice(mappingPage * MAPPING_PAGE_SIZE, (mappingPage + 1) * MAPPING_PAGE_SIZE);
