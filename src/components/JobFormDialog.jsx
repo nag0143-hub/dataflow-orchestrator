@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { GitCommitHorizontal } from "lucide-react";
 import JobBasicsTab from "@/components/JobFormTabs/JobBasicsTab.jsx";
 import JobDataTab from "@/components/JobFormTabs/JobDataTab.jsx";
 import PipelineStepIndicator from "@/components/PipelineStepIndicator";
