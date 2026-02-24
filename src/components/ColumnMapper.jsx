@@ -341,64 +341,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
             </div>
           )}
 
-          {/* Derived/Audit Columns */}
-          <div className="border border-amber-100 rounded-xl overflow-hidden">
-           <div className="bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700 flex items-center justify-between">
-             <span>Audit/Derived Columns</span>
-             <Button
-               size="sm"
-               variant="ghost"
-               className="h-6 text-xs px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
-               onClick={() => {
-                 const newDerived = { source: null, target: `audit_${Date.now()}`, transformation: "direct", derived: true, is_audit: true };
-                 onChange(prev => ({ ...prev, [tableKey]: [...tableMappings, newDerived] }));
-               }}
-             >
-               <Plus className="w-3 h-3 mr-1" /> Add Audit Column
-             </Button>
-           </div>
-           <div className="overflow-x-auto overflow-y-auto max-h-64 border-t border-slate-100">
-             {tableMappings.filter(m => m.is_audit).length === 0 ? (
-               <div className="text-center py-6 text-xs text-slate-400">No audit columns added yet</div>
-             ) : (
-               <div className="min-w-max">
-                 <div className="grid gap-3 px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 border-b border-slate-200 sticky top-0 z-10" style={{gridTemplateColumns:"32px 200px 200px 140px 80px"}}>
-                   <span></span><span>Target Column Name</span><span>Default Value</span><span>Transform</span><span></span>
-                 </div>
-                 {tableMappings.filter(m => m.is_audit).map((m, i) => (
-                   <div key={`${m.target}-${i}`} className="grid gap-3 items-center px-4 py-2 border-b border-slate-100 hover:bg-amber-50/50 text-xs" style={{gridTemplateColumns:"32px 200px 200px 140px 80px"}}>
-                     <div className="flex items-center justify-center"><GripVertical className="w-3.5 h-3.5 text-slate-300" /></div>
-                     <Input
-                       value={m.target}
-                       onChange={e => updateMapping(m.target, "target", e.target.value)}
-                       className="h-7 text-xs px-2 font-mono"
-                       placeholder="e.g. created_at"
-                     />
-                     <Input
-                       value={m.default_value || ""}
-                       onChange={e => updateMapping(m.target, "default_value", e.target.value)}
-                       className="h-7 text-xs px-2"
-                       placeholder="e.g. CURRENT_TIMESTAMP"
-                     />
-                     <Select value={m.transformation} onValueChange={v => updateMapping(m.target, "transformation", v)}>
-                       <SelectTrigger className="h-7 text-xs px-2">
-                         <SelectValue />
-                       </SelectTrigger>
-                       <SelectContent>
-                         {TRANSFORMATIONS.map(t => (
-                           <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
-                         ))}
-                       </SelectContent>
-                     </Select>
-                     <button type="button" onClick={() => removeMapping(m.target)} className="text-slate-400 hover:text-red-500 p-1 rounded hover:bg-red-50 justify-self-end">
-                       <X className="w-3.5 h-3.5" />
-                     </button>
-                   </div>
-                 ))}
-               </div>
-             )}
-           </div>
-          </div>
+
 
            </>
            )}
