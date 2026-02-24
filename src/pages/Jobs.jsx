@@ -447,7 +447,7 @@ export default function Jobs() {
         />
       )}
 
-      {/* Create/Edit Job Dialog */}
+      {/* Create/Edit Pipeline Dialog */}
       <JobFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
