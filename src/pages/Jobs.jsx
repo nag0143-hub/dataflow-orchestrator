@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ObjectSelector from "@/components/ObjectSelector";
-import PipelineVersionHistory from "@/components/PipelineVersionHistory";
+
 import JobSpecExport from "@/components/JobSpecExport";
 import JobFormDialog from "@/components/JobFormDialog";
 import JobCard from "@/components/JobCard";
@@ -73,7 +73,6 @@ export default function Jobs() {
   const [formData, setFormData] = useState(defaultFormData);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
-  const [commitMessage, setCommitMessage] = useState("");
   const [historyDialogJob, setHistoryDialogJob] = useState(null);
   const [exportJob, setExportJob] = useState(null);
   const [showDatasetLoadMethods, setShowDatasetLoadMethods] = useState(false);
@@ -108,28 +107,7 @@ export default function Jobs() {
     setLoading(false);
   };
 
-  const saveVersion = async (job, changeType, msg) => {
-    const versions = await base44.entities.PipelineVersion.filter({ job_id: job.id }, "-version_number", 1);
-    const nextVersion = (versions[0]?.version_number || 0) + 1;
-    await base44.entities.PipelineVersion.create({
-      job_id: job.id,
-      version_number: nextVersion,
-      label: `v${nextVersion}`,
-      commit_message: msg || `${changeType} by ${currentUser?.email || "user"}`,
-      snapshot: {
-        name: job.name,
-        description: job.description,
-        source_connection_id: job.source_connection_id,
-        target_connection_id: job.target_connection_id,
-        selected_objects: job.selected_datasets,
-        schedule_type: job.schedule_type,
-        cron_expression: job.cron_expression,
-        retry_config: job.retry_config,
-      },
-      changed_by: currentUser?.email || "",
-      change_type: changeType,
-    });
-  };
+
 
 
 
