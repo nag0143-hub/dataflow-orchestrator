@@ -133,16 +133,16 @@ export default function Jobs() {
 
 
 
-  // Indexed lookups for performance
-  const connectionIndex = createIndex(connections, "id");
-  const runsByJob = runs.reduce((acc, run) => {
+  // Indexed lookups for performance - memoized to avoid recomputing on every render
+  const connectionIndex = useMemo(() => createIndex(connections, "id"), [connections]);
+  const runsByJob = useMemo(() => runs.reduce((acc, run) => {
     if (!acc[run.job_id]) acc[run.job_id] = [];
     acc[run.job_id].push(run);
     return acc;
-  }, {});
+  }, {}), [runs]);
 
-  const getConnection = (id) => connectionIndex.get(id);
-  const getJobRuns = (jobId) => runsByJob[jobId] || [];
+  const getConnection = useCallback((id) => connectionIndex.get(id), [connectionIndex]);
+  const getJobRuns = useCallback((jobId) => runsByJob[jobId] || [], [runsByJob]);
 
 
 
