@@ -45,9 +45,12 @@ export default function JobBasicsTab({ formData, setFormData, sourceConnections,
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="e.g. Daily Sales Sync, CRM to Warehouse"
-          required
+          className={errors.name ? "border-red-400 focus-visible:ring-red-400" : ""}
         />
-        <p className="text-xs text-slate-400 mt-1">Keep it short and meaningful — this becomes the Airflow DAG ID.</p>
+        {errors.name
+          ? <p className="text-xs text-red-600 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.name}</p>
+          : <p className="text-xs text-slate-400 mt-1">Keep it short and meaningful — this becomes the Airflow DAG ID.</p>
+        }
       </div>
 
       {/* Description */}
