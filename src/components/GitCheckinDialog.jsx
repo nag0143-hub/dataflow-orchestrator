@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Download, Check, GitBranch, FileCode2, FileText, ChevronDown, ChevronUp, X } from "lucide-react";
 import { buildJobSpec } from "@/components/JobSpecExport";
 import { generateAirflowDAG } from "@/components/AirflowDAGGenerator";
+import { generateLineageSpec } from "@/components/LineageSpecGenerator";
 
 function toYaml(obj, indent = 0) {
   const pad = "  ".repeat(indent);
