@@ -73,6 +73,8 @@ export default function JobSpecTabPreview({ formData, connections }) {
   const spec = buildJobSpec(draftJob, connections);
   const cleanSpec = JSON.parse(JSON.stringify(spec));
   const dagContent = generateAirflowDAG(draftJob, connections);
+  const lineageSpec = generateLineageSpec(draftJob, connections);
+  const lineageContent = JSON.stringify(lineageSpec, null, 2);
 
   // Generate open format JSON for Git check-in if toggled
   const gitCheckInContent = gitCheckInFormat ? JSON.stringify(cleanSpec, null, 2) : null;
@@ -83,8 +85,9 @@ export default function JobSpecTabPreview({ formData, connections }) {
       ? JSON.stringify(cleanSpec, null, 2)
       : `# DataFlow Pipeline Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
 
-  const content = view === "dag" ? dagContent : specContent;
-  const filename = view === "dag" ? dagFilename : specFilename;
+  const lineageFilename = `${pipelineNameClean}-lineagespec.json`;
+  const content = view === "dag" ? dagContent : view === "lineage" ? lineageContent : specContent;
+  const filename = view === "dag" ? dagFilename : view === "lineage" ? lineageFilename : specFilename;
 
   const repoPath = `specs/${pipelineNameClean}/`;
 
