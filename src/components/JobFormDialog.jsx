@@ -156,6 +156,7 @@ export default function JobFormDialog({
     { key: "settings", label: "Schedule" },
     ...(formData.enable_advanced ? [{ key: "advanced", label: "Advanced" }] : []),
     { key: "spec", label: "Spec" },
+    { key: "checkin", label: "Git Check-in" },
   ];
 
   const getCompletedSteps = () => {
