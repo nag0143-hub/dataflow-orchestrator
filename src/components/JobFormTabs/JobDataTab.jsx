@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import HelpTooltip from "@/components/HelpTooltip";
 import ObjectSelector from "@/components/ObjectSelector";
-import { ChevronDown, ChevronUp, Database, Filter, RefreshCw, FolderOutput, Settings2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Database, Filter, RefreshCw, FolderOutput, Settings2, Trash2 } from "lucide-react";
 
 const LOAD_METHOD_OPTIONS = [
   { value: "append", label: "Append", description: "Add new rows only — never overwrites existing data" },
