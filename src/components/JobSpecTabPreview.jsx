@@ -121,12 +121,12 @@ export default function JobSpecTabPreview({ formData, connections }) {
         <span className="text-sm font-semibold text-slate-900">Pipeline Spec</span>
         <span className="text-xs text-slate-400 ml-1">(check this file into git)</span>
         <div className="flex gap-1.5 ml-auto flex-wrap">
-          {["spec", "dag"].map(v => (
+          {["spec", "lineage", "dag"].map(v => (
             <button key={v} type="button" onClick={() => setView(v)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
                 view === v ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
               }`}>
-              {v === "dag" ? "Airflow DAG" : "Pipeline Spec"}
+              {v === "dag" ? "Airflow DAG" : v === "lineage" ? "Lineage Spec" : "Pipeline Spec"}
             </button>
           ))}
           {view === "spec" && !gitCheckInFormat && ["yaml", "json"].map(f => (
