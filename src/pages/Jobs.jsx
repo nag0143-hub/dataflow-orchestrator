@@ -355,11 +355,11 @@ export default function Jobs() {
     toast.success("Pipeline cloned. Make changes and save as a new pipeline.");
   };
 
-  const filteredJobs = jobs.filter(j => {
+  const filteredJobs = useMemo(() => jobs.filter(j => {
     const matchesSearch = j.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === "all" || j.status === filterStatus;
     return matchesSearch && matchesFilter;
-  });
+  }), [jobs, searchTerm, filterStatus]);
 
   if (loading) {
     return (
