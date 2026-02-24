@@ -116,6 +116,22 @@ export default function JobFormDialog({
     }
   };
 
+  const stepLabels = [
+    { key: "general", label: "Basics" },
+    { key: "datasets", label: "Datasets" },
+    { key: "settings", label: "Schedule" },
+    ...(formData.enable_advanced ? [{ key: "advanced", label: "Advanced" }] : []),
+    { key: "spec", label: "Spec" },
+  ];
+
+  const getCompletedSteps = () => {
+    const completed = [];
+    if (formData.name?.trim() && formData.source_connection_id && formData.target_connection_id) completed.push("general");
+    if (formData.selected_datasets?.length > 0) completed.push("datasets");
+    if (formData.schedule_type) completed.push("settings");
+    return completed;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
@@ -126,17 +142,16 @@ export default function JobFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full gap-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))' }}>
-              <TabsTrigger value="general">Basics</TabsTrigger>
-              <TabsTrigger value="datasets">Data</TabsTrigger>
-              <TabsTrigger value="settings">Schedule</TabsTrigger>
-              {formData.enable_advanced && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
-              <TabsTrigger value="spec">Pipeline Spec</TabsTrigger>
-            </TabsList>
+          <PipelineStepIndicator
+            steps={stepLabels}
+            activeStep={activeTab}
+            onStepClick={setActiveTab}
+            completedSteps={getCompletedSteps()}
+          />
 
-            <div className="max-h-[calc(92vh-300px)] overflow-y-auto">
-              <TabsContent value="general" className="space-y-4 mt-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <div className="max-h-[calc(92vh-320px)] overflow-y-auto">
+              <TabsContent value="general" className="space-y-4 mt-0">
                 <JobBasicsTab
                   formData={formData}
                   setFormData={setFormData}
@@ -145,12 +160,10 @@ export default function JobFormDialog({
                 />
               </TabsContent>
 
-              <TabsContent value="datasets" className="space-y-4 mt-4">
+              <TabsContent value="datasets" className="space-y-4 mt-0">
                 <JobDataTab
                   formData={formData}
                   setFormData={setFormData}
-                  showDatasetLoadMethods={showDatasetLoadMethods}
-                  setShowDatasetLoadMethods={setShowDatasetLoadMethods}
                 />
               </TabsContent>
 
