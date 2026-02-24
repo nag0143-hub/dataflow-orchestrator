@@ -229,16 +229,18 @@ export default function JobFormDialog({
                 <JobSpecTabPreview formData={formData} connections={connections} />
               </TabsContent>
 
-              <TabsContent value="checkin" className="mt-4">
-                <div className="space-y-4">
-                  <GitCheckinDialog 
-                    open={true}
-                    onOpenChange={() => {}}
-                    pipelineData={formData}
-                    connections={connections}
-                  />
-                </div>
-              </TabsContent>
+              {specGenerated && (
+                <TabsContent value="checkin" className="mt-4">
+                  <div className="space-y-4">
+                    <GitCheckinDialog 
+                      open={true}
+                      onOpenChange={() => {}}
+                      pipelineData={formData}
+                      connections={connections}
+                    />
+                  </div>
+                </TabsContent>
+              )}
             </div>
           </Tabs>
 
