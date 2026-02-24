@@ -144,7 +144,9 @@ export default function GitCheckinDialog({ open, onOpenChange, pipelineData, con
           <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
             <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-emerald-800">Pipeline created successfully</p>
+              <p className="text-sm font-semibold text-emerald-800">
+                {pipelineData._isUpdate ? "Pipeline updated successfully" : "Pipeline created successfully"}
+              </p>
               <p className="text-xs text-emerald-600 font-mono">{pipelineData.name}</p>
             </div>
           </div>
