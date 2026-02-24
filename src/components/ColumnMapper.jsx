@@ -267,22 +267,36 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                 className="h-6 text-xs px-2 font-mono w-full"
                               />
                               <Select value={m.transformation} onValueChange={v => updateMapping(m.source, "transformation", v)}>
-                                <SelectTrigger className="h-6 text-xs px-2 w-full">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {TRANSFORMATIONS.map(t => (
-                                    <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
-                                  ))}
-                                </SelectContent>
+                               <SelectTrigger className="h-6 text-xs px-2 w-full">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 {TRANSFORMATIONS.map(t => (
+                                   <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
+                                 ))}
+                               </SelectContent>
+                              </Select>
+                              <Select value={m.dq_rule || ""} onValueChange={v => updateMapping(m.source, "dq_rule", v)}>
+                               <SelectTrigger className="h-6 text-xs px-2 w-full">
+                                 <SelectValue placeholder="DQ Rule" />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value={null}>None</SelectItem>
+                                 {DQ_RULES.map(r => (
+                                   <SelectItem key={r.value} value={r.value} className="text-xs">{r.label}</SelectItem>
+                                 ))}
+                               </SelectContent>
                               </Select>
                               <div className="flex items-center gap-1 shrink-0">
-                                <button type="button" onClick={() => duplicateMapping(m)} title="Add derived column (keep original)" className="text-slate-300 hover:text-amber-500">
-                                  <Copy className="w-3.5 h-3.5" />
-                                </button>
-                                <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-400">
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
+                               <button type="button" onClick={() => updateMapping(m.source, "encrypted", !m.encrypted)} title={m.encrypted ? "Encrypted" : "Not encrypted"} className={cn("text-xs", m.encrypted ? "text-green-600" : "text-slate-300 hover:text-slate-400")}>
+                                 <Lock className="w-3.5 h-3.5" />
+                               </button>
+                               <button type="button" onClick={() => duplicateMapping(m)} title="Add derived column (keep original)" className="text-slate-300 hover:text-amber-500">
+                                 <Copy className="w-3.5 h-3.5" />
+                               </button>
+                               <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-400">
+                                 <X className="w-3.5 h-3.5" />
+                               </button>
                               </div>
                             </div>
                           )}
