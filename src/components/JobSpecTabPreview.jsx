@@ -99,32 +99,11 @@ export default function JobSpecTabPreview({ formData, connections }) {
 
   return (
     <div className="space-y-3">
-      {/* Git Checkin Instructions */}
-      <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-indigo-800 font-semibold text-sm">
-          <GitBranch className="w-4 h-4" />
-          Git Checkin Instructions
-        </div>
-        <div className="flex items-center gap-2 text-xs text-indigo-700">
-          <FolderOpen className="w-3.5 h-3.5 shrink-0" />
-          <span>
-            Artifact paths:{" "}
-            <code className="bg-indigo-100 px-1 rounded font-mono">specs/{pipelineNameClean}/{specFilename}</code>
-            {" "}and{" "}
-            <code className="bg-indigo-100 px-1 rounded font-mono">specs/{pipelineNameClean}/{dagFilename}</code>
-          </span>
-        </div>
-        <div className="space-y-1.5">
-          {gitSteps.map((step, i) => (
-            <div key={i} className="flex items-start gap-2">
-              <span className="text-xs text-indigo-400 font-mono w-4 shrink-0 mt-0.5">{i + 1}.</span>
-              <div className="flex-1 min-w-0">
-                <code className="block bg-slate-900 text-emerald-300 text-xs font-mono px-2.5 py-1.5 rounded">{step.cmd}</code>
-                <p className="text-xs text-indigo-600 mt-0.5 pl-0.5">{step.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Repo path */}
+      <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 flex items-center gap-2">
+        <GitBranch className="w-4 h-4 text-indigo-700 shrink-0" />
+        <span className="text-xs text-indigo-700 font-medium">Repo path:</span>
+        <code className="text-xs font-mono bg-indigo-100 px-2 py-0.5 rounded text-indigo-900">{repoPath}</code>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
