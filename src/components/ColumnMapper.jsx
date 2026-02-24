@@ -342,35 +342,19 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                         </Select>
                                       </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <label className="text-xs font-medium text-slate-700 block mb-1">Data Quality Rule</label>
-                                        <Select value={m.dq_rule || ""} onValueChange={v => updateMapping(m.source, "dq_rule", v)}>
-                                          <SelectTrigger className="h-7 text-xs">
-                                            <SelectValue placeholder="None" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value={null}>None</SelectItem>
-                                            {DQ_RULES.map(r => (
-                                              <SelectItem key={r.value} value={r.value} className="text-xs">{r.label}</SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                      <div>
-                                        <label className="text-xs font-medium text-slate-700 block mb-1">Encryption</label>
-                                        <Select value={m.encryption_type || ""} onValueChange={v => updateMapping(m.source, "encryption_type", v)}>
-                                          <SelectTrigger className="h-7 text-xs">
-                                            <SelectValue placeholder="None" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value={null}>None</SelectItem>
-                                            {ENCRYPTION_TYPES.map(e => (
-                                              <SelectItem key={e.value} value={e.value} className="text-xs">{e.label}</SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
+                                    <div>
+                                      <label className="text-xs font-medium text-slate-700 block mb-1">Encryption</label>
+                                      <Select value={m.encryption_type || ""} onValueChange={v => updateMapping(m.source, "encryption_type", v)}>
+                                        <SelectTrigger className="h-7 text-xs">
+                                          <SelectValue placeholder="None" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value={null}>None</SelectItem>
+                                          {ENCRYPTION_TYPES.map(e => (
+                                            <SelectItem key={e.value} value={e.value} className="text-xs">{e.label}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
                                     </div>
                                   </div>
                                 )}
