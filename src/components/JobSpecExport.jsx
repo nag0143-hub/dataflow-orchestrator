@@ -47,7 +47,7 @@ function toYaml(obj, indent = 0) {
   return String(obj);
 }
 
-const FLAT_FILE_PLATFORMS = ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"];
+export const FLAT_FILE_PLATFORMS = ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"];
 
 function getOperatorType(sourcePlatform, targetPlatform) {
   const srcFlat = FLAT_FILE_PLATFORMS.includes(sourcePlatform);
