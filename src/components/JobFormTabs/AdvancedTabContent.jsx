@@ -174,20 +174,6 @@ export default function AdvancedTabContent({ formData, setFormData }) {
         />
       </div>
 
-      {/* Data Quality Rules */}
-      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <h4 className="font-semibold text-slate-900 text-sm">Data Quality Rules</h4>
-        </div>
-        <p className="text-xs text-slate-500">Define dataset-level and column-level quality checks with configurable failure actions.</p>
-        <DataQualityRules
-          selectedObjects={formData.selected_datasets}
-          rules={formData.dq_rules}
-          onChange={handleRulesChange}
-        />
-      </div>
-
       {/* Data Masking */}
       <DataMaskingConfig
         value={formData.data_masking_rules}
