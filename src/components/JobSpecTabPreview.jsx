@@ -75,6 +75,10 @@ export default function JobSpecTabPreview({ formData, connections }) {
 
   const content = view === "dag" ? dagContent : specContent;
 
+  const pipelineNameClean = (formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase();
+  const specFilename = `${pipelineNameClean}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
+  const dagFilename = `${pipelineNameClean}_dag.py`;
+
   const filename = view === "dag" ? dagFilename : specFilename;
 
   const handleCopy = async () => {
