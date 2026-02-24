@@ -470,7 +470,7 @@ export default function Jobs() {
 
 
 
-      {/* Job Details Dialog */}
+      {/* Pipeline Details Dialog */}
       <JobDetailsDialog
         open={detailsDialogOpen}
         onOpenChange={setDetailsDialogOpen}
