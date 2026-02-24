@@ -182,7 +182,7 @@ export default function JobBasicsTab({ formData, setFormData, sourceConnections,
             />
           </div>
           <div className="col-span-2">
-            <FieldLabel help="Email address to notify on job failure or SLA breach.">
+            <FieldLabel help="Email address to notify on pipeline failure or SLA breach.">
               Failure Alert Email
             </FieldLabel>
             <Input
