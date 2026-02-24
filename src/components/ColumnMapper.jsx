@@ -111,8 +111,8 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
   const tableColumns = useMemo(() => {
     if (!selectedTable) return [];
     const [schema, table] = selectedTable.split(".");
-    return getMockColumns(schema, table);
-  }, [selectedTable]);
+    return getMockColumns(schema, table, selectedObjects);
+  }, [selectedTable, selectedObjects]);
 
   // Auto-map all columns to direct mapping when a table is first selected
   useEffect(() => {
