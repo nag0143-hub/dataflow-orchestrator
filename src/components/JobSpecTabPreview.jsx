@@ -97,10 +97,6 @@ export default function JobSpecTabPreview({ formData, connections }) {
     URL.revokeObjectURL(url);
   };
 
-  const pipelineNameClean = (formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase();
-  const specFilename = `${pipelineNameClean}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
-  const dagFilename = `${pipelineNameClean}_dag.py`;
-
   const gitSteps = [
     { cmd: `cd /repo/pipelines`, desc: "Navigate to pipelines repo" },
     { cmd: `mkdir -p specs/${pipelineNameClean}`, desc: "Create pipeline folder" },
