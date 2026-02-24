@@ -430,11 +430,11 @@ export default function Jobs() {
       ) : (
         <EmptyStateGuide
           icon={Play}
-          title={searchTerm ? "No pipelines found" : "No data transfer pipelines yet"}
+          title={searchTerm ? "No pipelines found" : "No data pipelines yet"}
           description={
             searchTerm
               ? "Try adjusting your search or filters"
-              : "Create your first data transfer pipeline to start moving data between connections"
+              : "Create your first data pipeline to start moving data between connections"
           }
           primaryAction={!searchTerm ? {
             label: "New Pipeline",
