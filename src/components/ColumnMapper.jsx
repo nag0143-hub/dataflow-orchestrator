@@ -83,11 +83,12 @@ function getMockColumns(schema, table) {
 }
 
 export default function ColumnMapper({ selectedObjects = [], mappings = [], onChange }) {
-  const [selectedTable, setSelectedTable] = useState(selectedObjects[0] ? `${selectedObjects[0].schema}.${selectedObjects[0].table}` : "");
-   const [search, setSearch] = useState("");
-   const [mappingSearch, setMappingSearch] = useState("");
-   const [page, setPage] = useState(0);
-   const [mappingPage, setMappingPage] = useState(0);
+   const [selectedTable, setSelectedTable] = useState(selectedObjects[0] ? `${selectedObjects[0].schema}.${selectedObjects[0].table}` : "");
+   const [selectedDatasets, setSelectedDatasets] = useState(new Set(selectedObjects.map(o => `${o.schema}.${o.table}`)));
+    const [search, setSearch] = useState("");
+    const [mappingSearch, setMappingSearch] = useState("");
+    const [page, setPage] = useState(0);
+    const [mappingPage, setMappingPage] = useState(0);
     const [expandedRow, setExpandedRow] = useState(null);
     const [globalRules, setGlobalRules] = useState([]);
     const autoMappedRef = useRef(new Set());
