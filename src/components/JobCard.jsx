@@ -14,6 +14,7 @@ export default function JobCard({
   sourceConn,
   targetConn,
   jobRuns,
+  connections,
   onEdit,
   onDelete,
   onRun,
@@ -25,6 +26,7 @@ export default function JobCard({
   onExport,
 }) {
   const lastRun = jobRuns[0];
+  const [gitCheckinOpen, setGitCheckinOpen] = useState(false);
 
   return (
     <Card className="border-slate-200 hover:shadow-lg transition-shadow">
