@@ -356,8 +356,8 @@ export default function Jobs() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Transfer Pipelines</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Configure and run data transfer pipelines between connections</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Pipelines</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Configure and run data pipelines between connections</p>
         </div>
         <div className="flex gap-2">
           <Button
