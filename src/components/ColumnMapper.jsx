@@ -187,26 +187,65 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
 
   return (
     <div className="space-y-4">
-      {/* Table selector */}
-      <div>
-        <Label className="text-xs mb-1 block">Table</Label>
-        <Select value={selectedTable} onValueChange={v => { setSelectedTable(v); setSearch(""); setPage(0); }}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a table to map" />
-          </SelectTrigger>
-          <SelectContent>
-            {selectedObjects.map(obj => (
-              <SelectItem key={`${obj.schema}.${obj.table}`} value={`${obj.schema}.${obj.table}`}>
-                {obj.schema}.{obj.table}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Dataset-level settings */}
+      <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">Dataset Settings</h3>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs mb-2 block">Select Table</Label>
+            <Select value={selectedTable} onValueChange={v => { setSelectedTable(v); setSearch(""); setPage(0); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a table to map" />
+              </SelectTrigger>
+              <SelectContent>
+                {selectedObjects.map(obj => (
+                  <SelectItem key={`${obj.schema}.${obj.table}`} value={`${obj.schema}.${obj.table}`}>
+                    {obj.schema}.{obj.table}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Audit Columns - Dataset level */}
+          {selectedTable && (
+            <div className="border border-amber-100 rounded-lg bg-amber-50/50 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-medium text-amber-900">Audit/System Columns</h4>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 text-xs px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
+                  onClick={() => {
+                    const newDerived = { source: null, target: `audit_${Date.now()}`, transformation: "direct", derived: true, is_audit: true };
+                    onChange(prev => ({ ...prev, [tableKey]: [...tableMappings, newDerived] }));
+                  }}
+                >
+                  <Plus className="w-3 h-3 mr-1" /> Add
+                </Button>
+              </div>
+              <div className="text-xs text-amber-700 space-y-1 max-h-24 overflow-y-auto">
+                {tableMappings.filter(m => m.is_audit).length === 0 ? (
+                  <span className="text-amber-600">No audit columns</span>
+                ) : (
+                  tableMappings.filter(m => m.is_audit).map(m => (
+                    <div key={m.target} className="flex items-center justify-between gap-2 p-1 bg-white rounded">
+                      <span className="font-mono">{m.target}</span>
+                      <button type="button" onClick={() => removeMapping(m.target)} className="text-red-400 hover:text-red-600">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {selectedTable && (
         <>
-          {/* Active mappings */}
+          {/* Column mappings */}
           {tableMappings.length > 0 && (
             <div className="border border-blue-100 rounded-xl overflow-hidden">
               <div className="bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 flex items-center justify-between gap-2">
