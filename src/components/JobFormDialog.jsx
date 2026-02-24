@@ -9,6 +9,7 @@ import PipelineStepIndicator from "@/components/PipelineStepIndicator";
 import AdvancedTabContent from "@/components/JobFormTabs/AdvancedTabContent";
 import JobSpecTabPreview from "@/components/JobSpecTabPreview";
 import ScheduleSettings from "@/components/JobFormTabs/ScheduleSettings";
+import GitCheckinDialog from "@/components/GitCheckinDialog";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
