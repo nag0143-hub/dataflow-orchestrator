@@ -25,9 +25,16 @@ export default function JobCard({
   onExport,
 }) {
   const lastRun = jobRuns[0];
+  const [gitCheckinOpen, setGitCheckinOpen] = useState(false);
 
   return (
     <div>
+    <GitCheckinDialog
+      open={gitCheckinOpen}
+      onOpenChange={setGitCheckinOpen}
+      pipelineData={{ ...job, _isUpdate: true }}
+      connections={connections || []}
+    />
     <Card className="border-slate-200 hover:shadow-lg transition-shadow">
       <CardContent className="p-5">
         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
