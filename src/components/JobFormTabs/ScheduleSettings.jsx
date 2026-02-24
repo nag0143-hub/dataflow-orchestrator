@@ -51,27 +51,25 @@ export default function ScheduleSettings({ formData, setFormData }) {
           <h4 className="font-semibold text-slate-900 text-sm">Schedule</h4>
         </div>
 
+        {/* Schedule type buttons */}
         <div className="flex flex-wrap gap-2">
-          {[
-            { value: "manual", label: "Manual" },
-            { value: "hourly", label: "Hourly" },
-            { value: "daily", label: "Daily" },
-            { value: "weekly", label: "Weekly" },
-            { value: "monthly", label: "Monthly" },
-          ].map(opt => (
+          {SCHEDULE_OPTS.map(opt => (
             <button
               key={opt.value}
               type="button"
               onClick={() => {
-                const cronMap = { hourly: "0 * * * *", daily: "0 6 * * *", weekly: "0 6 * * 1", monthly: "0 6 1 * *" };
-                setFormData(prev => ({
-                  ...prev,
-                  schedule_type: opt.value,
-                  cron_expression: cronMap[opt.value] || prev.cron_expression
-                }));
+                const cronMap = {
+                  hourly: "0 * * * *",
+                  daily: "0 6 * * *",
+                  weekly: "0 6 * * 1",
+                  monthly: "0 6 1 * *",
+                  every_minutes: "*/15 * * * *",
+                  every_hours: "0 */2 * * *",
+                };
+                update({ schedule_type: opt.value, cron_expression: cronMap[opt.value] || formData.cron_expression });
               }}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-                formData.schedule_type === opt.value
+                schedType === opt.value
                   ? "bg-blue-600 text-white border-blue-600"
                   : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
               }`}
@@ -81,27 +79,71 @@ export default function ScheduleSettings({ formData, setFormData }) {
           ))}
         </div>
 
-        {formData.schedule_type === "hourly" && (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-xs">At minute</Label>
+        {/* Every N minutes */}
+        {schedType === "every_minutes" && (
+          <div className="space-y-2">
+            <Label className="text-xs">Run every</Label>
+            <div className="flex items-center gap-2">
               <Select
-                value={formData.cron_expression?.split(" ")[0] || "0"}
-                onValueChange={v => setFormData(prev => ({ ...prev, cron_expression: `${v} * * * *` }))}
+                value={formData.cron_expression?.match(/\*\/(\d+)/)?.[1] || "15"}
+                onValueChange={v => update({ cron_expression: `*/${v} * * * *` })}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {[0,5,10,15,20,30,45].map(m => (
-                    <SelectItem key={m} value={String(m)}>:{String(m).padStart(2,"0")}</SelectItem>
+                  {[1,2,5,10,15,20,30,45].map(n => (
+                    <SelectItem key={n} value={String(n)}>{n} minute{n > 1 ? "s" : ""}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-slate-400 mt-1">Runs at HH:{(formData.cron_expression?.split(" ")[0] || "0").padStart(2,"0")} every hour</p>
+              <span className="text-xs text-slate-500">minutes</span>
             </div>
+            <p className="text-xs text-slate-400">Cron: <code className="font-mono">{formData.cron_expression || "*/15 * * * *"}</code></p>
           </div>
         )}
 
-        {formData.schedule_type === "daily" && (
+        {/* Every N hours */}
+        {schedType === "every_hours" && (
+          <div className="space-y-2">
+            <Label className="text-xs">Run every</Label>
+            <div className="flex items-center gap-2">
+              <Select
+                value={formData.cron_expression?.match(/\*\/(\d+)/)?.[1] || "2"}
+                onValueChange={v => update({ cron_expression: `0 */${v} * * *` })}
+              >
+                <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[1,2,3,4,6,8,12].map(n => (
+                    <SelectItem key={n} value={String(n)}>{n} hour{n > 1 ? "s" : ""}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-xs text-slate-500">hours</span>
+            </div>
+            <p className="text-xs text-slate-400">Cron: <code className="font-mono">{formData.cron_expression || "0 */2 * * *"}</code></p>
+          </div>
+        )}
+
+        {/* Hourly */}
+        {schedType === "hourly" && (
+          <div className="space-y-2">
+            <Label className="text-xs">At minute past the hour</Label>
+            <Select
+              value={formData.cron_expression?.split(" ")[0] || "0"}
+              onValueChange={v => update({ cron_expression: `${v} * * * *` })}
+            >
+              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {[0,5,10,15,20,30,45].map(m => (
+                  <SelectItem key={m} value={String(m)}>:{String(m).padStart(2,"0")}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-400">Cron: <code className="font-mono">{formData.cron_expression || "0 * * * *"}</code></p>
+          </div>
+        )}
+
+        {/* Daily */}
+        {schedType === "daily" && (
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-xs">Hour (UTC)</Label>
@@ -109,7 +151,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                 value={formData.cron_expression?.split(" ")[1] || "6"}
                 onValueChange={v => {
                   const min = formData.cron_expression?.split(" ")[0] || "0";
-                  setFormData(prev => ({ ...prev, cron_expression: `${min} ${v} * * *` }));
+                  update({ cron_expression: `${min} ${v} * * *` });
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -126,7 +168,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                 value={formData.cron_expression?.split(" ")[0] || "0"}
                 onValueChange={v => {
                   const hr = formData.cron_expression?.split(" ")[1] || "6";
-                  setFormData(prev => ({ ...prev, cron_expression: `${v} ${hr} * * *` }));
+                  update({ cron_expression: `${v} ${hr} * * *` });
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -143,7 +185,8 @@ export default function ScheduleSettings({ formData, setFormData }) {
           </div>
         )}
 
-        {formData.schedule_type === "weekly" && (
+        {/* Weekly */}
+        {schedType === "weekly" && (
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-xs">Day of Week</Label>
@@ -152,7 +195,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                 onValueChange={v => {
                   const parts = (formData.cron_expression || "0 6 * * 1").split(" ");
                   parts[4] = v;
-                  setFormData(prev => ({ ...prev, cron_expression: parts.join(" ") }));
+                  update({ cron_expression: parts.join(" ") });
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -170,7 +213,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                 onValueChange={v => {
                   const parts = (formData.cron_expression || "0 6 * * 1").split(" ");
                   parts[1] = v;
-                  setFormData(prev => ({ ...prev, cron_expression: parts.join(" ") }));
+                  update({ cron_expression: parts.join(" ") });
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -187,7 +230,8 @@ export default function ScheduleSettings({ formData, setFormData }) {
           </div>
         )}
 
-        {formData.schedule_type === "monthly" && (
+        {/* Monthly */}
+        {schedType === "monthly" && (
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-xs">Day of Month</Label>
@@ -196,7 +240,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                 onValueChange={v => {
                   const parts = (formData.cron_expression || "0 6 1 * *").split(" ");
                   parts[2] = v;
-                  setFormData(prev => ({ ...prev, cron_expression: parts.join(" ") }));
+                  update({ cron_expression: parts.join(" ") });
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -214,7 +258,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                 onValueChange={v => {
                   const parts = (formData.cron_expression || "0 6 1 * *").split(" ");
                   parts[1] = v;
-                  setFormData(prev => ({ ...prev, cron_expression: parts.join(" ") }));
+                  update({ cron_expression: parts.join(" ") });
                 }}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -231,7 +275,21 @@ export default function ScheduleSettings({ formData, setFormData }) {
           </div>
         )}
 
-        {formData.schedule_type === "manual" && (
+        {/* Custom cron */}
+        {schedType === "custom" && (
+          <div className="space-y-2">
+            <Label className="text-xs">Cron Expression</Label>
+            <Input
+              value={formData.cron_expression || ""}
+              onChange={e => update({ cron_expression: e.target.value })}
+              placeholder="e.g. 0 6 * * 1-5"
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-slate-400">Format: <code>minute hour day month weekday</code>. E.g. <code>0 6 * * 1-5</code> = weekdays at 06:00 UTC.</p>
+          </div>
+        )}
+
+        {schedType === "manual" && (
           <p className="text-xs text-slate-400">This job will only run when triggered manually.</p>
         )}
 
