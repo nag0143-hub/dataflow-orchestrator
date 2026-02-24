@@ -115,7 +115,7 @@ export default function JobCard({
               size="sm"
               onClick={() => onExport(job)}
               className="gap-1 text-slate-500"
-              title="Export Job Spec"
+              title="Export Pipeline Spec"
             >
               <FileJson className="w-4 h-4" />
               Export
