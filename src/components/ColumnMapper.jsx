@@ -326,77 +326,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
             </div>
           )}
 
-          {/* Column browser */}
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
-            <div className="bg-slate-50 px-3 py-2 flex items-center gap-2 border-b border-slate-200">
-              <div className="relative flex-1">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                <Input
-                  placeholder={`Search ${tableColumns.length.toLocaleString()} columns...`}
-                  value={search}
-                  onChange={e => { setSearch(e.target.value); setPage(0); }}
-                  className="pl-7 h-7 text-xs"
-                />
-              </div>
-              <span className="text-xs text-slate-400 shrink-0">
-                {filteredColumns.length.toLocaleString()} found
-              </span>
-              <Button variant="outline" size="sm" className="h-7 text-xs px-2" onClick={addAllVisible}>
-                <Plus className="w-3 h-3 mr-1" /> Add page
-              </Button>
-            </div>
 
-            <div className="max-h-60 overflow-y-auto">
-              {/* Header */}
-              <div className="grid grid-cols-[1fr_120px_40px] gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0">
-                <span>Column</span><span>Type</span><span></span>
-              </div>
-              {pageColumns.map(col => {
-                const isMapped = mappedSourceCols.has(col.name);
-                return (
-                  <div
-                    key={col.name}
-                    className={cn(
-                      "grid grid-cols-[1fr_120px_40px] gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs",
-                      isMapped && "bg-blue-50/40"
-                    )}
-                  >
-                    <span className={cn("font-mono truncate", isMapped ? "text-blue-600" : "text-slate-700")} title={col.name}>
-                      {col.name}
-                    </span>
-                    <span className="text-slate-400 truncate font-mono">{col.dataType}</span>
-                    <button
-                      onClick={() => isMapped ? removeMapping(col.name) : addMapping(col)}
-                      type="button"
-                      className={cn(
-                        "text-xs rounded px-1.5 py-0.5 shrink-0",
-                        isMapped
-                          ? "text-red-400 hover:text-red-600"
-                          : "text-blue-500 hover:text-blue-700"
-                      )}
-                    >
-                      {isMapped ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-3 py-2 border-t border-slate-100 bg-slate-50 text-xs text-slate-500">
-                <span>Page {page + 1} of {totalPages} ({filteredColumns.length.toLocaleString()} columns)</span>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-6 w-6" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </div>
-            )}
-            </div>
             </>
             )}
             </div>
