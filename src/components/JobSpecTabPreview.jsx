@@ -79,15 +79,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
   const content = view === "dag" ? dagContent : specContent;
   const filename = view === "dag" ? dagFilename : specFilename;
 
-  const gitSteps = [
-    { cmd: `cd /repo/pipelines`, desc: "Navigate to pipelines repo" },
-    { cmd: `mkdir -p specs/${pipelineNameClean}`, desc: "Create pipeline folder" },
-    { cmd: `# Copy downloaded files into specs/${pipelineNameClean}/`, desc: "Place artifacts in folder" },
-    { cmd: `git add specs/${pipelineNameClean}/${specFilename}`, desc: "Stage pipeline spec" },
-    { cmd: `git add specs/${pipelineNameClean}/${dagFilename}`, desc: "Stage Airflow DAG" },
-    { cmd: `git commit -m "feat: add pipeline ${formData.name || 'untitled'}"`, desc: "Commit artifacts" },
-    { cmd: `git push origin main`, desc: "Push to remote" },
-  ];
+  const repoPath = `specs/${pipelineNameClean}/`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
