@@ -164,7 +164,16 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
       const key = selectedTable;
       const tbl = prev[key] || [];
       if (tbl.some(m => m.source === col.name)) return prev;
-      return { ...prev, [key]: [...tbl, { source: col.name, target: col.name, transformation: "direct" }] };
+      return { 
+        ...prev, 
+        [key]: [...tbl, { 
+          source: col.name, 
+          target: col.name, 
+          transformation: "direct",
+          sourceDataType: col.dataType,
+          sourceLength: col.length
+        }] 
+      };
     });
   }, [selectedTable, onChange]);
 
