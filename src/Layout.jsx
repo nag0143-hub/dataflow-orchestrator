@@ -12,7 +12,8 @@ import {
         Moon,
         GitGraph,
         BookOpen,
-        Shield
+        Shield,
+        Server
       } from "lucide-react";
 import { cn } from "@/lib/utils";
 
