@@ -214,7 +214,13 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
        const mapped = new Set(tbl.map(m => m.source));
        const newCols = pageColumns
          .filter(c => !mapped.has(c.name))
-         .map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
+         .map(c => ({ 
+           source: c.name, 
+           target: c.name, 
+           transformation: "direct",
+           sourceDataType: c.dataType,
+           sourceLength: c.length
+         }));
        return { ...prev, [key]: [...tbl, ...newCols] };
      });
    }, [selectedTable, pageColumns, onChange]);
