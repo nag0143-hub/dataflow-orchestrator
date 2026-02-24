@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { GitCommitHorizontal } from "lucide-react";
 import JobBasicsTab from "@/components/JobFormTabs/JobBasicsTab.jsx";
