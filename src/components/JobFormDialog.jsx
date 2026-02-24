@@ -179,7 +179,7 @@ export default function JobFormDialog({
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editingJob ? "Edit Pipeline" : "New Pipeline"}
+            {editingJob ? "Edit Pipeline" : "Create Pipeline"}
           </DialogTitle>
         </DialogHeader>
 
