@@ -306,9 +306,10 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                       })}
                       {provided.placeholder}
                     </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
+                    )}
+                    </Droppable>
+                    </DragDropContext>
+                    </div>
               {totalMappingPages > 1 && (
                 <div className="flex items-center justify-between px-3 py-2 border-t border-blue-100 bg-blue-50 text-xs text-blue-600">
                   <span>Page {mappingPage + 1} of {totalMappingPages} ({filteredMappings.length} mappings)</span>
