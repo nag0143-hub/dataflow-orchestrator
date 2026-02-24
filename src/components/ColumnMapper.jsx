@@ -226,23 +226,57 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     <div className="space-y-4">
       {/* Dataset-level settings */}
       <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">Dataset Settings</h3>
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">Dataset Selection</h3>
         <div className="space-y-4">
-          <div>
-            <Label className="text-xs mb-2 block">Select Table</Label>
-            <Select value={selectedTable} onValueChange={v => { setSelectedTable(v); setSearch(""); setPage(0); }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a table to map" />
-              </SelectTrigger>
-              <SelectContent>
-                {selectedObjects.map(obj => (
-                  <SelectItem key={`${obj.schema}.${obj.table}`} value={`${obj.schema}.${obj.table}`}>
-                    {obj.schema}.{obj.table}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Multi-select datasets */}
+          <div className="border border-slate-300 rounded-lg bg-white p-3">
+            <div className="text-xs font-medium text-slate-700 mb-2">Select Datasets ({selectedDatasets.size})</div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {selectedObjects.map(obj => {
+                const tableKey = `${obj.schema}.${obj.table}`;
+                const isSelected = selectedDatasets.has(tableKey);
+                return (
+                  <label key={tableKey} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:bg-slate-50 p-2 rounded">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={checked => {
+                        const newSet = new Set(selectedDatasets);
+                        if (checked) {
+                          newSet.add(tableKey);
+                        } else {
+                          newSet.delete(tableKey);
+                        }
+                        setSelectedDatasets(newSet);
+                        if (!newSet.has(selectedTable)) {
+                          setSelectedTable(Array.from(newSet)[0] || "");
+                        }
+                      }}
+                    />
+                    <span className="font-mono">{obj.schema}.{obj.table}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Current table editor */}
+          {selectedTable && (
+            <div>
+              <Label className="text-xs mb-2 block">Edit Table</Label>
+              <Select value={selectedTable} onValueChange={v => { setSelectedTable(v); setSearch(""); setPage(0); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a table to edit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from(selectedDatasets).map(tableKey => (
+                    <SelectItem key={tableKey} value={tableKey}>
+                      {tableKey}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Audit Columns - Dataset level */}
           {selectedTable && (
