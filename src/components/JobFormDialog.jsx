@@ -12,6 +12,7 @@ import ScheduleSettings from "@/components/JobFormTabs/ScheduleSettings";
 import GitCheckinDialog from "@/components/GitCheckinDialog";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import { Maximize2 } from "lucide-react";
 
 export default function JobFormDialog({
   open,
@@ -28,6 +29,7 @@ export default function JobFormDialog({
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
   const [specGenerated, setSpecGenerated] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
 
   const sourceConnections = connections.filter(c => c.connection_type === "source");
@@ -176,11 +178,20 @@ export default function JobFormDialog({
   return (
     <div>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className={`overflow-y-auto transition-all duration-300 ${isExpanded ? 'max-w-6xl max-h-[96vh] w-[95vw] h-[95vh]' : 'max-w-2xl max-h-[92vh] w-auto h-auto'}`}>
+        <DialogHeader className="flex items-center justify-between">
           <DialogTitle>
             {editingJob ? "Edit Pipeline" : "Create Pipeline"}
           </DialogTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="h-8 w-8"
+            title={isExpanded ? "Collapse" : "Expand"}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
@@ -192,7 +203,7 @@ export default function JobFormDialog({
           />
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="max-h-[calc(92vh-320px)] overflow-y-auto">
+            <div className={`overflow-y-auto ${isExpanded ? 'max-h-[calc(95vh-300px)]' : 'max-h-[calc(92vh-320px)]'}`}>
               <TabsContent value="general" className="space-y-4 mt-0">
                 <JobBasicsTab
                   formData={formData}
