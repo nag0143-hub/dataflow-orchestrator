@@ -459,7 +459,7 @@ export default function Jobs() {
         currentUser={currentUser}
       />
 
-      {/* Job Spec Export */}
+      {/* Pipeline Spec Export */}
       {exportJob && (
         <JobSpecExport
           job={exportJob}
