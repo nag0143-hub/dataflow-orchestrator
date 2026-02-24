@@ -99,16 +99,20 @@ export default function AdvancedTabContent({ formData, setFormData }) {
 
                   {/* Data Quality */}
                   <TabsContent value="quality" className="space-y-3">
-                    <Card className="p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <FileText className="w-4 h-4 text-emerald-600" />
-                        <h4 className="font-semibold text-sm">Data Quality Rules</h4>
+                    <Card className="p-4 space-y-4">
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <FileText className="w-4 h-4 text-emerald-600" />
+                            <h4 className="font-semibold text-sm">Data Quality Rules</h4>
+                          </div>
+                          <DataQualityRules
+                            selectedObjects={[ds]}
+                            rules={formData.dq_rules}
+                            onChange={(rules) => setFormData(prev => ({ ...prev, dq_rules: rules }))}
+                          />
+                        </div>
                       </div>
-                      <DataQualityRules
-                        selectedObjects={[ds]}
-                        rules={formData.dq_rules}
-                        onChange={(rules) => setFormData(prev => ({ ...prev, dq_rules: rules }))}
-                      />
                     </Card>
                   </TabsContent>
 
