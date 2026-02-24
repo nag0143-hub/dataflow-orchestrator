@@ -35,8 +35,13 @@ export default function JobFormDialog({
 
   const tabOrder = ["general", "datasets", "settings"];
   const allTabs = formData.enable_advanced
-    ? [...tabOrder, "advanced", "spec", "checkin"]
-    : [...tabOrder, "spec", "checkin"];
+    ? [...tabOrder, "advanced", "spec"]
+    : [...tabOrder, "spec"];
+  
+  // Only add checkin tab if spec has been validated
+  if (specGenerated) {
+    allTabs.push("checkin");
+  }
   const currentTabIndex = allTabs.indexOf(activeTab);
 
   const handleNext = () => {
