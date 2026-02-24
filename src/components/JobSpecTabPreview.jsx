@@ -66,11 +66,19 @@ export default function JobSpecTabPreview({ formData, connections }) {
 
   const spec = buildJobSpec(draftJob, connections);
   const cleanSpec = JSON.parse(JSON.stringify(spec));
-  const content = format === "json"
-    ? JSON.stringify(cleanSpec, null, 2)
-    : `# DataFlow Job Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
 
-  const filename = `${(formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
+  const dagContent = generateAirflowDAG(draftJob, connections);
+
+  const specContent = format === "json"
+    ? JSON.stringify(cleanSpec, null, 2)
+    : `# DataFlow Pipeline Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
+
+  const content = view === "dag" ? dagContent : specContent;
+
+  const pipelineName = (formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase();
+  const filename = view === "dag"
+    ? `${pipelineName}_dag.py`
+    : `${pipelineName}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
