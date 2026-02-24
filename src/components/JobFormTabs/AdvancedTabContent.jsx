@@ -34,6 +34,26 @@ export default function AdvancedTabContent({ formData, setFormData }) {
 
   return (
     <div className="space-y-4">
+      {/* Dataset Selector */}
+      {formData.selected_datasets?.length > 0 && (
+        <div className="border border-slate-200 rounded-xl p-4 bg-blue-50">
+          <Label className="text-sm font-semibold text-slate-700 block mb-2">Select Dataset for Rules Configuration</Label>
+          <Select value={selectedDataset} onValueChange={setSelectedDataset}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a dataset" />
+            </SelectTrigger>
+            <SelectContent>
+              {formData.selected_datasets.map((ds, idx) => (
+                <SelectItem key={idx} value={`${ds.schema}.${ds.table}`}>
+                  {ds.schema}.{ds.table}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-slate-500 mt-2">All rules below will apply to this dataset only</p>
+        </div>
+      )}
+
       {/* Security Section */}
       <div className="border border-slate-200 rounded-xl p-4 space-y-4">
         <div className="flex items-center gap-2">
