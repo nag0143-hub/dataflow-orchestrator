@@ -33,14 +33,13 @@ export default function Layout({ children }) {
   }, [darkMode]);
 
   const navItems = [
-      { name: "Dashboard", icon: Home, page: "Dashboard" },
-      { name: "Connections", icon: Cable, page: "Connections" },
-      { name: "Pipelines", icon: Play, page: "Jobs" },
-      { name: "Data Catalog", icon: BookOpen, page: "DataCatalog" },
-      { name: "Lineage", icon: GitGraph, page: "Lineage" },
-      { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
-      { name: "LDAP", icon: Server, page: "LDAPIntegration" },
-      ];
+        { name: "Dashboard", icon: Home, page: "Dashboard" },
+        { name: "Connections", icon: Cable, page: "Connections" },
+        { name: "Pipelines", icon: Play, page: "Jobs" },
+        { name: "Data Catalog", icon: BookOpen, page: "DataCatalog" },
+        { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
+        { name: "LDAP", icon: Server, page: "LDAPIntegration" },
+        ];
 
   const isActive = (page) => {
     const path = location.pathname.toLowerCase();
