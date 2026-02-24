@@ -54,10 +54,10 @@ import Dashboard from './pages/Dashboard';
 import DataCatalog from './pages/DataCatalog';
 import DataModel from './pages/DataModel';
 import Jobs from './pages/Jobs';
+import LDAPIntegration from './pages/LDAPIntegration';
 import Lineage from './pages/Lineage';
 import Requirements from './pages/Requirements';
 import UserGuide from './pages/UserGuide';
-import LDAPIntegration from './pages/LDAPIntegration';
 import __Layout from './Layout.jsx';
 
 
@@ -69,10 +69,10 @@ export const PAGES = {
     "DataCatalog": DataCatalog,
     "DataModel": DataModel,
     "Jobs": Jobs,
+    "LDAPIntegration": LDAPIntegration,
     "Lineage": Lineage,
     "Requirements": Requirements,
     "UserGuide": UserGuide,
-    "LDAPIntegration": LDAPIntegration,
 }
 
 export const pagesConfig = {

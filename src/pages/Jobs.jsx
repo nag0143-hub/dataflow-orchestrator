@@ -437,6 +437,7 @@ export default function Jobs() {
               sourceConn={getConnection(job.source_connection_id)}
               targetConn={getConnection(job.target_connection_id)}
               jobRuns={getJobRuns(job.id)}
+              connections={connections}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onRun={handleRunJob}
