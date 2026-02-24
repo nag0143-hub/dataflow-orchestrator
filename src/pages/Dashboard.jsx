@@ -144,8 +144,9 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentRuns.map((run) => {
+                    {(() => {
                       const jobIndex = createIndex(jobs, "id");
+                      return recentRuns.map((run) => {
                       const job = jobIndex.get(run.job_id);
                       return (
                         <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
