@@ -34,8 +34,8 @@ export default function JobFormDialog({
 
   const tabOrder = ["general", "datasets", "settings"];
   const allTabs = formData.enable_advanced
-    ? [...tabOrder, "advanced", "spec"]
-    : [...tabOrder, "spec"];
+    ? [...tabOrder, "advanced", "spec", "checkin"]
+    : [...tabOrder, "spec", "checkin"];
   const currentTabIndex = allTabs.indexOf(activeTab);
 
   const handleNext = () => {
