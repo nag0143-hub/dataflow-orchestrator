@@ -396,9 +396,9 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                 </div>
               </div>
             )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+            </div>
+            </>
+            )}
+            </div>
+            );
+            }
