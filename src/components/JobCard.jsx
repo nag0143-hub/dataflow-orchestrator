@@ -4,10 +4,8 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon from "@/components/PlatformIcon";
-import { Eye, Play, MoreVertical, FileJson, GitCommitHorizontal, RotateCcw, Pause, Copy, Edit, Trash2, GitBranch } from "lucide-react";
-import { ArrowRight } from "lucide-react";
+import { Eye, Play, MoreVertical, FileJson, RotateCcw, Pause, Copy, Edit, Trash2, ArrowRight } from "lucide-react";
 import moment from "moment";
-import GitCheckinDialog from "@/components/GitCheckinDialog";
 
 export default function JobCard({
   job,
