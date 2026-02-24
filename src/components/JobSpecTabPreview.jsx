@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, Check, FileJson, AlertCircle, GitBranch, FolderOpen } from "lucide-react";
+import { Copy, Download, Check, FileJson, AlertCircle, GitBranch } from "lucide-react";
 import { buildJobSpec } from "@/components/JobSpecExport";
 import { generateAirflowDAG } from "@/components/AirflowDAGGenerator";
 
