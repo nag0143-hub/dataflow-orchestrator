@@ -96,8 +96,45 @@ export default function JobSpecTabPreview({ formData, connections }) {
     URL.revokeObjectURL(url);
   };
 
+  const pipelineNameClean = (formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase();
+  const specFilename = `${pipelineNameClean}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
+  const dagFilename = `${pipelineNameClean}_dag.py`;
+
+  const gitSteps = [
+    { cmd: `cd /repo/pipelines`, desc: "Navigate to pipelines repo" },
+    { cmd: `mkdir -p specs/${pipelineNameClean}`, desc: "Create pipeline folder" },
+    { cmd: `# Copy downloaded files into specs/${pipelineNameClean}/`, desc: "Place artifacts in folder" },
+    { cmd: `git add specs/${pipelineNameClean}/${specFilename}`, desc: "Stage pipeline spec" },
+    { cmd: `git add specs/${pipelineNameClean}/${dagFilename}`, desc: "Stage Airflow DAG" },
+    { cmd: `git commit -m "feat: add pipeline ${formData.name || 'untitled'}"`, desc: "Commit artifacts" },
+    { cmd: `git push origin main`, desc: "Push to remote" },
+  ];
+
   return (
     <div className="space-y-3">
+      {/* Git Checkin Instructions */}
+      <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-indigo-800 font-semibold text-sm">
+          <GitBranch className="w-4 h-4" />
+          Git Checkin Instructions
+        </div>
+        <div className="flex items-center gap-2 text-xs text-indigo-700">
+          <FolderOpen className="w-3.5 h-3.5 shrink-0" />
+          <span>Artifact paths: <code className="bg-indigo-100 px-1 rounded font-mono">specs/{pipelineNameClean}/{specFilename}</code> and <code className="bg-indigo-100 px-1 rounded font-mono">specs/{pipelineNameClean}/{dagFilename}</code></span>
+        </div>
+        <div className="space-y-1.5">
+          {gitSteps.map((step, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="text-xs text-indigo-400 font-mono w-4 shrink-0 mt-0.5">{i + 1}.</span>
+              <div className="flex-1 min-w-0">
+                <code className="block bg-slate-900 text-emerald-300 text-xs font-mono px-2.5 py-1.5 rounded">{step.cmd}</code>
+                <p className="text-xs text-indigo-600 mt-0.5 pl-0.5">{step.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="flex items-center gap-2 flex-wrap">
         <FileJson className="w-4 h-4 text-blue-600" />
         <span className="text-sm font-semibold text-slate-900">Pipeline Spec</span>
