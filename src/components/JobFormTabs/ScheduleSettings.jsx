@@ -4,7 +4,22 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "lucide-react";
 
+const SCHEDULE_OPTS = [
+  { value: "manual",        label: "Manual" },
+  { value: "every_minutes", label: "Every N mins" },
+  { value: "every_hours",   label: "Every N hours" },
+  { value: "hourly",        label: "Hourly" },
+  { value: "daily",         label: "Daily" },
+  { value: "weekly",        label: "Weekly" },
+  { value: "monthly",       label: "Monthly" },
+  { value: "custom",        label: "Custom Cron" },
+];
+
 export default function ScheduleSettings({ formData, setFormData }) {
+  const schedType = formData.schedule_type || "manual";
+
+  const update = (patch) => setFormData(prev => ({ ...prev, ...patch }));
+
   return (
     <div className="space-y-4">
       {/* Load Method */}
