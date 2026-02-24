@@ -113,7 +113,11 @@ export default function GitCheckinDialog({ open, onOpenChange, pipelineData, con
   const spec = buildJobSpec({ id: pipelineData.id || "(unsaved)", ...pipelineData, dq_rules: pipelineData.dq_rules || {} }, connections);
   const cleanSpec = JSON.parse(JSON.stringify(spec));
   const specContent = `# DataFlow Pipeline Spec — ${pipelineData.name || "untitled"}\n` + toYaml(cleanSpec);
+  
   const dagContent = generateAirflowDAG({ ...pipelineData, dq_rules: pipelineData.dq_rules || {} }, connections);
+  
+  const lineageSpec = generateLineageSpec(pipelineData, connections);
+  const lineageContent = JSON.stringify(lineageSpec, null, 2);
 
   const artifacts = [
     {
@@ -121,6 +125,12 @@ export default function GitCheckinDialog({ open, onOpenChange, pipelineData, con
       filename: `${nameClean}-pipelinespec.yaml`,
       icon: FileText,
       content: specContent,
+    },
+    {
+      title: "Lineage Spec (JSON)",
+      filename: `${nameClean}-lineagespec.json`,
+      icon: FileCode2,
+      content: lineageContent,
     },
     {
       title: "Airflow DAG (Python)",
