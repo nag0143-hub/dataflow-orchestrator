@@ -239,9 +239,9 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                     {(provided, snapshot) => (
                       <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-max">
                       {/* Header */}
-                      <div className="grid gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0 min-w-[900px]" style={{gridTemplateColumns:"24px 1fr 20px 1fr 140px 120px 100px"}}>
-                         <span></span><span>Source Column</span><span></span><span>Target Column</span><span>Transformation</span><span>DQ Rule</span><span></span>
-                       </div>
+                      <div className="grid gap-3 px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 border-b border-slate-200 sticky top-0 z-10" style={{gridTemplateColumns:"32px 180px 80px 200px 140px 120px 80px"}}>
+                        <span></span><span>Source</span><span>Type</span><span>Target</span><span>Transform</span><span>DQ Rule</span><span></span>
+                      </div>
                       {filteredMappings.length === 0 && (
                         <div className="text-center py-4 text-xs text-slate-400">No mappings match "{mappingSearch}"</div>
                       )}
