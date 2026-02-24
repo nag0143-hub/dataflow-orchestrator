@@ -83,7 +83,7 @@ export default function JobBasicsTab({ formData, setFormData, sourceConnections,
               value={formData.source_connection_id}
               onValueChange={(v) => setFormData({ ...formData, source_connection_id: v })}
             >
-              <SelectTrigger className={sameConn ? "border-red-400" : ""}>
+              <SelectTrigger className={sameConn || errors.source_connection_id ? "border-red-400" : ""}>
                 <SelectValue placeholder="Select source connection">
                   {srcConn && <ConnectionCard conn={srcConn} />}
                 </SelectValue>
@@ -99,7 +99,10 @@ export default function JobBasicsTab({ formData, setFormData, sourceConnections,
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-slate-400">Where data is read from</p>
+            {errors.source_connection_id
+              ? <p className="text-xs text-red-600 mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.source_connection_id}</p>
+              : <p className="text-xs text-slate-400">Where data is read from</p>
+            }
           </div>
 
           {/* Arrow */}
