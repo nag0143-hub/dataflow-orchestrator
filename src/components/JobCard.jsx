@@ -29,7 +29,7 @@ export default function JobCard({
   const [gitCheckinOpen, setGitCheckinOpen] = useState(false);
 
   return (
-    <>
+    <div>
     <GitCheckinDialog
       open={gitCheckinOpen}
       onOpenChange={setGitCheckinOpen}
