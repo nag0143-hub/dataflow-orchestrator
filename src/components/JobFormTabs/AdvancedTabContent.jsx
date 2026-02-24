@@ -68,11 +68,12 @@ export default function AdvancedTabContent({ formData, setFormData }) {
 
                 {/* Rules Tabs */}
                 <Tabs defaultValue="mapping" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="mapping" className="text-xs">Mapping</TabsTrigger>
                     <TabsTrigger value="quality" className="text-xs">Quality</TabsTrigger>
                     <TabsTrigger value="cleansing" className="text-xs">Cleansing</TabsTrigger>
                     <TabsTrigger value="security" className="text-xs">Security</TabsTrigger>
+                    <TabsTrigger value="sla" className="text-xs">SLA</TabsTrigger>
                   </TabsList>
 
                   {/* Column Mapping */}
