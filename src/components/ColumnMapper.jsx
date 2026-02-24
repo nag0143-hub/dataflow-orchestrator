@@ -250,8 +250,8 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={cn("grid gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs min-w-[600px]", m.derived && "bg-amber-50/40", snapshot.isDragging && "bg-blue-100")}
-                              style={{gridTemplateColumns:"24px 1fr 20px 1fr 160px 52px", ...provided.draggableProps.style}}
+                              className={cn("grid gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs min-w-[900px]", m.derived && "bg-amber-50/40", snapshot.isDragging && "bg-blue-100")}
+                              style={{gridTemplateColumns:"24px 1fr 20px 1fr 140px 120px 100px", ...provided.draggableProps.style}}
                             >
                               <div {...provided.dragHandleProps} className="flex items-center justify-center cursor-grab active:cursor-grabbing">
                                 <GripVertical className="w-4 h-4 text-slate-400" />
