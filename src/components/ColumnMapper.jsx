@@ -9,8 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, Plus, ArrowRight, ChevronLeft, ChevronRight, Copy } from "lucide-react";
+import { Search, X, Plus, ArrowRight, ChevronLeft, ChevronRight, Copy, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const MAPPING_PAGE_SIZE = 50;
 
