@@ -192,6 +192,20 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                       </Card>
                     </div>
                   </TabsContent>
+
+                  {/* SLA */}
+                  <TabsContent value="sla" className="space-y-3">
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ShieldCheck className="w-4 h-4 text-blue-600" />
+                        <h4 className="font-semibold text-sm">Service Level Agreement</h4>
+                      </div>
+                      <SLAConfig
+                        value={ds.sla_config || {}}
+                        onChange={(sla) => updateDataset({ sla_config: sla })}
+                      />
+                    </Card>
+                  </TabsContent>
                 </Tabs>
               </TabsContent>
             );
