@@ -75,10 +75,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
 
   const content = view === "dag" ? dagContent : specContent;
 
-  const pipelineName = (formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase();
-  const filename = view === "dag"
-    ? `${pipelineName}_dag.py`
-    : `${pipelineName}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
+  const filename = view === "dag" ? dagFilename : specFilename;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
