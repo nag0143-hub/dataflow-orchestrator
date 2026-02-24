@@ -78,6 +78,31 @@ export default function JobFormDialog({
     return true;
   };
 
+  const handleSaveDraft = async () => {
+    setSaving(true);
+    const payload = {
+      ...formData,
+      _isDraft: true,
+      total_runs: editingJob?.total_runs || 0,
+      successful_runs: editingJob?.successful_runs || 0,
+      failed_runs: editingJob?.failed_runs || 0,
+    };
+
+    try {
+      if (editingJob) {
+        await base44.entities.IngestionJob.update(editingJob.id, payload);
+        toast.success("Pipeline draft saved");
+        onSaveSuccess?.();
+      } else {
+        const created = await base44.entities.IngestionJob.create(payload);
+        toast.success("Pipeline draft saved");
+        onSaveSuccess?.();
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched(true);
@@ -87,6 +112,7 @@ export default function JobFormDialog({
 
     const payload = {
       ...formData,
+      _isDraft: false,
       total_runs: editingJob?.total_runs || 0,
       successful_runs: editingJob?.successful_runs || 0,
       failed_runs: editingJob?.failed_runs || 0,
@@ -99,9 +125,9 @@ export default function JobFormDialog({
           log_type: "info",
           category: "job",
           job_id: editingJob.id,
-          message: `Pipeline "${formData.name}" updated`,
+          message: `Pipeline "${formData.name}" updated and committed`,
         });
-        toast.success("Pipeline updated");
+        toast.success("Pipeline updated and ready to commit to git");
         onOpenChange(false);
         onSaveSuccess?.();
         return;
@@ -111,9 +137,9 @@ export default function JobFormDialog({
           log_type: "success",
           category: "job",
           job_id: created.id,
-          message: `Pipeline "${formData.name}" created`,
+          message: `Pipeline "${formData.name}" created and committed`,
         });
-        toast.success("Pipeline created");
+        toast.success("Pipeline created and ready to commit to git");
         onOpenChange(false);
         onSaveSuccess?.();
         return;
