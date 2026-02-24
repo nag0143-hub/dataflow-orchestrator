@@ -188,7 +188,14 @@ export default function GitCheckinDialog({ open, onOpenChange, pipelineData, con
           </p>
 
           <div className="flex justify-end">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button"
+              variant="outline" 
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenChange(false);
+              }}
+            >
               <X className="w-4 h-4 mr-1" /> Close
             </Button>
           </div>
