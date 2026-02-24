@@ -15,6 +15,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Checkbox } from "@/components/ui/checkbox";
 import ColumnMapperRow from "./ColumnMapperRow";
 import ColumnMapperBulkActions from "./ColumnMapperBulkActions";
+import ColumnMapperImportExport from "./ColumnMapperImportExport";
 import { GLOBAL_RULES, DQ_RULES, ENCRYPTION_TYPES, TRANSFORMATIONS, PAGE_SIZE, MAPPING_PAGE_SIZE, DATA_TYPES } from "./constants";
 import { columnCacheManager, invalidateCacheForObjects } from "./cacheManager";
 
@@ -264,6 +265,20 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     setSelectedMappings(new Set());
   }, [selectedTable, selectedMappings, onChange]);
 
+  const handleImportMappings = useCallback((importedMappings) => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      
+      // Merge imported mappings with existing, replacing if source already exists
+      const sourceSet = new Set(importedMappings.map(m => m.source));
+      const existing = tbl.filter(m => !sourceSet.has(m.source) && !m.is_audit);
+      
+      return { ...prev, [key]: [...existing, ...importedMappings.map(m => ({ ...m, is_audit: false }))] };
+    });
+    setSelectedMappings(new Set());
+  }, [selectedTable, onChange]);
+
   if (selectedObjects.length === 0) {
     return (
       <div className="text-center py-10 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">
@@ -378,6 +393,12 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-semibold text-slate-900">Column Mappings ({tableMappings.filter(m => !m.is_audit).length})</span>
                   <div className="flex items-center gap-2">
+                    <ColumnMapperImportExport
+                      mappings={tableMappings.filter(m => !m.is_audit)}
+                      tableName={selectedTable}
+                      onImport={handleImportMappings}
+                      disabled={false}
+                    />
                     <Button
                       size="sm"
                       variant="ghost"
