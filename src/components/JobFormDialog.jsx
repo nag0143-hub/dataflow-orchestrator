@@ -254,5 +254,6 @@ export default function JobFormDialog({
         </form>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
