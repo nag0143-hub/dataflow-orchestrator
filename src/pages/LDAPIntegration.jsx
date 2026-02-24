@@ -42,7 +42,7 @@ export default function LDAPIntegration() {
           {/* Hint Banner */}
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-2 text-sm text-amber-800">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <span>Default credentials: <strong>administrator / administrator</strong></span>
+            <span>Default credentials: <strong>admin / admin</strong></span>
           </div>
 
           {/* Login Form */}
