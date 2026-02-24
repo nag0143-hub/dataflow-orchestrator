@@ -108,7 +108,14 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
         setConfigPanelObject(null);
       }
     } else {
-      onChange([...selectedObjects, { schema, table, target_path: `/${schema}/${table}`, target_format: "original" }]);
+      const tableObj = schemas.find(s => s.name === schema)?.tables.find(t => t.name === table);
+      onChange([...selectedObjects, { 
+        schema, 
+        table, 
+        target_path: `/${schema}/${table}`, 
+        target_format: "original",
+        columns: tableObj?.columns || []
+      }]);
     }
   };
 
