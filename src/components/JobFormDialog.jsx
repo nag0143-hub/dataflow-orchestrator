@@ -190,7 +190,7 @@ export default function JobFormDialog({
               <TabsContent value="datasets" className="space-y-4 mt-0">
                 {fieldErrors.datasets && (
                   <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                    <span className="w-3.5 h-3.5">⚠</span>{fieldErrors.datasets}
+                    <span className="w-3.5 h-3.5">{"⚠"}</span>{fieldErrors.datasets}
                   </div>
                 )}
                 <JobDataTab
