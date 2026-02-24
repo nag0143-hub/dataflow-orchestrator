@@ -86,13 +86,8 @@ function getMockColumns(schema, table, selectedObjects) {
     return cols;
   }
 
-  // Fallback to mock data if not found
-  const rand = seededRand(key.split("").reduce((a, c) => a + c.charCodeAt(0), 0));
-  const base = ["id","created_at","updated_at","created_by","updated_by","status","is_active","name","description","code","type","reference_id","parent_id","sequence","priority","category"];
-  const extras = Array.from({ length: 984 }, (_, i) => `col_${String(i + 1).padStart(4, "0")}`);
-  const cols = [...base, ...extras].map(col => ({ name: col, dataType: DATA_TYPES[Math.floor(rand() * DATA_TYPES.length)] }));
-  columnCache.set(key, cols);
-  return cols;
+  // Return empty array if no columns found (instead of generating 1000 mock columns)
+  return [];
 }
 
 export default function ColumnMapper({ selectedObjects = [], mappings = [], onChange }) {
