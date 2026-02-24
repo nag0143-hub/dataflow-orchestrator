@@ -254,5 +254,5 @@ export default function JobFormDialog({
       </DialogContent>
     </Dialog>
     </div>
-    );
-    }
+  );
+}
