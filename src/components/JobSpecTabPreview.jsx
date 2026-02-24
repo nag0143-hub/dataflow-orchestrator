@@ -68,7 +68,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
     ? JSON.stringify(cleanSpec, null, 2)
     : `# DataFlow Job Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
 
-  const filename = `${(formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-jobspec.${format === "json" ? "json" : "yaml"}`;
+  const filename = `${(formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
