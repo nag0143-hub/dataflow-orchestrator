@@ -404,11 +404,12 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                           <tbody>
                             {filteredMappings.filter(m => !m.is_audit).length === 0 ? (
                               <tr>
-                                <td colSpan="6" className="text-center py-6 text-xs text-slate-400">No column mappings yet</td>
+                                <td colSpan="11" className="text-center py-6 text-xs text-slate-400">No column mappings yet</td>
                               </tr>
                             ) : (
                               pageMappings.filter(m => !m.is_audit).map((m, i) => {
                                 const mappingIndex = tableMappings.indexOf(m);
+                                const sourceCol = tableColumns.find(c => c.name === m.source);
                                 return (
                                   <Draggable key={`${m.source}-${mappingIndex}`} draggableId={`${m.source}-${mappingIndex}`} index={mappingIndex} type="MAPPING">
                                     {(provided, snapshot) => (
@@ -420,12 +421,32 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                         <td className="px-3 py-2" {...provided.dragHandleProps}>
                                           <GripVertical className="w-3 h-3 text-slate-300 cursor-move" />
                                         </td>
+                                        <td className="px-3 py-2 text-xs text-slate-600 font-medium text-center">{sourceCol?.order || "-"}</td>
                                         <td className="px-3 py-2 text-xs font-mono text-slate-900">{m.source}</td>
+                                        <td className="px-3 py-2 text-xs text-slate-600 font-mono">{m.sourceDataType || "-"}</td>
+                                        <td className="px-3 py-2 text-xs text-slate-600 font-mono">{m.sourceLength || "-"}</td>
+                                        <td className="px-3 py-2 text-xs text-slate-600 font-medium text-center">—</td>
                                         <td className="px-3 py-2">
                                           <Input
                                             value={m.target}
                                             onChange={e => updateMapping(m.source, "target", e.target.value)}
                                             className="h-6 text-xs px-2 border-slate-200"
+                                          />
+                                        </td>
+                                        <td className="px-3 py-2">
+                                          <Input
+                                            value={m.targetDataType || ""}
+                                            onChange={e => updateMapping(m.source, "targetDataType", e.target.value)}
+                                            placeholder="varchar"
+                                            className="h-6 text-xs px-2 border-slate-200 font-mono"
+                                          />
+                                        </td>
+                                        <td className="px-3 py-2">
+                                          <Input
+                                            value={m.targetLength || ""}
+                                            onChange={e => updateMapping(m.source, "targetLength", e.target.value)}
+                                            placeholder="255"
+                                            className="h-6 text-xs px-2 border-slate-200 font-mono"
                                           />
                                         </td>
                                         <td className="px-3 py-2">
@@ -436,19 +457,6 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                             <SelectContent>
                                               {TRANSFORMATIONS.map(t => (
                                                 <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          <Select value={m.encryption_type || ""} onValueChange={v => updateMapping(m.source, "encryption_type", v)}>
-                                            <SelectTrigger className="h-6 text-xs border-slate-200">
-                                              <SelectValue placeholder="None" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value={null}>None</SelectItem>
-                                              {ENCRYPTION_TYPES.map(e => (
-                                                <SelectItem key={e.value} value={e.value} className="text-xs">{e.label}</SelectItem>
                                               ))}
                                             </SelectContent>
                                           </Select>
