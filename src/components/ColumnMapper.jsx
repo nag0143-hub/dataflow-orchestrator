@@ -211,47 +211,73 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                 )}
                 <button type="button" onClick={() => onChange(prev => ({ ...prev, [tableKey]: [] }))} className="text-red-400 hover:text-red-600 text-xs shrink-0">Clear all</button>
               </div>
-              <div className="max-h-64 overflow-y-auto overflow-x-auto">
-                {/* Header */}
-                <div className="grid gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0 min-w-[580px]" style={{gridTemplateColumns:"1fr 20px 1fr 160px 52px"}}>
-                  <span>Source Column</span><span></span><span>Target Column</span><span>Transformation</span><span></span>
-                </div>
-                {filteredMappings.length === 0 && (
-                  <div className="text-center py-4 text-xs text-slate-400">No mappings match "{mappingSearch}"</div>
-                )}
-                {pageMappings.map((m, i) => (
-                  <div key={`${m.source}-${i}`} className={cn("grid gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs min-w-[580px]", m.derived && "bg-amber-50/40")} style={{gridTemplateColumns:"1fr 20px 1fr 160px 52px"}}>
-                    <span className="font-mono text-slate-700 truncate" title={m.source}>
-                      {m.derived && <span className="text-amber-500 mr-1" title="Derived column">◆</span>}
-                      {m.source}
-                    </span>
-                    <ArrowRight className="w-3 h-3 text-slate-300 shrink-0" />
-                    <Input
-                      value={m.target}
-                      onChange={e => updateMapping(m.source, "target", e.target.value)}
-                      className="h-6 text-xs px-2 font-mono w-full"
-                    />
-                    <Select value={m.transformation} onValueChange={v => updateMapping(m.source, "transformation", v)}>
-                      <SelectTrigger className="h-6 text-xs px-2 w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TRANSFORMATIONS.map(t => (
-                          <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button type="button" onClick={() => duplicateMapping(m)} title="Add derived column (keep original)" className="text-slate-300 hover:text-amber-500">
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
-                      <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-400">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+              <DragDropContext onDragEnd={(result) => {
+                const { source, destination, draggableId } = result;
+                if (!destination) return;
+                const newMappings = [...tableMappings];
+                const item = newMappings.splice(source.index, 1)[0];
+                newMappings.splice(destination.index, 0, item);
+                onChange({ ...mappings, [tableKey]: newMappings });
+              }}>
+                <Droppable droppableId="mappings-list">
+                  {(provided, snapshot) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className="max-h-64 overflow-y-auto">
+                      {/* Header */}
+                      <div className="grid gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0 min-w-[600px]" style={{gridTemplateColumns:"24px 1fr 20px 1fr 160px 52px"}}>
+                        <span></span><span>Source Column</span><span></span><span>Target Column</span><span>Transformation</span><span></span>
+                      </div>
+                      {filteredMappings.length === 0 && (
+                        <div className="text-center py-4 text-xs text-slate-400">No mappings match "{mappingSearch}"</div>
+                      )}
+                      {pageMappings.map((m, i) => (
+                        <Draggable key={`${m.source}-${i}`} draggableId={`${m.source}-${i}`} index={tableMappings.indexOf(m)}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={cn("grid gap-2 items-center px-3 py-1.5 border-b border-slate-50 hover:bg-slate-50 text-xs min-w-[600px]", m.derived && "bg-amber-50/40", snapshot.isDragging && "bg-blue-100")}
+                              style={{gridTemplateColumns:"24px 1fr 20px 1fr 160px 52px", ...provided.draggableProps.style}}
+                            >
+                              <div {...provided.dragHandleProps} className="flex items-center justify-center cursor-grab active:cursor-grabbing">
+                                <GripVertical className="w-4 h-4 text-slate-400" />
+                              </div>
+                              <span className="font-mono text-slate-700 truncate" title={m.source}>
+                                {m.derived && <span className="text-amber-500 mr-1" title="Derived column">◆</span>}
+                                {m.source}
+                              </span>
+                              <ArrowRight className="w-3 h-3 text-slate-300 shrink-0" />
+                              <Input
+                                value={m.target}
+                                onChange={e => updateMapping(m.source, "target", e.target.value)}
+                                className="h-6 text-xs px-2 font-mono w-full"
+                              />
+                              <Select value={m.transformation} onValueChange={v => updateMapping(m.source, "transformation", v)}>
+                                <SelectTrigger className="h-6 text-xs px-2 w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {TRANSFORMATIONS.map(t => (
+                                    <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button type="button" onClick={() => duplicateMapping(m)} title="Add derived column (keep original)" className="text-slate-300 hover:text-amber-500">
+                                  <Copy className="w-3.5 h-3.5" />
+                                </button>
+                                <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-400">
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
               {totalMappingPages > 1 && (
                 <div className="flex items-center justify-between px-3 py-2 border-t border-blue-100 bg-blue-50 text-xs text-blue-600">
                   <span>Page {mappingPage + 1} of {totalMappingPages} ({filteredMappings.length} mappings)</span>
