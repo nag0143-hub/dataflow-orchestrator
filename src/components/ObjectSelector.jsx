@@ -23,9 +23,67 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SchemaImporter from "@/components/SchemaImporter";
 
+const SAMPLE_SCHEMAS = [
+  {
+    name: "sales",
+    tables: [
+      {
+        name: "orders",
+        columns: [
+          { name: "order_id", type: "int" },
+          { name: "customer_id", type: "int" },
+          { name: "order_date", type: "datetime" },
+          { name: "total_amount", type: "decimal" },
+          { name: "status", type: "varchar" },
+          { name: "region", type: "varchar" },
+          { name: "created_at", type: "datetime" },
+          { name: "updated_at", type: "datetime" },
+          { name: "payment_method", type: "varchar" },
+          { name: "notes", type: "text" }
+        ]
+      },
+      {
+        name: "customers",
+        columns: [
+          { name: "customer_id", type: "int" },
+          { name: "first_name", type: "varchar" },
+          { name: "last_name", type: "varchar" },
+          { name: "email", type: "varchar" },
+          { name: "phone", type: "varchar" },
+          { name: "country", type: "varchar" },
+          { name: "signup_date", type: "datetime" },
+          { name: "customer_tier", type: "varchar" },
+          { name: "created_at", type: "datetime" },
+          { name: "is_active", type: "bit" }
+        ]
+      }
+    ]
+  },
+  {
+    name: "inventory",
+    tables: [
+      {
+        name: "products",
+        columns: [
+          { name: "product_id", type: "int" },
+          { name: "product_name", type: "varchar" },
+          { name: "sku", type: "varchar" },
+          { name: "category", type: "varchar" },
+          { name: "price", type: "decimal" },
+          { name: "cost", type: "decimal" },
+          { name: "quantity_on_hand", type: "int" },
+          { name: "reorder_level", type: "int" },
+          { name: "last_restocked", type: "datetime" },
+          { name: "is_discontinued", type: "bit" }
+        ]
+      }
+    ]
+  }
+];
+
 export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [schemas, setSchemas] = useState([]);
+  const [schemas, setSchemas] = useState(SAMPLE_SCHEMAS);
   const [expandedSchemas, setExpandedSchemas] = useState([]);
   const [configPanelObject, setConfigPanelObject] = useState(null);
   const [objectConfig, setObjectConfig] = useState({});
