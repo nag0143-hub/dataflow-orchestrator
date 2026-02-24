@@ -292,50 +292,26 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                               <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
-                                className={cn("grid gap-3 items-center px-4 py-2 border-b border-slate-100 hover:bg-blue-50/50 text-xs transition-colors", m.derived && "bg-amber-50", snapshot.isDragging && "bg-blue-200 shadow-md")}
-                                style={{gridTemplateColumns:"32px 180px 80px 200px 140px 120px 80px", ...provided.draggableProps.style}}
+                                className={cn("grid gap-3 items-center px-4 py-2 border-b border-slate-100 hover:bg-slate-50 text-xs transition-colors", snapshot.isDragging && "bg-slate-100 shadow-md")}
+                                style={{gridTemplateColumns:"32px 160px 120px 180px 1fr", ...provided.draggableProps.style}}
                               >
-                                <div {...provided.dragHandleProps} className="flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-slate-200 rounded p-1">
-                                  <GripVertical className="w-3.5 h-3.5 text-slate-400" />
+                                <div {...provided.dragHandleProps} className="flex items-center justify-center cursor-grab active:cursor-grabbing">
+                                  <GripVertical className="w-3.5 h-3.5 text-slate-300" />
                                 </div>
-                                <div className="font-mono text-slate-700 truncate whitespace-nowrap" title={m.source}>
-                                  {m.derived && <span className="text-amber-500 mr-1">◆</span>}
-                                  {m.source}
-                                </div>
-                                <div className="text-slate-400 truncate text-xs whitespace-nowrap">{sourceCol?.dataType || '-'}</div>
+                                <div className="font-mono text-slate-700 truncate whitespace-nowrap text-xs" title={m.source}>{m.source}</div>
+                                <div className="text-slate-400 truncate text-xs">{sourceCol?.dataType || '-'}</div>
                                 <Input
                                   value={m.target}
                                   onChange={e => updateMapping(m.source, "target", e.target.value)}
-                                  className="h-7 text-xs px-2 font-mono"
+                                  className="h-6 text-xs px-2 font-mono"
                                   placeholder="target"
                                 />
-                                <Select value={m.transformation} onValueChange={v => updateMapping(m.source, "transformation", v)}>
-                                  <SelectTrigger className="h-7 text-xs px-2">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {TRANSFORMATIONS.map(t => (
-                                      <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <Select value={m.dq_rule || ""} onValueChange={v => updateMapping(m.source, "dq_rule", v)}>
-                                  <SelectTrigger className="h-7 text-xs px-2">
-                                    <SelectValue placeholder="None" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value={null}>None</SelectItem>
-                                    {DQ_RULES.map(r => (
-                                      <SelectItem key={r.value} value={r.value} className="text-xs">{r.label}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <div className="flex items-center gap-2 justify-end shrink-0">
-                                  <button type="button" onClick={() => updateMapping(m.source, "encrypted", !m.encrypted)} title={m.encrypted ? "Encrypted" : "Not encrypted"} className={cn("p-1 rounded hover:bg-slate-200", m.encrypted ? "text-green-600 bg-green-50" : "text-slate-400")}>
-                                    <Lock className="w-3.5 h-3.5" />
+                                <div className="flex items-center gap-1 justify-end shrink-0">
+                                  <button type="button" onClick={() => updateMapping(m.source, "encrypted", !m.encrypted)} title={m.encrypted ? "Encrypted" : "Not encrypted"} className={cn("p-1 rounded", m.encrypted ? "text-green-600 bg-green-50" : "text-slate-300 hover:text-slate-600")}>
+                                    <Lock className="w-3 h-3" />
                                   </button>
-                                  <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-400 hover:text-red-500 p-1 rounded hover:bg-red-50">
-                                    <X className="w-3.5 h-3.5" />
+                                  <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-300 hover:text-red-500 p-1 rounded hover:bg-red-50">
+                                    <X className="w-3 h-3" />
                                   </button>
                                 </div>
                               </div>
