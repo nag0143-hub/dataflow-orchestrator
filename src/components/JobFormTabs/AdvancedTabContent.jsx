@@ -213,16 +213,7 @@ export default function AdvancedTabContent({ formData, setFormData }) {
         </Tabs>
       )}
 
-      {/* Global Settings - SLA */}
-      {formData.selected_datasets?.length > 0 && (
-        <div className="border-t pt-6 mt-6">
-          <h3 className="font-semibold text-sm text-slate-700 mb-4">Global Settings</h3>
-          <SLAConfig
-            value={formData.sla_config}
-            onChange={(sla) => setFormData({ ...formData, sla_config: sla })}
-          />
-        </div>
-      )}
+
     </div>
   );
 }
