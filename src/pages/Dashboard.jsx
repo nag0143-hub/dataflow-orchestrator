@@ -166,8 +166,7 @@ export default function Dashboard() {
                             </td>
                           </tr>
                         );
-                      });
-                    })()}
+                      })}
                   </tbody>
                 </table>
               </div>
