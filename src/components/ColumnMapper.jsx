@@ -388,17 +388,17 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                         <table className="w-full border-collapse">
                           <thead>
                             <tr className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-12"></th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-8">Ord</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-32">Source Col</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-24">Type</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-20">Length</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-8">Ord</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-32">Target Col</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-24">Type</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-20">Length</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-40">Transformation</th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-8"></th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-12"></th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-8">Ord</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-32">Source Col</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-24">Type</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-20">Length</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-12">Pos</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-32">Target Col</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-24">Type</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-20">Length</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-40">Transformation</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-8"></th>
                             </tr>
                           </thead>
                           <tbody>
