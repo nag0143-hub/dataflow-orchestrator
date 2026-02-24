@@ -247,6 +247,15 @@ export default function JobFormDialog({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                onClick={handleSaveDraft}
+                disabled={saving}
+                className="mr-2"
+              >
+                {saving ? "Saving..." : "Save as Draft"}
+              </Button>
               <Button onClick={handleNext}>
                 Next
               </Button>
