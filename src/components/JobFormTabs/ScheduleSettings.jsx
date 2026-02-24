@@ -46,10 +46,6 @@ export default function ScheduleSettings({ formData, setFormData }) {
       <div className="border border-slate-200 rounded-lg p-4 space-y-3">
         <Label className="text-sm font-semibold">Run Schedule</Label>
         <p className="text-xs text-slate-500">When this job should run</p>
-        <div className="flex items-center gap-2 mb-1">
-          <Calendar className="w-4 h-4 text-blue-600" />
-          <h4 className="font-semibold text-slate-900 text-sm">Schedule</h4>
-        </div>
 
         {/* Schedule type buttons */}
         <div className="flex flex-wrap gap-2">
