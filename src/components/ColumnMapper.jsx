@@ -226,17 +226,18 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                 )}
                 <button type="button" onClick={() => onChange(prev => ({ ...prev, [tableKey]: [] }))} className="text-red-400 hover:text-red-600 text-xs shrink-0">Clear all</button>
               </div>
-              <DragDropContext onDragEnd={(result) => {
-                const { source, destination, draggableId } = result;
-                if (!destination) return;
-                const newMappings = [...tableMappings];
-                const item = newMappings.splice(source.index, 1)[0];
-                newMappings.splice(destination.index, 0, item);
-                onChange({ ...mappings, [tableKey]: newMappings });
-              }}>
-                <Droppable droppableId="mappings-list">
-                  {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps} className="max-h-64 overflow-y-auto">
+              <div className="overflow-x-auto overflow-y-auto max-h-96 border-t border-slate-100">
+                <DragDropContext onDragEnd={(result) => {
+                  const { source, destination } = result;
+                  if (!destination) return;
+                  const newMappings = [...tableMappings];
+                  const item = newMappings.splice(source.index, 1)[0];
+                  newMappings.splice(destination.index, 0, item);
+                  onChange({ ...mappings, [tableKey]: newMappings });
+                }}>
+                  <Droppable droppableId="mappings-list">
+                    {(provided, snapshot) => (
+                      <div ref={provided.innerRef} {...provided.droppableProps} className="min-w-max">
                       {/* Header */}
                       <div className="grid gap-2 px-3 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 border-b border-slate-100 sticky top-0 min-w-[900px]" style={{gridTemplateColumns:"24px 1fr 20px 1fr 140px 120px 100px"}}>
                          <span></span><span>Source Column</span><span></span><span>Target Column</span><span>Transformation</span><span>DQ Rule</span><span></span>
