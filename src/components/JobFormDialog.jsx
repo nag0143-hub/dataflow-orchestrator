@@ -249,9 +249,33 @@ export default function JobFormDialog({
               >
                 {saving ? "Saving..." : "Save as Draft"}
               </Button>
-              <Button type="submit" disabled={saving || !isValid}>
-                {saving ? "Committing..." : editingJob ? "Update & Commit" : "Create & Commit"}
+              <Button onClick={handleNext}>
+                Next: Git Check-in
               </Button>
+            </div>
+          )}
+
+          {activeTab === "checkin" && (
+            <div className="mt-6 pt-4 border-t flex justify-between gap-3">
+              <Button type="button" variant="outline" onClick={() => setActiveTab("spec")}>
+                Back
+              </Button>
+              <div className="flex gap-3">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={handleSaveDraft}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save as Draft"}
+                </Button>
+                <Button type="submit" disabled={saving || !isValid}>
+                  {saving ? "Committing..." : editingJob ? "Update & Commit" : "Create & Commit"}
+                </Button>
+              </div>
             </div>
           )}
 
