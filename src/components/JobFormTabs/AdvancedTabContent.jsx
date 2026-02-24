@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { ShieldCheck, Zap, Lock, FileText } from "lucide-react";
+import { ShieldCheck, Zap, Lock, FileText, Shield } from "lucide-react";
 import ColumnMapper from "@/components/ColumnMapper";
 import DataQualityRules from "@/components/DataQualityRules";
 import DataCleansing from "@/components/DataCleansing";
