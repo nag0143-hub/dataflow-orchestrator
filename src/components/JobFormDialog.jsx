@@ -151,7 +151,7 @@ export default function JobFormDialog({
   };
 
   return (
-    <>
+    <div>
     <GitCheckinDialog
       open={gitCheckinOpen}
       onOpenChange={setGitCheckinOpen}
