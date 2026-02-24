@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, Check, FileJson, AlertCircle, GitBranch, Terminal, FolderOpen } from "lucide-react";
+import { Copy, Download, Check, FileJson, AlertCircle, GitBranch, FolderOpen } from "lucide-react";
 import { buildJobSpec } from "@/components/JobSpecExport";
 import { generateAirflowDAG } from "@/components/AirflowDAGGenerator";
 
 export default function JobSpecTabPreview({ formData, connections }) {
   const [format, setFormat] = useState("yaml");
-  const [view, setView] = useState("spec"); // "spec" | "dag"
+  const [view, setView] = useState("spec");
   const [copied, setCopied] = useState(false);
 
   const getMissingFields = () => {
@@ -64,9 +64,12 @@ export default function JobSpecTabPreview({ formData, connections }) {
     return String(obj);
   }
 
+  const pipelineNameClean = (formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase();
+  const specFilename = `${pipelineNameClean}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
+  const dagFilename = `${pipelineNameClean}_dag.py`;
+
   const spec = buildJobSpec(draftJob, connections);
   const cleanSpec = JSON.parse(JSON.stringify(spec));
-
   const dagContent = generateAirflowDAG(draftJob, connections);
 
   const specContent = format === "json"
@@ -74,12 +77,17 @@ export default function JobSpecTabPreview({ formData, connections }) {
     : `# DataFlow Pipeline Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
 
   const content = view === "dag" ? dagContent : specContent;
-
-  const pipelineNameClean = (formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase();
-  const specFilename = `${pipelineNameClean}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
-  const dagFilename = `${pipelineNameClean}_dag.py`;
-
   const filename = view === "dag" ? dagFilename : specFilename;
+
+  const gitSteps = [
+    { cmd: `cd /repo/pipelines`, desc: "Navigate to pipelines repo" },
+    { cmd: `mkdir -p specs/${pipelineNameClean}`, desc: "Create pipeline folder" },
+    { cmd: `# Copy downloaded files into specs/${pipelineNameClean}/`, desc: "Place artifacts in folder" },
+    { cmd: `git add specs/${pipelineNameClean}/${specFilename}`, desc: "Stage pipeline spec" },
+    { cmd: `git add specs/${pipelineNameClean}/${dagFilename}`, desc: "Stage Airflow DAG" },
+    { cmd: `git commit -m "feat: add pipeline ${formData.name || 'untitled'}"`, desc: "Commit artifacts" },
+    { cmd: `git push origin main`, desc: "Push to remote" },
+  ];
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
@@ -97,16 +105,6 @@ export default function JobSpecTabPreview({ formData, connections }) {
     URL.revokeObjectURL(url);
   };
 
-  const gitSteps = [
-    { cmd: `cd /repo/pipelines`, desc: "Navigate to pipelines repo" },
-    { cmd: `mkdir -p specs/${pipelineNameClean}`, desc: "Create pipeline folder" },
-    { cmd: `# Copy downloaded files into specs/${pipelineNameClean}/`, desc: "Place artifacts in folder" },
-    { cmd: `git add specs/${pipelineNameClean}/${specFilename}`, desc: "Stage pipeline spec" },
-    { cmd: `git add specs/${pipelineNameClean}/${dagFilename}`, desc: "Stage Airflow DAG" },
-    { cmd: `git commit -m "feat: add pipeline ${formData.name || 'untitled'}"`, desc: "Commit artifacts" },
-    { cmd: `git push origin main`, desc: "Push to remote" },
-  ];
-
   return (
     <div className="space-y-3">
       {/* Git Checkin Instructions */}
@@ -117,7 +115,12 @@ export default function JobSpecTabPreview({ formData, connections }) {
         </div>
         <div className="flex items-center gap-2 text-xs text-indigo-700">
           <FolderOpen className="w-3.5 h-3.5 shrink-0" />
-          <span>Artifact paths: <code className="bg-indigo-100 px-1 rounded font-mono">specs/{pipelineNameClean}/{specFilename}</code> and <code className="bg-indigo-100 px-1 rounded font-mono">specs/{pipelineNameClean}/{dagFilename}</code></span>
+          <span>
+            Artifact paths:{" "}
+            <code className="bg-indigo-100 px-1 rounded font-mono">specs/{pipelineNameClean}/{specFilename}</code>
+            {" "}and{" "}
+            <code className="bg-indigo-100 px-1 rounded font-mono">specs/{pipelineNameClean}/{dagFilename}</code>
+          </span>
         </div>
         <div className="space-y-1.5">
           {gitSteps.map((step, i) => (
@@ -137,7 +140,6 @@ export default function JobSpecTabPreview({ formData, connections }) {
         <span className="text-sm font-semibold text-slate-900">Pipeline Spec</span>
         <span className="text-xs text-slate-400 ml-1">(check this file into git)</span>
         <div className="flex gap-1.5 ml-auto flex-wrap">
-          {/* View toggle */}
           {["spec", "dag"].map(v => (
             <button key={v} type="button" onClick={() => setView(v)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
@@ -146,7 +148,6 @@ export default function JobSpecTabPreview({ formData, connections }) {
               {v === "dag" ? "Airflow DAG" : "Pipeline Spec"}
             </button>
           ))}
-          {/* Format toggle (only for spec view) */}
           {view === "spec" && ["yaml", "json"].map(f => (
             <button key={f} type="button" onClick={() => setFormat(f)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
@@ -157,7 +158,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
           ))}
         </div>
       </div>
-      
+
       {missingFields.length > 0 && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3">
           <div className="flex items-start gap-2">
@@ -173,9 +174,9 @@ export default function JobSpecTabPreview({ formData, connections }) {
           </div>
         </div>
       )}
-      
+
       <p className="text-xs text-slate-500">
-        This spec reflects the current (unsaved) form state and includes full connection details. Save the pipeline first, then download to commit.
+        This spec reflects the current (unsaved) form state. Save the pipeline first, then download to commit.
       </p>
       <div className="rounded-lg border border-slate-200 bg-slate-950 overflow-hidden">
         <pre className="p-4 text-xs text-emerald-300 font-mono whitespace-pre overflow-auto max-h-[50vh] leading-relaxed">
