@@ -133,48 +133,63 @@ export default function AdvancedTabContent({ formData, setFormData }) {
 
                   {/* Security */}
                   <TabsContent value="security" className="space-y-3">
-                    <Card className="p-4 space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-blue-600" />
-                        <h4 className="font-semibold text-sm">Security & Classification</h4>
-                      </div>
-
-                      {/* Data Classification */}
-                      <div>
-                        <Label className="text-xs text-slate-600">Data Classification</Label>
-                        <Select
-                          value={ds.data_classification || ""}
-                          onValueChange={(v) => updateDataset({ data_classification: v })}
-                        >
-                          <SelectTrigger className="h-8 text-xs mt-1">
-                            <SelectValue placeholder="Select classification" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="public">Public</SelectItem>
-                            <SelectItem value="confidential">Confidential</SelectItem>
-                            <SelectItem value="personal_class_1">Personal Class 1</SelectItem>
-                            <SelectItem value="personal_class_1_pci">Personal Class 1 - PCI</SelectItem>
-                            <SelectItem value="personal_class_2">Personal Class 2</SelectItem>
-                            <SelectItem value="personal_class_3">Personal Class 3</SelectItem>
-                            <SelectItem value="personal_class_4">Personal Class 4</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Dataset Access Entitlements */}
-                      <div>
-                        <Label className="text-xs text-slate-600">Dataset Access Entitlements</Label>
-                        <Input
-                          value={ds.access_entitlements?.join(", ") || ""}
-                          onChange={(e) => updateDataset({
-                            access_entitlements: e.target.value.split(",").map(s => s.trim()).filter(s => s)
-                          })}
-                          placeholder="e.g. data_analyst, finance_user"
-                          className="text-xs mt-1"
+                    <div className="space-y-3">
+                      {/* Encryption & Masking */}
+                      <Card className="p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Shield className="w-4 h-4 text-purple-600" />
+                          <h4 className="font-semibold text-sm">Encryption & Data Masking</h4>
+                        </div>
+                        <DataMaskingConfig
+                          value={formData.data_masking_rules || []}
+                          onChange={(rules) => setFormData({ ...formData, data_masking_rules: rules })}
                         />
-                        <p className="text-xs text-slate-400 mt-1">Leave empty to inherit job-level entitlements</p>
-                      </div>
-                    </Card>
+                      </Card>
+
+                      {/* Classification & Access */}
+                      <Card className="p-4 space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-blue-600" />
+                          <h4 className="font-semibold text-sm">Classification & Access</h4>
+                        </div>
+
+                        {/* Data Classification */}
+                        <div>
+                          <Label className="text-xs text-slate-600">Data Classification</Label>
+                          <Select
+                            value={ds.data_classification || ""}
+                            onValueChange={(v) => updateDataset({ data_classification: v })}
+                          >
+                            <SelectTrigger className="h-8 text-xs mt-1">
+                              <SelectValue placeholder="Select classification" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="public">Public</SelectItem>
+                              <SelectItem value="confidential">Confidential</SelectItem>
+                              <SelectItem value="personal_class_1">Personal Class 1</SelectItem>
+                              <SelectItem value="personal_class_1_pci">Personal Class 1 - PCI</SelectItem>
+                              <SelectItem value="personal_class_2">Personal Class 2</SelectItem>
+                              <SelectItem value="personal_class_3">Personal Class 3</SelectItem>
+                              <SelectItem value="personal_class_4">Personal Class 4</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Dataset Access Entitlements */}
+                        <div>
+                          <Label className="text-xs text-slate-600">Dataset Access Entitlements</Label>
+                          <Input
+                            value={ds.access_entitlements?.join(", ") || ""}
+                            onChange={(e) => updateDataset({
+                              access_entitlements: e.target.value.split(",").map(s => s.trim()).filter(s => s)
+                            })}
+                            placeholder="e.g. data_analyst, finance_user"
+                            className="text-xs mt-1"
+                          />
+                          <p className="text-xs text-slate-400 mt-1">Leave empty to inherit job-level entitlements</p>
+                        </div>
+                      </Card>
+                    </div>
                   </TabsContent>
                 </Tabs>
               </TabsContent>
