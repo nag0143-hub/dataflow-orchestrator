@@ -251,19 +251,19 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
               <div className="bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 flex items-center justify-between gap-2">
                 <span className="shrink-0">Column Mappings ({tableMappings.filter(m => !m.is_audit).length})</span>
                 <div className="relative flex-1 max-w-xs">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-blue-400" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Search mappings..."
+                    placeholder="Search columns..."
                     value={mappingSearch}
                     onChange={e => { setMappingSearch(e.target.value); setMappingPage(0); }}
-                    className="w-full pl-6 pr-2 h-6 text-xs rounded border border-blue-200 bg-white text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                    className="w-full pl-6 pr-2 h-6 text-xs rounded border border-slate-200 bg-white text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300"
                   />
                 </div>
                 {mappingSearch && (
-                  <span className="text-blue-500 shrink-0">{filteredMappings.length} shown</span>
+                  <span className="text-slate-600 shrink-0 text-xs">{filteredMappings.filter(m => !m.is_audit).length} shown</span>
                 )}
-                <button type="button" onClick={() => onChange(prev => ({ ...prev, [tableKey]: [] }))} className="text-red-400 hover:text-red-600 text-xs shrink-0">Clear all</button>
+                <button type="button" onClick={() => onChange(prev => ({ ...prev, [tableKey]: prev[tableKey].filter(m => m.is_audit) }))} className="text-red-500 hover:text-red-700 text-xs shrink-0">Clear mappings</button>
               </div>
               <div className="overflow-x-auto overflow-y-auto max-h-96 border-t border-slate-100">
                 <DragDropContext onDragEnd={(result) => {
