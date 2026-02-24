@@ -73,9 +73,14 @@ export default function JobSpecTabPreview({ formData, connections }) {
   const cleanSpec = JSON.parse(JSON.stringify(spec));
   const dagContent = generateAirflowDAG(draftJob, connections);
 
-  const specContent = format === "json"
-    ? JSON.stringify(cleanSpec, null, 2)
-    : `# DataFlow Pipeline Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
+  // Generate open format JSON for Git check-in if toggled
+  const gitCheckInContent = gitCheckInFormat ? JSON.stringify(cleanSpec, null, 2) : null;
+
+  const specContent = gitCheckInFormat && gitCheckInContent
+    ? gitCheckInContent
+    : format === "json"
+      ? JSON.stringify(cleanSpec, null, 2)
+      : `# DataFlow Pipeline Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
 
   const content = view === "dag" ? dagContent : specContent;
   const filename = view === "dag" ? dagFilename : specFilename;
