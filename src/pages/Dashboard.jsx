@@ -150,7 +150,7 @@ export default function Dashboard() {
                       return (
                         <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
                           <td className="py-3 px-4">
-                            <span className="font-medium text-slate-900 dark:text-slate-100">{job?.name || "Unknown Job"}</span>
+                            <span className="font-medium text-slate-900 dark:text-slate-100">{job?.name || "Unknown Pipeline"}</span>
                           </td>
                           <td className="py-3 px-4">
                             <StatusBadge status={run.status} size="sm" />
