@@ -47,6 +47,15 @@ function toYaml(obj, indent = 0) {
   return String(obj);
 }
 
+const FLAT_FILE_PLATFORMS = ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"];
+
+function getOperatorType(sourcePlatform, targetPlatform) {
+  const srcFlat = FLAT_FILE_PLATFORMS.includes(sourcePlatform);
+  const tgtFlat = FLAT_FILE_PLATFORMS.includes(targetPlatform);
+  // If either source or target is a flat file type, use PythonOperator
+  return (srcFlat || tgtFlat) ? "PythonOperator" : "SparkSubmitOperator";
+}
+
 function connDetails(conn) {
   if (!conn) return {};
   // Omit secrets; include only structural/config fields safe for git
@@ -70,9 +79,16 @@ export function buildJobSpec(job, connections) {
   const sourceConn = connections.find(c => c.id === job.source_connection_id);
   const targetConn = connections.find(c => c.id === job.target_connection_id);
 
+  const srcPlatform = sourceConn?.platform || "";
+  const tgtPlatform = targetConn?.platform || "";
+  const operatorType = getOperatorType(srcPlatform, tgtPlatform);
+  const isSparkJob = operatorType === "SparkSubmitOperator";
+
+  const datasets = (job.selected_datasets || job.selected_objects || []);
+
   return {
     apiVersion: "dataflow/v1",
-    kind: "IngestionJob",
+    kind: "IngestionPipeline",
     metadata: {
       name: job.name,
       description: job.description || "",
@@ -88,13 +104,38 @@ export function buildJobSpec(job, connections) {
         connection_id: job.target_connection_id,
         ...connDetails(targetConn),
       },
-      objects: (job.selected_objects || []).map(o => ({
-        schema: o.schema,
-        table: o.table,
-        target_path: o.target_path || "",
-        filter_query: o.filter_query || "",
-        incremental_column: o.incremental_column || "",
-      })),
+      datasets: datasets.map(o => {
+        const datasetSrcPlatform = srcPlatform;
+        const dsOperator = getOperatorType(datasetSrcPlatform, tgtPlatform);
+        const dsIsSpark = dsOperator === "SparkSubmitOperator";
+        return {
+          schema: o.schema,
+          table: o.table,
+          target_path: o.target_path || "",
+          filter_query: o.filter_query || "",
+          incremental_column: o.incremental_column || "",
+          load_method: o.load_method || job.load_method || "append",
+          dag: {
+            task_id: `${job.name}__${o.schema}__${o.table}`.replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase(),
+            operator: dsOperator,
+            ...(dsIsSpark ? {
+              application: "dataflow_spark_ingestion.py",
+              spark_conf: {
+                "spark.executor.memory": "4g",
+                "spark.executor.cores": "2",
+                "spark.driver.memory": "2g",
+              },
+              py_files: ["dataflow_utils.zip"],
+            } : {
+              python_callable: "run_flat_file_ingestion",
+              op_kwargs: {
+                source_platform: srcPlatform,
+                target_platform: tgtPlatform,
+              },
+            }),
+          },
+        };
+      }),
       schedule: {
         type: job.schedule_type || "manual",
         cron_expression: job.cron_expression || "",
@@ -106,6 +147,13 @@ export function buildJobSpec(job, connections) {
         max_retries: job.retry_config?.max_retries ?? 3,
         retry_delay_seconds: job.retry_config?.retry_delay_seconds ?? 60,
         exponential_backoff: job.retry_config?.exponential_backoff ?? true,
+      },
+      dag_generation: {
+        operator_type: operatorType,
+        dag_id: `dataflow__${(job.name || "pipeline").replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}`,
+        is_pyspark: isSparkJob,
+        task_parallelism: "sequential",
+        tags: ["dataflow", isSparkJob ? "pyspark" : "flat_file", job.schedule_type || "manual"],
       },
       column_mappings: job.column_mappings || {},
       data_quality_rules: job.dq_rules || {},
