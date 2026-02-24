@@ -25,7 +25,7 @@ export default function JobFormDialog({
   currentUser
 }) {
   const [activeTab, setActiveTab] = useState("general");
-  const [commitMessage, setCommitMessage] = useState("");
+
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
   const [gitCheckinData, setGitCheckinData] = useState(null);

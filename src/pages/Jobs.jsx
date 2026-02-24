@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, Play, Filter, Rocket, GitCommitHorizontal } from "lucide-react";
+import { Plus, Search, Play, Filter, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
