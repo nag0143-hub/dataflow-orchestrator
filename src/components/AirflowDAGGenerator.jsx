@@ -75,9 +75,10 @@ export function generateAirflowDAG(job, connections) {
     `task_${ds.schema}__${ds.table}`.replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase()
   );
 
+  // All tasks run in PARALLEL (no dependencies between them)
   const dependencyChain = taskIds.length > 1
-    ? "\n    " + taskIds.join(" >> ") + "\n"
-    : taskIds.length === 1 ? `\n    # Single task — no dependencies\n    ${taskIds[0]}\n` : "\n    pass\n";
+    ? `\n    # All dataset tasks run in parallel\n    [${taskIds.join(", ")}]\n`
+    : taskIds.length === 1 ? `\n    # Single task\n    ${taskIds[0]}\n` : "\n    pass\n";
 
   const usesFlat = isFlat(srcPlatform) || isFlat(tgtPlatform);
   const imports = usesFlat
