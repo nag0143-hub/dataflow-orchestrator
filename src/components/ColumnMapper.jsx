@@ -281,6 +281,40 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
 
       {selectedTable && (
         <>
+          {/* Global Transformation Rules */}
+          <div className="border border-blue-100 rounded-xl p-4 bg-blue-50">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-blue-900">Global Transformation Rules</h3>
+              <span className="text-xs text-blue-600">{globalRules.length} selected</span>
+            </div>
+            <div className="space-y-2 mb-3">
+              {GLOBAL_RULES.map(rule => (
+                <label key={rule.value} className="flex items-center gap-2 text-xs text-blue-800 cursor-pointer hover:bg-blue-100 p-2 rounded">
+                  <Checkbox
+                    checked={globalRules.includes(rule.value)}
+                    onCheckedChange={checked => {
+                      if (checked) {
+                        setGlobalRules([...globalRules, rule.value]);
+                      } else {
+                        setGlobalRules(globalRules.filter(r => r !== rule.value));
+                      }
+                    }}
+                  />
+                  <span>{rule.label}</span>
+                </label>
+              ))}
+            </div>
+            {globalRules.length > 0 && (
+              <Button
+                size="sm"
+                className="w-full h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={applyGlobalRules}
+              >
+                Apply Rules to All Mappings
+              </Button>
+            )}
+          </div>
+
           {/* Column mappings */}
           {tableMappings.filter(m => !m.is_audit).length > 0 && (
             <div className="border border-slate-200 rounded-xl overflow-hidden">
