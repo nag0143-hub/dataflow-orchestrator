@@ -217,7 +217,7 @@ export default function JobFormDialog({
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving || !validateJob(true)}>
+                <Button type="submit" disabled={saving || !isValid}>
                   {saving ? "Saving..." : editingJob ? "Update Pipeline" : "Create Pipeline"}
                 </Button>
               </div>
