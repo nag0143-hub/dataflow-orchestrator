@@ -171,33 +171,53 @@ export default function AdvancedTabContent({ formData, setFormData }) {
         )}
       </div>
 
-      {/* Data Cleansing */}
-      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Wand2 className="w-4 h-4 text-indigo-600" />
-          <h4 className="font-semibold text-slate-900 text-sm">Data Cleansing</h4>
+      {/* Data Quality Rules - Dataset Specific */}
+      {selectedDataset && (
+        <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-emerald-50">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <h4 className="font-semibold text-slate-900 text-sm">Data Quality Rules</h4>
+          </div>
+          <p className="text-xs text-slate-500">Define quality checks for {selectedDataset}</p>
+          <DataQualityRules
+            selectedObjects={[formData.selected_datasets.find(o => `${o.schema}.${o.table}` === selectedDataset)].filter(Boolean)}
+            rules={formData.dq_rules}
+            onChange={handleRulesChange}
+          />
         </div>
-        <p className="text-xs text-slate-500">Remove unprintable characters, control characters, and whitespace anomalies.</p>
-        <DataCleansing
-          selectedObjects={formData.selected_datasets}
-          cleansing={formData.data_cleansing}
-          onChange={handleCleansingChange}
-        />
-      </div>
+      )}
 
-      {/* Column Mapping */}
-      <div className="border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <ArrowLeftRight className="w-4 h-4 text-violet-600" />
-          <h4 className="font-semibold text-slate-900 text-sm">Column Mapping & Transformations</h4>
+      {/* Data Cleansing - Dataset Specific */}
+      {selectedDataset && (
+        <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-amber-50">
+          <div className="flex items-center gap-2">
+            <Wand2 className="w-4 h-4 text-amber-600" />
+            <h4 className="font-semibold text-slate-900 text-sm">Data Cleansing</h4>
+          </div>
+          <p className="text-xs text-slate-500">Remove unprintable characters and anomalies from {selectedDataset}</p>
+          <DataCleansing
+            selectedObjects={[formData.selected_datasets.find(o => `${o.schema}.${o.table}` === selectedDataset)].filter(Boolean)}
+            cleansing={formData.data_cleansing}
+            onChange={handleCleansingChange}
+          />
         </div>
-        <p className="text-xs text-slate-500">Map source columns to target columns and apply transformations.</p>
-        <ColumnMapper
-          selectedObjects={formData.selected_datasets}
-          mappings={formData.column_mappings}
-          onChange={handleMappingsChange}
-        />
-      </div>
+      )}
+
+      {/* Column Mapping - Dataset Specific */}
+      {selectedDataset && (
+        <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-violet-50">
+          <div className="flex items-center gap-2">
+            <ArrowLeftRight className="w-4 h-4 text-violet-600" />
+            <h4 className="font-semibold text-slate-900 text-sm">Column Mapping & Transformations</h4>
+          </div>
+          <p className="text-xs text-slate-500">Map, transform, and apply rules to columns in {selectedDataset}</p>
+          <ColumnMapper
+            selectedObjects={[formData.selected_datasets.find(o => `${o.schema}.${o.table}` === selectedDataset)].filter(Boolean)}
+            mappings={formData.column_mappings}
+            onChange={handleMappingsChange}
+          />
+        </div>
+      )}
 
       {/* Data Masking */}
       <DataMaskingConfig
