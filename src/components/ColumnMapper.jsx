@@ -425,7 +425,16 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                         <td className="px-3 py-2 text-xs font-mono text-slate-900">{m.source}</td>
                                         <td className="px-3 py-2 text-xs text-slate-600 font-mono">{m.sourceDataType || "-"}</td>
                                         <td className="px-3 py-2 text-xs text-slate-600 font-mono">{m.sourceLength || "-"}</td>
-                                        <td className="px-3 py-2 text-xs text-slate-600 font-medium text-center">—</td>
+                                        <td className="px-3 py-2">
+                                          <Input
+                                            type="number"
+                                            min="1"
+                                            value={m.targetPosition || ""}
+                                            onChange={e => updateMapping(m.source, "targetPosition", e.target.value ? parseInt(e.target.value) : "")}
+                                            placeholder="—"
+                                            className="h-6 text-xs px-2 border-slate-200 text-center"
+                                          />
+                                        </td>
                                         <td className="px-3 py-2">
                                           <Input
                                             value={m.target}
