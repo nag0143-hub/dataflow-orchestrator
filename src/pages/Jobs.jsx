@@ -10,7 +10,7 @@ import { createIndex } from "@/components/dataIndexing";
 import { useTenant } from "@/components/useTenant";
 import moment from "moment";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ObjectSelector from "@/components/ObjectSelector";
 
@@ -423,7 +423,6 @@ export default function Jobs() {
               onPause={handlePauseJob}
               onClone={handleCloneJob}
               onViewDetails={(job) => { setViewingJob(job); setDetailsDialogOpen(true); }}
-              onViewHistory={setHistoryDialogJob}
               onExport={setExportJob}
             />
           ))}
