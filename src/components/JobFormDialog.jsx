@@ -26,7 +26,6 @@ export default function JobFormDialog({
   const [activeTab, setActiveTab] = useState("general");
   const [commitMessage, setCommitMessage] = useState("");
   const [saving, setSaving] = useState(false);
-  const [showDatasetLoadMethods, setShowDatasetLoadMethods] = useState(false);
 
   const sourceConnections = connections.filter(c => c.connection_type === "source");
   const targetConnections = connections.filter(c => c.connection_type === "target");
