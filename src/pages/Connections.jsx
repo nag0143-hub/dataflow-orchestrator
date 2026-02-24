@@ -578,6 +578,9 @@ export default function Connections() {
                       setFormData(prev => ({
                         ...defaultFormData,
                         name: prev.name,
+                        source_system_name: prev.source_system_name,
+                        description: prev.description,
+                        car_id: prev.car_id,
                         connection_type: prev.connection_type,
                         status: prev.status,
                         notes: prev.notes,
