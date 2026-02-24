@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const DEFAULT_USER = "administrator";
-const DEFAULT_PASS = "administrator";
+const DEFAULT_USER = "admin";
+const DEFAULT_PASS = "admin";
 
 export default function LDAPIntegration() {
   const [username, setUsername] = useState("");
