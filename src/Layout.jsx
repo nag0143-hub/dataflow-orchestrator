@@ -3,16 +3,13 @@ import { createPageUrl } from "./utils";
 import { useState, useEffect } from "react";
 import { 
         Workflow,
-        Database,
         Home,
         Cable,
         Play,
         FileText,
         Sun,
         Moon,
-        GitGraph,
         BookOpen,
-        Shield,
         Server
       } from "lucide-react";
 import { cn } from "@/lib/utils";
