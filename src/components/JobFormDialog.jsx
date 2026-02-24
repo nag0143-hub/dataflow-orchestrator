@@ -43,29 +43,27 @@ export default function JobFormDialog({
     }
   };
 
+  const getErrors = () => {
+    const e = {};
+    if (!formData.name?.trim()) e.name = "Pipeline name is required.";
+    if (!formData.source_connection_id) e.source_connection_id = "Please select a source connection.";
+    if (!formData.target_connection_id) e.target_connection_id = "Please select a target connection.";
+    if (formData.source_connection_id && formData.source_connection_id === formData.target_connection_id) {
+      e.source_connection_id = "Source and target must be different.";
+      e.target_connection_id = "Source and target must be different.";
+    }
+    if (!formData.selected_datasets || formData.selected_datasets.length === 0) e.datasets = "At least one dataset must be selected.";
+    if (formData.schedule_type === "custom" && !formData.cron_expression?.trim()) e.cron_expression = "Cron expression is required for custom schedule.";
+    return e;
+  };
+
+  const fieldErrors = touched ? getErrors() : {};
+  const isValid = Object.keys(getErrors()).length === 0;
+
   const validateJob = (silent = false) => {
-    if (!formData.name?.trim()) {
-      if (!silent) toast.error("Job name is required");
-      return false;
-    }
-    if (!formData.source_connection_id) {
-      if (!silent) toast.error("Source connection is required");
-      return false;
-    }
-    if (!formData.target_connection_id) {
-      if (!silent) toast.error("Target connection is required");
-      return false;
-    }
-    if (formData.source_connection_id === formData.target_connection_id) {
-      if (!silent) toast.error("Source and target connections must be different");
-      return false;
-    }
-    if (!formData.selected_datasets || formData.selected_datasets.length === 0) {
-      if (!silent) toast.error("At least one dataset must be selected");
-      return false;
-    }
-    if (formData.schedule_type === "custom" && !formData.cron_expression?.trim()) {
-      if (!silent) toast.error("Cron expression is required for custom schedule");
+    const errors = getErrors();
+    if (Object.keys(errors).length > 0) {
+      if (!silent) toast.error(Object.values(errors)[0]);
       return false;
     }
     return true;
