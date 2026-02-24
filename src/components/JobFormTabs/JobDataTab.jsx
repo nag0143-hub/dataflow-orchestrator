@@ -89,9 +89,17 @@ function DatasetCard({ ds, index, formData, setFormData }) {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Settings2 className="w-3.5 h-3.5 text-slate-300" />
-          {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        <div className="flex items-center gap-1 shrink-0">
+           <button
+             type="button"
+             onClick={(e) => { e.stopPropagation(); deleteDataset(); }}
+             className="p-1 hover:bg-red-50 hover:text-red-600 rounded text-slate-400 transition-colors"
+             title="Delete dataset"
+           >
+             <Trash2 className="w-4 h-4" />
+           </button>
+           <Settings2 className="w-3.5 h-3.5 text-slate-300" />
+           {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
         </div>
       </div>
 
