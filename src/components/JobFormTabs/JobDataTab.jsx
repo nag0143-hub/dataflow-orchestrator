@@ -172,8 +172,20 @@ function DatasetCard({ ds, index, formData, setFormData }) {
   );
 }
 
+const SAMPLE_DATASETS = [
+  { schema: "sales", table: "orders", filter_query: "", incremental_column: "updated_at", target_path: "raw/sales/orders" },
+  { schema: "sales", table: "customers", filter_query: "status = 'active'", incremental_column: "updated_at", target_path: "raw/sales/customers" },
+  { schema: "inventory", table: "products", filter_query: "", incremental_column: "last_modified", target_path: "raw/inventory/products" },
+];
+
 export default function JobDataTab({ formData, setFormData }) {
   const datasets = formData.selected_datasets || [];
+  const [showSamples, setShowSamples] = useState(false);
+
+  const addSampleDatasets = () => {
+    setFormData({ ...formData, selected_datasets: [...datasets, ...SAMPLE_DATASETS.filter(s => !datasets.some(d => d.schema === s.schema && d.table === s.table))] });
+    setShowSamples(false);
+  };
 
   return (
     <div className="space-y-5">
@@ -186,6 +198,17 @@ export default function JobDataTab({ formData, setFormData }) {
         <p className="text-xs text-slate-400 mb-3">
           Pick one or more tables from the source connection. Each can be individually configured below.
         </p>
+        {datasets.length === 0 && (
+          <div className="mb-3">
+            <button
+              type="button"
+              onClick={addSampleDatasets}
+              className="text-xs px-3 py-1.5 rounded border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 font-medium"
+            >
+              + Load Sample Datasets for Testing
+            </button>
+          </div>
+        )}
         <ObjectSelector
           selectedObjects={formData.selected_datasets}
           onChange={(objects) => setFormData({ ...formData, selected_datasets: objects })}
