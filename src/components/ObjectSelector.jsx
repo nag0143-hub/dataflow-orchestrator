@@ -122,7 +122,13 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
   const selectAllInSchema = (schema, tables) => {
     const toAdd = tables
       .filter(t => !isSelected(schema, t.name))
-      .map(t => ({ schema, table: t.name, target_path: `/${schema}/${t.name}`, target_format: "original" }));
+      .map(t => ({ 
+        schema, 
+        table: t.name, 
+        target_path: `/${schema}/${t.name}`, 
+        target_format: "original",
+        columns: t.columns || []
+      }));
     onChange([...selectedObjects, ...toAdd]);
   };
 
