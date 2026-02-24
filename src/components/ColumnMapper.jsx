@@ -326,8 +326,8 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                     </DragDropContext>
                     </div>
               {totalMappingPages > 1 && (
-                <div className="flex items-center justify-between px-3 py-2 border-t border-blue-100 bg-blue-50 text-xs text-blue-600">
-                  <span>Page {mappingPage + 1} of {totalMappingPages} ({filteredMappings.length} mappings)</span>
+                <div className="flex items-center justify-between px-3 py-2 border-t border-slate-100 bg-slate-50 text-xs text-slate-600">
+                  <span>Page {mappingPage + 1} of {totalMappingPages}</span>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-6 w-6" disabled={mappingPage === 0} onClick={() => setMappingPage(p => p - 1)}>
                       <ChevronLeft className="w-3.5 h-3.5" />
