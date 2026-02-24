@@ -39,7 +39,8 @@ export default function Layout({ children }) {
       { name: "Data Catalog", icon: BookOpen, page: "DataCatalog" },
       { name: "Lineage", icon: GitGraph, page: "Lineage" },
       { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
-    ];
+      { name: "LDAP", icon: Server, page: "LDAPIntegration" },
+      ];
 
   const isActive = (page) => {
     const path = location.pathname.toLowerCase();
