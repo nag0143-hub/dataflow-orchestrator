@@ -80,6 +80,7 @@ export default function JobFormDialog({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setTouched(true);
     if (!validateJob()) return;
 
     setSaving(true);
