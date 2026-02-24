@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ColumnMapperRow from "./ColumnMapperRow";
 import ColumnMapperBulkActions from "./ColumnMapperBulkActions";
 import { GLOBAL_RULES, DQ_RULES, ENCRYPTION_TYPES, TRANSFORMATIONS, PAGE_SIZE, MAPPING_PAGE_SIZE, DATA_TYPES } from "./constants";
+import { columnCacheManager, invalidateCacheForObjects } from "./cacheManager";
 
 // Seeded pseudo-random so data types are stable across renders
 function seededRand(seed) {
@@ -23,12 +24,10 @@ function seededRand(seed) {
   return () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return Math.abs(s) / 0x7fffffff; };
 }
 
-// Cache columns per table key so they're never regenerated
-const columnCache = new Map();
-
 function getMockColumns(schema, table, selectedObjects) {
    const key = `${schema}.${table}`;
-   if (columnCache.has(key)) return columnCache.get(key);
+   const cached = columnCacheManager.get(key);
+   if (cached) return cached;
 
    // Check if columns exist in selectedObjects
    const selectedObj = selectedObjects?.find(obj => obj.schema === schema && obj.table === table);
@@ -39,7 +38,7 @@ function getMockColumns(schema, table, selectedObjects) {
        length: extractLength(col.type),
        order: idx + 1
      }));
-     columnCache.set(key, cols);
+     columnCacheManager.set(key, cols);
      return cols;
    }
 
@@ -66,6 +65,11 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     const autoMappedRef = useRef(new Set());
 
   const tableKey = selectedTable;
+
+  // Invalidate cache when selectedObjects changes (different set of tables)
+  useEffect(() => {
+    invalidateCacheForObjects(selectedObjects);
+  }, [selectedObjects]);
 
   const tableColumns = useMemo(() => {
     if (!selectedTable) return [];
