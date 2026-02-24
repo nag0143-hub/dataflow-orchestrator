@@ -121,7 +121,13 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
   useEffect(() => {
     if (!tableKey || !tableColumns.length || mappings[tableKey] || autoMappedRef.current.has(tableKey)) return;
     autoMappedRef.current.add(tableKey);
-    const auto = tableColumns.map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
+    const auto = tableColumns.map(c => ({ 
+      source: c.name, 
+      target: c.name, 
+      transformation: "direct",
+      sourceDataType: c.dataType,
+      sourceLength: c.length
+    }));
     onChange({ ...mappings, [tableKey]: auto });
   }, [tableKey, tableColumns]);
 
