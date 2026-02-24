@@ -38,6 +38,15 @@ export default function JobFormDialog({
   const currentTabIndex = allTabs.indexOf(activeTab);
 
   const handleNext = () => {
+    setTouched(true);
+    if (activeTab === "general") {
+      const e = getErrors();
+      if (e.name || e.source_connection_id || e.target_connection_id) return;
+    }
+    if (activeTab === "datasets") {
+      const e = getErrors();
+      if (e.datasets) { toast.error(e.datasets); return; }
+    }
     if (currentTabIndex < allTabs.length - 1) {
       setActiveTab(allTabs[currentTabIndex + 1]);
     }
