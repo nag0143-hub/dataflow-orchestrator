@@ -142,12 +142,6 @@ export default function JobFormDialog({
 
   return (
     <div>
-    <GitCheckinDialog
-      open={gitCheckinOpen}
-      onOpenChange={setGitCheckinOpen}
-      pipelineData={gitCheckinData}
-      connections={connections}
-    />
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
