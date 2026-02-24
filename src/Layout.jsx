@@ -35,7 +35,7 @@ export default function Layout({ children }) {
   const navItems = [
       { name: "Dashboard", icon: Home, page: "Dashboard" },
       { name: "Connections", icon: Cable, page: "Connections" },
-      { name: "Jobs", icon: Play, page: "Jobs" },
+      { name: "Pipelines", icon: Play, page: "Jobs" },
       { name: "Data Catalog", icon: BookOpen, page: "DataCatalog" },
       { name: "Lineage", icon: GitGraph, page: "Lineage" },
       { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },

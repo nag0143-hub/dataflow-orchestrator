@@ -95,7 +95,7 @@ export default function Dashboard() {
           icon={Cable}
         />
         <StatCard 
-          title="Ingestion Jobs" 
+          title="Ingestion Pipelines" 
           value={stats.totalJobs}
           subtitle={`${stats.runningJobs} running`}
           icon={Play}
@@ -120,11 +120,11 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
                 <Play className="w-5 h-5 text-blue-600" />
-                Recent Job Runs
+                Recent Pipeline Runs
               </CardTitle>
               <Link to={createPageUrl("Jobs")}>
                 <Button variant="outline" size="sm" className="gap-1">
-                  View All Jobs
+                  View All Pipelines
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
@@ -173,8 +173,8 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-12">
                 <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 dark:text-slate-400">No job runs yet</p>
-                <p className="text-sm text-slate-400 dark:text-slate-500">Create and run a job to see activity here</p>
+                <p className="text-slate-500 dark:text-slate-400">No pipeline runs yet</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500">Create and run a pipeline to see activity here</p>
               </div>
             )}
           </CardContent>
@@ -245,7 +245,7 @@ export default function Dashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
-                  Create Data Transfer Job
+                  Create Data Transfer Pipeline
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Set up bulk data transfers with retry logic</p>
               </div>

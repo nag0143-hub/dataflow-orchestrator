@@ -179,15 +179,15 @@ export default function Jobs() {
   };
 
   const handleDelete = async (job) => {
-    if (!confirm(`Delete job "${job.name}"?`)) return;
+    if (!confirm(`Delete pipeline "${job.name}"?`)) return;
 
     await base44.entities.IngestionJob.delete(job.id);
     await base44.entities.ActivityLog.create({
       log_type: "warning",
       category: "job",
-      message: `Job "${job.name}" deleted`
+      message: `Pipeline "${job.name}" deleted`
     });
-    toast.success("Job deleted");
+    toast.success("Pipeline deleted");
     loadData();
   };
 
@@ -218,10 +218,10 @@ export default function Jobs() {
       category: "job",
       job_id: job.id,
       run_id: run.id,
-      message: `Job "${job.name}" started`
+      message: `Pipeline "${job.name}" started`
     });
 
-    toast.success("Job started");
+    toast.success("Pipeline started");
 
     // Simulate job execution
     simulateJobRun(job, run);
@@ -263,8 +263,8 @@ export default function Jobs() {
       job_id: job.id,
       run_id: run.id,
       message: success 
-        ? `Job "${job.name}" completed successfully - ${totalRows.toLocaleString()} rows processed`
-        : `Job "${job.name}" failed - Connection timeout`
+        ? `Pipeline "${job.name}" completed successfully - ${totalRows.toLocaleString()} rows processed`
+          : `Pipeline "${job.name}" failed - Connection timeout`
     });
 
     loadData();
@@ -298,7 +298,7 @@ export default function Jobs() {
       category: "job",
       job_id: job.id,
       run_id: run.id,
-      message: `Job "${job.name}" retry attempt #${run.retry_count}`
+      message: `Pipeline "${job.name}" retry attempt #${run.retry_count}`
     });
 
     toast.success("Retry started");
@@ -315,10 +315,10 @@ export default function Jobs() {
       log_type: "info",
       category: "job",
       job_id: job.id,
-      message: `Job "${job.name}" ${job.status === "paused" ? "resumed" : "paused"}`
+      message: `Pipeline "${job.name}" ${job.status === "paused" ? "resumed" : "paused"}`
     });
 
-    toast.success(job.status === "paused" ? "Job resumed" : "Job paused");
+    toast.success(job.status === "paused" ? "Pipeline resumed" : "Pipeline paused");
     loadData();
   };
 
@@ -352,7 +352,7 @@ export default function Jobs() {
     setEditingJob(null);
     setDialogOpen(true);
     setActiveTab("general");
-    toast.success("Job cloned. Make changes and save as a new job.");
+    toast.success("Pipeline cloned. Make changes and save as a new pipeline.");
   };
 
   const filteredJobs = jobs.filter(j => {
@@ -378,8 +378,8 @@ export default function Jobs() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Transfer Jobs</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Configure and run data transfer jobs between connections</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Transfer Pipelines</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Configure and run data transfer pipelines between connections</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -395,7 +395,7 @@ export default function Jobs() {
             className="gap-2"
           >
             <Plus className="w-4 h-4" />
-            New Job
+            New Pipeline
           </Button>
         </div>
       </div>
@@ -405,7 +405,7 @@ export default function Jobs() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
-            placeholder="Search jobs..."
+            placeholder="Search pipelines..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -452,14 +452,14 @@ export default function Jobs() {
       ) : (
         <EmptyStateGuide
           icon={Play}
-          title={searchTerm ? "No jobs found" : "No data transfer jobs yet"}
+          title={searchTerm ? "No pipelines found" : "No data transfer pipelines yet"}
           description={
             searchTerm
               ? "Try adjusting your search or filters"
-              : "Create your first data transfer job to start moving data between connections"
+              : "Create your first data transfer pipeline to start moving data between connections"
           }
           primaryAction={!searchTerm ? {
-            label: "New Job",
+            label: "New Pipeline",
             icon: <Plus className="w-4 h-4" />,
             onClick: () => { setEditingJob(null); setFormData(defaultFormData); setDialogOpen(true); setActiveTab("general"); }
           } : null}

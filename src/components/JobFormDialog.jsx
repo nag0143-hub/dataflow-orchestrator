@@ -91,10 +91,10 @@ export default function JobFormDialog({
             log_type: "info",
             category: "job",
             job_id: editingJob.id,
-            message: `Job "${formData.name}" updated`,
+            message: `Pipeline "${formData.name}" updated`,
           }),
         ]);
-        toast.success("Job updated");
+        toast.success("Pipeline updated");
       } else {
         const created = await base44.entities.IngestionJob.create(payload);
         await Promise.all([
@@ -102,10 +102,10 @@ export default function JobFormDialog({
             log_type: "success",
             category: "job",
             job_id: created.id,
-            message: `Job "${formData.name}" created`,
+            message: `Pipeline "${formData.name}" created`,
           }),
         ]);
-        toast.success("Job created");
+        toast.success("Pipeline created");
       }
 
       onOpenChange(false);
@@ -121,7 +121,7 @@ export default function JobFormDialog({
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editingJob ? "Edit Job" : "New Data Transfer Job"}
+            {editingJob ? "Edit Pipeline" : "New Data Transfer Pipeline"}
           </DialogTitle>
         </DialogHeader>
 
@@ -132,7 +132,7 @@ export default function JobFormDialog({
               <TabsTrigger value="datasets">Data</TabsTrigger>
               <TabsTrigger value="settings">Schedule</TabsTrigger>
               {formData.enable_advanced && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
-              <TabsTrigger value="spec">Job Spec</TabsTrigger>
+              <TabsTrigger value="spec">Pipeline Spec</TabsTrigger>
             </TabsList>
 
             <div className="max-h-[calc(92vh-300px)] overflow-y-auto">
@@ -190,7 +190,7 @@ export default function JobFormDialog({
                   Cancel
                 </Button>
                 <Button type="submit" disabled={saving || !validateJob(true)}>
-                  {saving ? "Saving..." : editingJob ? "Update Job" : "Create Job"}
+                  {saving ? "Saving..." : editingJob ? "Update Pipeline" : "Create Pipeline"}
                 </Button>
               </div>
             </div>

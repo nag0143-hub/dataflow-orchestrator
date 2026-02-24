@@ -68,7 +68,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
     ? JSON.stringify(cleanSpec, null, 2)
     : `# DataFlow Job Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
 
-  const filename = `${(formData.name || "job").replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-jobspec.${format === "json" ? "json" : "yaml"}`;
+  const filename = `${(formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-jobspec.${format === "json" ? "json" : "yaml"}`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
@@ -90,7 +90,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <FileJson className="w-4 h-4 text-blue-600" />
-        <span className="text-sm font-semibold text-slate-900">Job Spec</span>
+        <span className="text-sm font-semibold text-slate-900">Pipeline Spec</span>
         <span className="text-xs text-slate-400 ml-1">(check this file into git)</span>
         <div className="flex gap-1.5 ml-auto">
           {["yaml", "json"].map(f => (
@@ -121,7 +121,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
       )}
       
       <p className="text-xs text-slate-500">
-        This spec reflects the current (unsaved) form state and includes full connection details. Save the job first, then download to commit.
+        This spec reflects the current (unsaved) form state and includes full connection details. Save the pipeline first, then download to commit.
       </p>
       <div className="rounded-lg border border-slate-200 bg-slate-950 overflow-hidden">
         <pre className="p-4 text-xs text-emerald-300 font-mono whitespace-pre overflow-auto max-h-[50vh] leading-relaxed">
