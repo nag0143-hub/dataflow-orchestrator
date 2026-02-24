@@ -176,16 +176,42 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
   const pageMappings = filteredMappings.slice(mappingPage * MAPPING_PAGE_SIZE, (mappingPage + 1) * MAPPING_PAGE_SIZE);
 
   const addAllVisible = useCallback(() => {
+     onChange(prev => {
+       const key = selectedTable;
+       const tbl = prev[key] || [];
+       const mapped = new Set(tbl.map(m => m.source));
+       const newCols = pageColumns
+         .filter(c => !mapped.has(c.name))
+         .map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
+       return { ...prev, [key]: [...tbl, ...newCols] };
+     });
+   }, [selectedTable, pageColumns, onChange]);
+
+  // Apply global transformation rules to all mappings
+  const applyGlobalRules = useCallback(() => {
     onChange(prev => {
       const key = selectedTable;
       const tbl = prev[key] || [];
-      const mapped = new Set(tbl.map(m => m.source));
-      const newCols = pageColumns
-        .filter(c => !mapped.has(c.name))
-        .map(c => ({ source: c.name, target: c.name, transformation: "direct" }));
-      return { ...prev, [key]: [...tbl, ...newCols] };
+      const updated = tbl.map(m => {
+        const sourceCol = tableColumns.find(c => c.name === m.source);
+        if (!sourceCol || m.is_audit) return m;
+
+        for (const rule of globalRules) {
+          const ruleConfig = GLOBAL_RULES.find(r => r.value === rule);
+          if (ruleConfig && ruleConfig.pattern.test(sourceCol.name)) {
+            let newTransform = m.transformation;
+            if (rule === "date_standardize") newTransform = "date_iso";
+            else if (rule === "text_trim") newTransform = "trim";
+            else if (rule === "number_remove_leading") newTransform = "round_0dp";
+            else if (rule === "email_lower") newTransform = "lowercase";
+            return { ...m, transformation: newTransform };
+          }
+        }
+        return m;
+      });
+      return { ...prev, [key]: updated };
     });
-  }, [selectedTable, pageColumns, onChange]);
+  }, [selectedTable, tableColumns, globalRules, onChange]);
 
   if (selectedObjects.length === 0) {
     return (
