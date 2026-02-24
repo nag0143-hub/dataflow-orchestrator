@@ -71,9 +71,22 @@ function seededRand(seed) {
 // Cache columns per table key so they're never regenerated
 const columnCache = new Map();
 
-function getMockColumns(schema, table) {
+function getMockColumns(schema, table, selectedObjects) {
   const key = `${schema}.${table}`;
   if (columnCache.has(key)) return columnCache.get(key);
+  
+  // Check if columns exist in selectedObjects
+  const selectedObj = selectedObjects?.find(obj => obj.schema === schema && obj.table === table);
+  if (selectedObj?.columns && Array.isArray(selectedObj.columns)) {
+    const cols = selectedObj.columns.map(col => ({
+      name: col.name,
+      dataType: col.type || "varchar"
+    }));
+    columnCache.set(key, cols);
+    return cols;
+  }
+
+  // Fallback to mock data if not found
   const rand = seededRand(key.split("").reduce((a, c) => a + c.charCodeAt(0), 0));
   const base = ["id","created_at","updated_at","created_by","updated_by","status","is_active","name","description","code","type","reference_id","parent_id","sequence","priority","category"];
   const extras = Array.from({ length: 984 }, (_, i) => `col_${String(i + 1).padStart(4, "0")}`);
