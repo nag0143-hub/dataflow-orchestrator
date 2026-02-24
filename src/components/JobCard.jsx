@@ -103,6 +103,16 @@ export default function JobCard({
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setGitCheckinOpen(true)}
+              className="gap-1 text-slate-500"
+              title="Git Check-out / Check-in"
+            >
+              <GitBranch className="w-4 h-4" />
+              Checkout
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onExport(job)}
               className="gap-1 text-slate-500"
               title="Export Job Spec"
