@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, CheckCircle2, AlertCircle, Lightbulb, Code2, Play, Settings } from "lucide-react";
+import { BookOpen, ChevronDown, CheckCircle2, AlertCircle, Lightbulb, Code2, Play, Settings, Cable } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 
