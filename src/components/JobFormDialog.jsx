@@ -255,8 +255,18 @@ export default function JobFormDialog({
               >
                 {saving ? "Saving..." : "Save as Draft"}
               </Button>
-              <Button onClick={handleNext}>
-                Next: Git Check-in
+              <Button 
+                onClick={() => {
+                  if (isValid) {
+                    setSpecGenerated(true);
+                    handleNext();
+                  } else {
+                    toast.error("Please validate all required fields before proceeding");
+                  }
+                }}
+                disabled={!isValid}
+              >
+                Validate & Proceed to Git Check-in
               </Button>
             </div>
           )}
