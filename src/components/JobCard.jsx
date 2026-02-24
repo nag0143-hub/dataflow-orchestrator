@@ -185,5 +185,6 @@ export default function JobCard({
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }
