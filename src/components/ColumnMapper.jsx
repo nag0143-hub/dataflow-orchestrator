@@ -72,22 +72,30 @@ function seededRand(seed) {
 const columnCache = new Map();
 
 function getMockColumns(schema, table, selectedObjects) {
-  const key = `${schema}.${table}`;
-  if (columnCache.has(key)) return columnCache.get(key);
-  
-  // Check if columns exist in selectedObjects
-  const selectedObj = selectedObjects?.find(obj => obj.schema === schema && obj.table === table);
-  if (selectedObj?.columns && Array.isArray(selectedObj.columns)) {
-    const cols = selectedObj.columns.map(col => ({
-      name: col.name,
-      dataType: col.type || "varchar"
-    }));
-    columnCache.set(key, cols);
-    return cols;
-  }
+   const key = `${schema}.${table}`;
+   if (columnCache.has(key)) return columnCache.get(key);
 
-  // Return empty array if no columns found (instead of generating 1000 mock columns)
-  return [];
+   // Check if columns exist in selectedObjects
+   const selectedObj = selectedObjects?.find(obj => obj.schema === schema && obj.table === table);
+   if (selectedObj?.columns && Array.isArray(selectedObj.columns)) {
+     const cols = selectedObj.columns.map((col, idx) => ({
+       name: col.name,
+       dataType: col.type || "varchar",
+       length: extractLength(col.type),
+       order: idx + 1
+     }));
+     columnCache.set(key, cols);
+     return cols;
+   }
+
+   // Return empty array if no columns found (instead of generating 1000 mock columns)
+   return [];
+}
+
+function extractLength(dataType) {
+  if (!dataType) return "";
+  const match = dataType.match(/\(([^)]+)\)/);
+  return match ? match[1] : "";
 }
 
 export default function ColumnMapper({ selectedObjects = [], mappings = [], onChange }) {
