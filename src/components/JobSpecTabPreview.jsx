@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Download, Check, FileJson, AlertCircle, GitBranch } from "lucide-react";
 import { buildJobSpec } from "@/components/JobSpecExport";
 import { generateAirflowDAG } from "@/components/AirflowDAGGenerator";
+import { generateLineageSpec } from "@/components/LineageSpecGenerator";
 
 export default function JobSpecTabPreview({ formData, connections }) {
   const [format, setFormat] = useState("yaml");
