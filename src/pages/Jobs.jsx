@@ -73,7 +73,7 @@ export default function Jobs() {
   const [formData, setFormData] = useState(defaultFormData);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
-  const [historyDialogJob, setHistoryDialogJob] = useState(null);
+
   const [exportJob, setExportJob] = useState(null);
   const [showDatasetLoadMethods, setShowDatasetLoadMethods] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -469,23 +469,7 @@ export default function Jobs() {
         />
       )}
 
-      {/* Version History Dialog */}
-      <Dialog open={!!historyDialogJob} onOpenChange={(open) => !open && setHistoryDialogJob(null)}>
-        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <GitCommitHorizontal className="w-5 h-5 text-blue-600" />
-              Version History — {historyDialogJob?.name}
-            </DialogTitle>
-          </DialogHeader>
-          {historyDialogJob && (
-            <PipelineVersionHistory
-              job={historyDialogJob}
-              onRestore={() => { setHistoryDialogJob(null); loadData(); }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+
 
       {/* Job Details Dialog */}
       <JobDetailsDialog
