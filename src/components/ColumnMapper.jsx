@@ -398,6 +398,17 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                   <span className="text-slate-600 text-xs">{filteredMappings.filter(m => !m.is_audit).length} shown</span>
                 )}
               </div>
+              {/* Bulk actions bar */}
+              <ColumnMapperBulkActions
+                selectedCount={selectedMappings.size}
+                totalCount={tableMappings.filter(m => !m.is_audit).length}
+                onSelectAll={handleSelectAll}
+                onDeselectAll={handleDeselectAll}
+                onApplyTransformation={handleApplyTransformation}
+                onDeleteSelected={handleDeleteSelected}
+                onDuplicate={handleDuplicateSelected}
+              />
+
               <div className="overflow-x-auto border-t border-slate-100">
                 <DragDropContext onDragEnd={(result) => {
                   const { source, destination } = result;
@@ -413,94 +424,62 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                         <table className="w-full border-collapse">
                           <thead>
                             <tr className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-12"></th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-8">Ord</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-32">Source Col</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-24">Type</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-20">Length</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-12">Pos</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-32">Target Col</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-24">Type</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-20">Length</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 min-w-40">Transformation</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-8"></th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-6"></th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-6"><Checkbox /></th>
+                              {isCondensed ? (
+                                <>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Source</th>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Target</th>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Transformation</th>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-6"></th>
+                                </>
+                              ) : (
+                                <>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 col-span-4">Source Details</th>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 col-span-4">Target Details</th>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Transformation</th>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-6"></th>
+                                </>
+                              )}
                             </tr>
                           </thead>
                           <tbody>
                             {filteredMappings.filter(m => !m.is_audit).length === 0 ? (
                               <tr>
-                                <td colSpan="11" className="text-center py-6 text-xs text-slate-400">No column mappings yet</td>
+                                <td colSpan={isCondensed ? 6 : 12} className="text-center py-6 text-xs text-slate-400">
+                                  {mappingSearch ? "No matching column mappings" : "No column mappings yet"}
+                                </td>
                               </tr>
                             ) : (
                               pageMappings.filter(m => !m.is_audit).map((m, i) => {
                                 const mappingIndex = tableMappings.indexOf(m);
                                 const sourceCol = tableColumns.find(c => c.name === m.source);
+                                const isSelected = selectedMappings.has(mappingIndex);
                                 return (
                                   <Draggable key={`${m.source}-${mappingIndex}`} draggableId={`${m.source}-${mappingIndex}`} index={mappingIndex} type="MAPPING">
                                     {(provided, snapshot) => (
-                                      <tr
+                                      <ColumnMapperRow
                                         ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        className={cn("border-b border-slate-100 transition-colors", snapshot.isDragging ? "bg-slate-100 shadow-md" : "hover:bg-blue-50")}
-                                      >
-                                        <td className="px-3 py-2" {...provided.dragHandleProps}>
-                                          <GripVertical className="w-3 h-3 text-slate-300 cursor-move" />
-                                        </td>
-                                        <td className="px-3 py-2 text-xs text-slate-600 font-medium text-center">{sourceCol?.order || "-"}</td>
-                                        <td className="px-3 py-2 text-xs font-mono text-slate-900">{m.source}</td>
-                                        <td className="px-3 py-2 text-xs text-slate-600 font-mono">{m.sourceDataType || "-"}</td>
-                                        <td className="px-3 py-2 text-xs text-slate-600 font-mono">{m.sourceLength || "-"}</td>
-                                        <td className="px-3 py-2">
-                                          <Input
-                                            type="number"
-                                            min="1"
-                                            value={m.targetPosition || ""}
-                                            onChange={e => updateMapping(m.source, "targetPosition", e.target.value ? parseInt(e.target.value) : "")}
-                                            placeholder="—"
-                                            className="h-6 text-xs px-2 border-slate-200 text-center"
-                                          />
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          <Input
-                                            value={m.target}
-                                            onChange={e => updateMapping(m.source, "target", e.target.value)}
-                                            className="h-6 text-xs px-2 border-slate-200"
-                                          />
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          <Input
-                                            value={m.targetDataType || ""}
-                                            onChange={e => updateMapping(m.source, "targetDataType", e.target.value)}
-                                            placeholder="varchar"
-                                            className="h-6 text-xs px-2 border-slate-200 font-mono"
-                                          />
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          <Input
-                                            value={m.targetLength || ""}
-                                            onChange={e => updateMapping(m.source, "targetLength", e.target.value)}
-                                            placeholder="255"
-                                            className="h-6 text-xs px-2 border-slate-200 font-mono"
-                                          />
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          <Select value={m.transformation || "direct"} onValueChange={v => updateMapping(m.source, "transformation", v)}>
-                                            <SelectTrigger className="h-6 text-xs border-slate-200">
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {TRANSFORMATIONS.map(t => (
-                                                <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          <button type="button" onClick={() => removeMapping(m.source)} className="text-slate-400 hover:text-red-500">
-                                            <X className="w-3 h-3" />
-                                          </button>
-                                        </td>
-                                      </tr>
+                                        mapping={m}
+                                        sourceCol={sourceCol}
+                                        isSelected={isSelected}
+                                        onSelect={() => {
+                                          const newSet = new Set(selectedMappings);
+                                          if (isSelected) {
+                                            newSet.delete(mappingIndex);
+                                          } else {
+                                            newSet.add(mappingIndex);
+                                          }
+                                          setSelectedMappings(newSet);
+                                        }}
+                                        onUpdate={(field, value) => updateMapping(m.source, field, value)}
+                                        onRemove={() => removeMapping(m.source)}
+                                        isCondensed={isCondensed}
+                                        isDragging={snapshot.isDragging}
+                                        dragProps={provided.draggableProps}
+                                        dragHandleProps={provided.dragHandleProps}
+                                        isAudit={false}
+                                      />
                                     )}
                                   </Draggable>
                                 );
