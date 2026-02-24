@@ -98,25 +98,28 @@ export default function JobFormDialog({
     try {
       if (editingJob) {
         await base44.entities.IngestionJob.update(editingJob.id, payload);
-        await Promise.all([
-          base44.entities.ActivityLog.create({
-            log_type: "info",
-            category: "job",
-            job_id: editingJob.id,
-            message: `Pipeline "${formData.name}" updated`,
-          }),
-        ]);
+        await base44.entities.ActivityLog.create({
+          log_type: "info",
+          category: "job",
+          job_id: editingJob.id,
+          message: `Pipeline "${formData.name}" updated`,
+        });
         toast.success("Pipeline updated");
+        onOpenChange(false);
+        setCommitMessage("");
+        onSaveSuccess?.();
+        // Show git check-in dialog after update
+        setGitCheckinData({ ...formData, id: editingJob.id, _isUpdate: true });
+        setGitCheckinOpen(true);
+        return;
       } else {
         const created = await base44.entities.IngestionJob.create(payload);
-        await Promise.all([
-          base44.entities.ActivityLog.create({
-            log_type: "success",
-            category: "job",
-            job_id: created.id,
-            message: `Pipeline "${formData.name}" created`,
-          }),
-        ]);
+        await base44.entities.ActivityLog.create({
+          log_type: "success",
+          category: "job",
+          job_id: created.id,
+          message: `Pipeline "${formData.name}" created`,
+        });
         toast.success("Pipeline created");
         onOpenChange(false);
         setCommitMessage("");
@@ -126,10 +129,6 @@ export default function JobFormDialog({
         setGitCheckinOpen(true);
         return;
       }
-
-      onOpenChange(false);
-      setCommitMessage("");
-      onSaveSuccess?.();
     } finally {
       setSaving(false);
     }
