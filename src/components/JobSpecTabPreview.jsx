@@ -125,7 +125,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
               {v === "dag" ? "Airflow DAG" : "Pipeline Spec"}
             </button>
           ))}
-          {view === "spec" && ["yaml", "json"].map(f => (
+          {view === "spec" && !gitCheckInFormat && ["yaml", "json"].map(f => (
             <button key={f} type="button" onClick={() => setFormat(f)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
                 format === f ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
@@ -133,6 +133,14 @@ export default function JobSpecTabPreview({ formData, connections }) {
               {f.toUpperCase()}
             </button>
           ))}
+          {view === "spec" && (
+            <button type="button" onClick={() => setGitCheckInFormat(!gitCheckInFormat)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
+                gitCheckInFormat ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-slate-600 border-slate-200 hover:border-emerald-300"
+              }`}>
+              Git Checkin Format
+            </button>
+          )}
         </div>
       </div>
 
