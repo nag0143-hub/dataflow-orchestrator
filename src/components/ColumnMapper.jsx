@@ -207,6 +207,59 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     });
   }, [selectedTable, tableColumns, globalRules, onChange]);
 
+  // Bulk actions
+  const handleSelectAll = useCallback(() => {
+    const allNonAudit = new Set(
+      tableMappings
+        .filter(m => !m.is_audit)
+        .map((m, i) => i)
+    );
+    setSelectedMappings(allNonAudit);
+  }, [tableMappings]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedMappings(new Set());
+  }, []);
+
+  const handleApplyTransformation = useCallback((transformation) => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      const updated = tbl.map((m, i) => 
+        selectedMappings.has(i) ? { ...m, transformation } : m
+      );
+      return { ...prev, [key]: updated };
+    });
+    setSelectedMappings(new Set());
+  }, [selectedTable, selectedMappings, onChange]);
+
+  const handleDeleteSelected = useCallback(() => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      return { 
+        ...prev, 
+        [key]: tbl.filter((m, i) => !selectedMappings.has(i) || m.is_audit)
+      };
+    });
+    setSelectedMappings(new Set());
+  }, [selectedTable, selectedMappings, onChange]);
+
+  const handleDuplicateSelected = useCallback(() => {
+    onChange(prev => {
+      const key = selectedTable;
+      const tbl = prev[key] || [];
+      const toDuplicate = tbl.filter((m, i) => selectedMappings.has(i));
+      const duplicated = toDuplicate.map(m => ({
+        ...m,
+        target: `${m.target}_copy`,
+        derived: true
+      }));
+      return { ...prev, [key]: [...tbl, ...duplicated] };
+    });
+    setSelectedMappings(new Set());
+  }, [selectedTable, selectedMappings, onChange]);
+
   if (selectedObjects.length === 0) {
     return (
       <div className="text-center py-10 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">
