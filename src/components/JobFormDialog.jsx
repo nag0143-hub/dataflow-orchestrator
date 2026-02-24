@@ -27,6 +27,7 @@ export default function JobFormDialog({
 
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [specGenerated, setSpecGenerated] = useState(false);
 
 
   const sourceConnections = connections.filter(c => c.connection_type === "source");
