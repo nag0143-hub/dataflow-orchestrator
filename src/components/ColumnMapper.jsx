@@ -9,11 +9,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, Plus, ArrowRight, ChevronLeft, ChevronRight, Copy, GripVertical } from "lucide-react";
+import { Search, X, Plus, ArrowRight, ChevronLeft, ChevronRight, Copy, GripVertical, Lock, CheckSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const MAPPING_PAGE_SIZE = 50;
+
+const DQ_RULES = [
+  { value: "not_null", label: "Not Null" },
+  { value: "unique", label: "Unique" },
+  { value: "range_check", label: "Range Check" },
+  { value: "pattern_match", label: "Pattern Match" },
+  { value: "length_check", label: "Length Check" },
+];
+
+const ENCRYPTION_TYPES = [
+  { value: "aes256", label: "AES-256" },
+  { value: "hash_sha256", label: "Hash (SHA-256)" },
+  { value: "tokenize", label: "Tokenize" },
+];
 
 const TRANSFORMATIONS = [
   { value: "direct",          label: "Direct Copy" },
