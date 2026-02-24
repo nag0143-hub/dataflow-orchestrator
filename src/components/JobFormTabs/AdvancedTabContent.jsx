@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +11,10 @@ import DataMaskingConfig from "@/components/DataMaskingConfig";
 import SLAConfig from "@/components/SLAConfig";
 
 export default function AdvancedTabContent({ formData, setFormData }) {
+  const [selectedDataset, setSelectedDataset] = useState(
+    formData.selected_datasets?.[0] ? `${formData.selected_datasets[0].schema}.${formData.selected_datasets[0].table}` : ""
+  );
+
   const handleMappingsChange = (mappingsOrUpdater) => {
     setFormData(prev => ({
       ...prev,
