@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, CheckCircle2, AlertCircle, Lightbulb } from "lucide-react";
+import { BookOpen, ChevronDown, CheckCircle2, AlertCircle, Lightbulb, Code2, Play, Settings } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 
@@ -82,49 +82,63 @@ export default function UserGuide() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <BookOpen className="w-8 h-8 text-emerald-600" />
-          <h1 className="text-3xl font-bold text-slate-900">DataFlow User Guide</h1>
+      <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-8 border border-emerald-100">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="p-3 bg-emerald-600 rounded-lg">
+            <BookOpen className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold text-slate-900">DataFlow User Guide</h1>
         </div>
-        <p className="text-slate-600 text-lg">Step-by-step instructions for using the data transfer platform</p>
+        <p className="text-slate-700 text-lg ml-16">Step-by-step instructions for using the data transfer platform</p>
       </div>
 
       {/* Quick Reference */}
       <div className="grid md:grid-cols-3 gap-4">
         {[
-          { icon: "1️⃣", title: "Create Connection", desc: "Set up source & target systems" },
-          { icon: "2️⃣", title: "Create Job", desc: "Select datasets & configure transfer" },
-          { icon: "3️⃣", title: "Run or Schedule", desc: "Execute manually or on schedule" }
-        ].map((step, i) => (
-          <Card key={i} className="border-slate-200">
-            <CardContent className="p-4">
-              <div className="text-3xl mb-2">{step.icon}</div>
-              <h3 className="font-semibold text-slate-900">{step.title}</h3>
-              <p className="text-sm text-slate-600 mt-1">{step.desc}</p>
-            </CardContent>
-          </Card>
-        ))}
+          { icon: Cable, title: "Create Connection", desc: "Set up source & target systems", color: "blue" },
+          { icon: Play, title: "Create Job", desc: "Select datasets & configure transfer", color: "purple" },
+          { icon: Settings, title: "Run or Schedule", desc: "Execute manually or on schedule", color: "emerald" }
+        ].map((step, i) => {
+          const Icon = step.icon;
+          const bgColor = `from-${step.color}-50 to-${step.color}-50`;
+          const borderColor = `border-${step.color}-200`;
+          const iconColor = `text-${step.color}-600`;
+          return (
+            <Card key={i} className={`border-2 ${borderColor} bg-gradient-to-br ${bgColor} hover:shadow-lg transition-all`}>
+              <CardContent className="p-5">
+                <div className={`w-10 h-10 rounded-lg ${iconColor} bg-white/50 flex items-center justify-center mb-3`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <h3 className="font-semibold text-slate-900">{step.title}</h3>
+                <p className="text-sm text-slate-600 mt-1">{step.desc}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Accordion Sections */}
       <div className="space-y-3">
+        <h2 className="text-2xl font-bold text-slate-900 mt-4 mb-4">Learn the Basics</h2>
         {sections.map((section, idx) => (
-          <Card key={idx} className="border-slate-200">
+          <Card key={idx} className={`border-2 transition-all ${expandedSection === idx ? 'border-emerald-300 bg-emerald-50/30 shadow-md' : 'border-slate-200 hover:border-slate-300'}`}>
             <button
               onClick={() => setExpandedSection(expandedSection === idx ? -1 : idx)}
-              className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+              className="w-full p-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors"
             >
               <h2 className="text-lg font-semibold text-slate-900">{section.title}</h2>
-              <ChevronDown className={`w-5 h-5 text-slate-600 transition-transform ${expandedSection === idx ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-slate-600 transition-transform duration-300 ${expandedSection === idx ? 'rotate-180' : ''}`} />
             </button>
 
             {expandedSection === idx && (
-              <CardContent className="p-4 border-t border-slate-200 space-y-3">
+              <CardContent className="p-5 border-t border-slate-200 space-y-4">
                 {section.content.map((item, i) => (
-                  <div key={i} className="pb-3 border-b border-slate-100 last:border-0 last:pb-0">
-                    <h3 className="font-semibold text-slate-900 mb-1">{item.label}</h3>
-                    <p className="text-sm text-slate-600">{item.desc}</p>
+                  <div key={i} className="pb-4 border-b border-slate-100 last:border-0 last:pb-0">
+                    <h3 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                      {item.label}
+                    </h3>
+                    <p className="text-sm text-slate-600 ml-8">{item.desc}</p>
                   </div>
                 ))}
               </CardContent>
@@ -161,29 +175,48 @@ export default function UserGuide() {
       </div>
 
       {/* Key Terminology */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-bold text-slate-900 mb-4 text-lg">Key Terminology</h3>
-        <div className="grid md:grid-cols-2 gap-6 text-sm">
-          <div>
-            <p><strong>Connection:</strong> A link to a source or target system</p>
-            <p><strong>Job:</strong> A data transfer pipeline with configuration</p>
-            <p><strong>Dataset:</strong> A table or file being transferred</p>
-            <p><strong>Run:</strong> One execution of a job</p>
+      <div className="bg-gradient-to-r from-blue-50 via-cyan-50 to-blue-50 border-2 border-blue-200 rounded-xl p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <Code2 className="w-6 h-6 text-blue-600" />
+          <h3 className="font-bold text-slate-900 text-lg">Key Terminology</h3>
+        </div>
+        <div className="grid md:grid-cols-2 gap-8 text-sm">
+          <div className="space-y-3">
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p><strong className="text-blue-700">Connection</strong><br/><span className="text-slate-600">A link to a source or target system</span></p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p><strong className="text-blue-700">Job</strong><br/><span className="text-slate-600">A data transfer pipeline with configuration</span></p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p><strong className="text-blue-700">Dataset</strong><br/><span className="text-slate-600">A table or file being transferred</span></p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p><strong className="text-blue-700">Run</strong><br/><span className="text-slate-600">One execution of a job</span></p>
+            </div>
           </div>
-          <div>
-            <p><strong>Schedule:</strong> When/how often a job runs automatically</p>
-            <p><strong>Entitlements:</strong> Roles that can access a job/dataset</p>
-            <p><strong>Spec:</strong> JSON/YAML definition of a job</p>
-            <p><strong>Version:</strong> A snapshot of job configuration over time</p>
+          <div className="space-y-3">
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p><strong className="text-blue-700">Schedule</strong><br/><span className="text-slate-600">When/how often a job runs automatically</span></p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p><strong className="text-blue-700">Entitlements</strong><br/><span className="text-slate-600">Roles that can access a job/dataset</span></p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p><strong className="text-blue-700">Spec</strong><br/><span className="text-slate-600">JSON/YAML definition of a job</span></p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-blue-100">
+              <p><strong className="text-blue-700">Version</strong><br/><span className="text-slate-600">A snapshot of job configuration over time</span></p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Support */}
-      <div className="bg-slate-100 rounded-lg p-6 text-center">
-        <h3 className="font-bold text-slate-900 mb-2">Need Help?</h3>
-        <p className="text-slate-600 mb-3">Check Activity Logs for detailed error messages or contact your DataFlow administrator</p>
-        <p className="text-sm text-slate-500">Last updated: 2026-02-23</p>
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-8 border-2 border-slate-200 text-center">
+        <h3 className="font-bold text-slate-900 mb-3 text-lg">Need Help?</h3>
+        <p className="text-slate-700 mb-4">Check Activity Logs for detailed error messages or contact your DataFlow administrator</p>
+        <p className="text-sm text-slate-500 font-medium">Last updated: 2026-02-23</p>
       </div>
     </div>
   );
