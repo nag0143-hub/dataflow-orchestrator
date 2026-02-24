@@ -27,8 +27,7 @@ export default function JobFormDialog({
 
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
-  const [gitCheckinData, setGitCheckinData] = useState(null);
-  const [gitCheckinOpen, setGitCheckinOpen] = useState(false);
+
 
   const sourceConnections = connections.filter(c => c.connection_type === "source");
   const targetConnections = connections.filter(c => c.connection_type === "target");
