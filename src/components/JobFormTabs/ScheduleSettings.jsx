@@ -12,6 +12,16 @@ const SCHEDULE_OPTS = [
   { value: "weekly",        label: "Weekly" },
   { value: "monthly",       label: "Monthly" },
   { value: "custom",        label: "Custom Cron" },
+  { value: "event_driven",  label: "Event Driven" },
+];
+
+const EVENT_SENSOR_OPTS = [
+  { value: "file_watcher",   label: "File Watcher",    desc: "Trigger when a file appears or changes in a path" },
+  { value: "s3_event",       label: "S3 / ADLS Event", desc: "Trigger on object create/update in cloud storage" },
+  { value: "db_sensor",      label: "DB Sensor",       desc: "Trigger when a SQL condition becomes true" },
+  { value: "sftp_sensor",    label: "SFTP Sensor",     desc: "Trigger when a file arrives on an SFTP server" },
+  { value: "api_webhook",    label: "API / Webhook",   desc: "Trigger via an inbound HTTP webhook call" },
+  { value: "upstream_job",   label: "Upstream Job",    desc: "Trigger after another pipeline completes" },
 ];
 
 export default function ScheduleSettings({ formData, setFormData }) {
