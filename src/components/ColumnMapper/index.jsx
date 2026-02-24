@@ -514,10 +514,8 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
             </div>
           )}
 
-
-
-           </>
-           )}
-           </div>
-           );
-           }
+        </>
+        )}
+    </div>
+    );
+    }
