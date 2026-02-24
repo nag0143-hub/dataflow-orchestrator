@@ -98,12 +98,22 @@ export default function JobSpecTabPreview({ formData, connections }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <FileJson className="w-4 h-4 text-blue-600" />
         <span className="text-sm font-semibold text-slate-900">Pipeline Spec</span>
         <span className="text-xs text-slate-400 ml-1">(check this file into git)</span>
-        <div className="flex gap-1.5 ml-auto">
-          {["yaml", "json"].map(f => (
+        <div className="flex gap-1.5 ml-auto flex-wrap">
+          {/* View toggle */}
+          {["spec", "dag"].map(v => (
+            <button key={v} type="button" onClick={() => setView(v)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
+                view === v ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
+              }`}>
+              {v === "dag" ? "Airflow DAG" : "Pipeline Spec"}
+            </button>
+          ))}
+          {/* Format toggle (only for spec view) */}
+          {view === "spec" && ["yaml", "json"].map(f => (
             <button key={f} type="button" onClick={() => setFormat(f)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
                 format === f ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
