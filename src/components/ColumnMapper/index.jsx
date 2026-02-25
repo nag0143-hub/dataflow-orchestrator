@@ -559,6 +559,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                           dragProps={provided.draggableProps}
                                           dragHandleProps={provided.dragHandleProps}
                                           isAudit={true}
+                                          transformations={allTransformations}
                                         />
                                       )}
                                     </Draggable>
