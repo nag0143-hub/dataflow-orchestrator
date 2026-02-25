@@ -18,40 +18,41 @@ import JobSpecExport from "@/components/JobSpecExport";
 import OnboardingWizard from "@/components/OnboardingWizard";
 
 const defaultFormData = {
-  name: "",
-  description: "",
-  source_connection_id: "",
-  target_connection_id: "",
-  selected_datasets: [],
-  load_method: "append",
-  delivery_channel: "pull",
-  schedule_type: "manual",
-  cron_expression: "",
-  status: "idle",
-  use_custom_calendar: false,
-  include_calendar_id: "",
-  exclude_calendar_id: "",
-  column_mappings: {},
-  dq_rules: {},
-  data_cleansing: {},
-  data_masking_rules: [],
-  sla_config: {
-    enabled: false,
-    max_duration_minutes: 60,
-    alert_threshold_percent: 80,
-    escalation_enabled: false,
-    escalation_email: ""
-  },
-  assignment_group: "",
-  cost_center: "",
-  email: "",
-  access_entitlements: [],
-  enable_advanced: false,
-  retry_config: {
-    max_retries: 3,
-    retry_delay_seconds: 60,
-    exponential_backoff: true
-  }
+name: "",
+description: "",
+source_connection_id: "",
+target_connection_id: "",
+selected_datasets: [],
+load_method: "append",
+delivery_channel: "pull",
+schedule_type: "manual",
+cron_expression: "",
+status: "idle",
+use_custom_calendar: false,
+include_calendar_id: "",
+exclude_calendar_id: "",
+column_mappings: {},
+dq_rules: {},
+data_cleansing: {},
+data_masking_rules: [],
+sla_config: {
+  enabled: false,
+  max_duration_minutes: 60,
+  alert_threshold_percent: 80,
+  escalation_enabled: false,
+  escalation_email: ""
+},
+assignment_group: "",
+cost_center: "",
+email: "",
+access_entitlements: [],
+enable_advanced: false,
+retry_config: {
+  max_retries: 3,
+  retry_delay_seconds: 60,
+  exponential_backoff: true
+},
+dependent_pipeline_ids: []
 };
 
 
@@ -178,7 +179,8 @@ export default function Pipelines() {
       email: pipeline.email || "",
       access_entitlements: pipeline.access_entitlements || [],
       enable_advanced: pipeline.enable_advanced || false,
-      retry_config: pipeline.retry_config || defaultFormData.retry_config
+      retry_config: pipeline.retry_config || defaultFormData.retry_config,
+      dependent_pipeline_ids: pipeline.dependent_pipeline_ids || []
     });
     setDialogOpen(true);
     setActiveTab("general");
@@ -370,7 +372,8 @@ export default function Pipelines() {
       email: pipeline.email || "",
       access_entitlements: pipeline.access_entitlements || [],
       enable_advanced: pipeline.enable_advanced || false,
-      retry_config: pipeline.retry_config || defaultFormData.retry_config
+      retry_config: pipeline.retry_config || defaultFormData.retry_config,
+      dependent_pipeline_ids: []
     });
     setEditingPipeline(null);
     setDialogOpen(true);
@@ -523,6 +526,7 @@ export default function Pipelines() {
           formData={formData}
           setFormData={setFormData}
           connections={connections}
+          pipelines={pipelines}
           onSaveSuccess={loadData}
           currentUser={currentUser}
         />
