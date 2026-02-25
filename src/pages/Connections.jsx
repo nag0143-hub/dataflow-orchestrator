@@ -444,10 +444,17 @@ export default function Connections() {
               {filteredConnections.map((connection) => (
                 <ConnectionCard key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
               ))}
-            </div>
-          )
-        ) : (
-          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+              </div>
+              ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredConnections.map((connection) => (
+                <ConnectionCard key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
+              ))}
+              </div>
+              )
+              )
+              ) : (
+              <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="py-16 text-center">
               <Cable className="w-12 h-12 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No connections found</h3>
