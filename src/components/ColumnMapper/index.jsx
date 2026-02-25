@@ -68,8 +68,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     const autoMappedRef = useRef(new Set());
     const [customFunctions, setCustomFunctions] = useState([]);
 
-    // Load custom functions from the database
-    useEffect(() => {
+    const loadCustomFunctions = () => {
       base44.entities.CustomFunction.list().then(funcs => {
         setCustomFunctions(funcs.map(f => ({
           value: `custom_${f.name}`,
@@ -78,6 +77,11 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
           expressionTemplate: f.expression_template,
         })));
       }).catch(() => {});
+    };
+
+    // Load custom functions from the database
+    useEffect(() => {
+      loadCustomFunctions();
     }, []);
 
     // Merge built-in + custom function options
