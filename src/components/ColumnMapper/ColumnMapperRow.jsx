@@ -1,10 +1,9 @@
-import { forwardRef } from "react";
-import { X, GripVertical, Lock } from "lucide-react";
-import { TRANSFORMATIONS } from "./constants";
+import { forwardRef, useState } from "react";
+import { X, GripVertical, Lock, ShieldCheck, ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { TRANSFORMATIONS, TRANSFORMATION_PARAMS, COLUMN_DQ_RULES } from "./constants";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Excel-like editable cell
 function EditableCell({ value, onChange, placeholder = "", className = "", mono = false, disabled = false }) {
   return (
     <input
@@ -40,6 +39,117 @@ function SelectCell({ value, onChange, options, disabled = false }) {
   );
 }
 
+/** Inline param inputs that appear when a transformation needs extra config */
+function TransformParams({ mapping, onUpdate, isCondensed }) {
+  const params = TRANSFORMATION_PARAMS[mapping.transformation];
+  if (!params || isCondensed) return null;
+  return (
+    <tr className="bg-blue-50/40">
+      <td colSpan={3} />
+      <td colSpan={8} className="pb-1 pt-0 pl-8 pr-2">
+        <div className="flex flex-wrap gap-2 items-center py-1">
+          <span className="text-xs text-blue-600 font-medium mr-1">Params:</span>
+          {params.fields.map(f => (
+            <div key={f.key} className="flex items-center gap-1">
+              <span className="text-xs text-slate-500">{f.label}:</span>
+              <input
+                value={mapping[f.key] || ""}
+                onChange={e => onUpdate(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                className="h-6 px-2 text-xs border border-blue-200 bg-white rounded font-mono w-36 focus:outline-none focus:border-blue-400"
+              />
+            </div>
+          ))}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+/** Expandable DQ rules panel per column */
+function ColumnDQPanel({ mapping, onUpdate, colSpan }) {
+  const [open, setOpen] = useState(false);
+  const rules = mapping.dq_rules || [];
+
+  const addRule = () => {
+    onUpdate("dq_rules", [...rules, { rule: "not_null", param: "" }]);
+  };
+
+  const updateRule = (i, field, val) => {
+    const updated = rules.map((r, idx) => idx === i ? { ...r, [field]: val } : r);
+    onUpdate("dq_rules", updated);
+  };
+
+  const removeRule = (i) => {
+    onUpdate("dq_rules", rules.filter((_, idx) => idx !== i));
+  };
+
+  return (
+    <>
+      <tr className="bg-slate-50/70 border-b border-slate-100">
+        <td colSpan={2} />
+        <td colSpan={colSpan - 2} className="py-0.5 pl-8 pr-2">
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            className="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 transition-colors py-0.5"
+          >
+            {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            <ShieldCheck className="w-3 h-3" />
+            <span>DQ Rules ({rules.length})</span>
+          </button>
+        </td>
+      </tr>
+      {open && (
+        <tr className="bg-slate-50">
+          <td colSpan={2} />
+          <td colSpan={colSpan - 2} className="pb-2 pl-10 pr-2">
+            <div className="space-y-1 mt-1">
+              {rules.length === 0 && (
+                <span className="text-xs text-slate-400 italic">No DQ rules. Click + to add.</span>
+              )}
+              {rules.map((r, i) => {
+                const ruleDef = COLUMN_DQ_RULES.find(d => d.value === r.rule);
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <select
+                      value={r.rule}
+                      onChange={e => updateRule(i, "rule", e.target.value)}
+                      className="h-6 text-xs border border-slate-200 rounded px-1 bg-white focus:outline-none focus:border-blue-400"
+                    >
+                      {COLUMN_DQ_RULES.map(d => (
+                        <option key={d.value} value={d.value}>{d.label}</option>
+                      ))}
+                    </select>
+                    {ruleDef?.hasParam && (
+                      <input
+                        value={r.param || ""}
+                        onChange={e => updateRule(i, "param", e.target.value)}
+                        placeholder={ruleDef.placeholder}
+                        className="h-6 px-2 text-xs border border-slate-200 rounded bg-white font-mono w-32 focus:outline-none focus:border-blue-400"
+                      />
+                    )}
+                    <button type="button" onClick={() => removeRule(i)} className="text-slate-400 hover:text-red-500">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                );
+              })}
+              <button
+                type="button"
+                onClick={addRule}
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
+              >
+                <Plus className="w-3 h-3" /> Add Rule
+              </button>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
 const ColumnMapperRow = forwardRef(function ColumnMapperRow({
   mapping,
   sourceCol,
@@ -53,15 +163,55 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
   dragHandleProps,
   isAudit,
 }, ref) {
-  const isLocked = mapping.is_audit;
+
+  const needsParams = !!TRANSFORMATION_PARAMS[mapping.transformation];
+  const colSpan = isCondensed ? 7 : 11;
+
+  // Show expression cell only for custom_sql in full mode (params row handles the rest)
+  const showExpressionCell = !isCondensed && mapping.transformation === "custom_sql";
 
   if (isCondensed) {
     return (
+      <>
+        <tr
+          ref={ref}
+          className={cn(
+            "border-b border-slate-100 transition-colors group",
+            isDragging ? "bg-blue-50 shadow-lg" : isAudit ? "bg-amber-50 hover:bg-amber-100" : "hover:bg-blue-50/50"
+          )}
+          {...dragProps}
+        >
+          <td className="pl-2 py-1 w-6" {...dragHandleProps}>
+            <GripVertical className="w-3 h-3 text-slate-300 cursor-move group-hover:text-slate-500" />
+          </td>
+          <td className="py-1 w-6">
+            <Checkbox checked={isSelected} onCheckedChange={onSelect} disabled={isAudit} className="h-3 w-3" />
+          </td>
+          {isAudit && <td className="py-1 w-5"><Lock className="w-3 h-3 text-amber-500" /></td>}
+          <td className="py-1 text-xs font-mono text-slate-700 pl-2">{mapping.source || <span className="text-slate-400 italic">computed</span>}</td>
+          <td className="py-1"><EditableCell value={mapping.target} onChange={v => onUpdate("target", v)} mono /></td>
+          <td className="py-1 min-w-[160px]">
+            <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={TRANSFORMATIONS} />
+          </td>
+          <td className="py-1 pr-2 w-6">
+            <button type="button" onClick={onRemove} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
+              <X className="w-3 h-3" />
+            </button>
+          </td>
+        </tr>
+        {!isAudit && <ColumnDQPanel mapping={mapping} onUpdate={onUpdate} colSpan={colSpan} />}
+      </>
+    );
+  }
+
+  // Full Excel-style row
+  return (
+    <>
       <tr
         ref={ref}
         className={cn(
           "border-b border-slate-100 transition-colors group",
-          isDragging ? "bg-blue-50 shadow-lg" : isAudit ? "bg-amber-50 hover:bg-amber-100" : "hover:bg-blue-50/50"
+          isDragging ? "bg-blue-50 shadow-lg" : isAudit ? "bg-amber-50/60 hover:bg-amber-50" : "hover:bg-blue-50/40"
         )}
         {...dragProps}
       >
@@ -71,89 +221,69 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
         <td className="py-1 w-6">
           <Checkbox checked={isSelected} onCheckedChange={onSelect} disabled={isAudit} className="h-3 w-3" />
         </td>
-        {isAudit && <td className="py-1 w-5"><Lock className="w-3 h-3 text-amber-500" /></td>}
-        <td className="py-1 text-xs font-mono text-slate-700 pl-2">{mapping.source || <span className="text-slate-400 italic">computed</span>}</td>
-        <td className="py-1"><EditableCell value={mapping.target} onChange={v => onUpdate("target", v)} mono /></td>
-        <td className="py-1 min-w-[140px]">
+        <td className="py-1 w-5 text-center">
+          {isAudit && <Lock className="w-3 h-3 text-amber-500 inline" />}
+        </td>
+
+        {/* Source Name */}
+        <td className="py-1 px-2 text-xs font-mono text-slate-800 border-r border-slate-100 min-w-[120px]">
+          {mapping.source || <span className="text-slate-400 italic text-xs">computed</span>}
+        </td>
+        {/* Source Type */}
+        <td className="py-1 text-xs font-mono text-slate-500 border-r border-slate-100 min-w-[80px] px-2">
+          {mapping.sourceDataType || ""}
+        </td>
+        {/* Source Length */}
+        <td className="py-1 text-xs font-mono text-slate-400 border-r border-slate-100 min-w-[60px] px-2">
+          {mapping.sourceLength || ""}
+        </td>
+
+        {/* Target Name */}
+        <td className="py-1 border-r border-slate-100 min-w-[120px]">
+          <EditableCell value={mapping.target} onChange={v => onUpdate("target", v)} placeholder="target_col" mono />
+        </td>
+        {/* Target Type */}
+        <td className="py-1 border-r border-slate-100 min-w-[80px]">
+          <EditableCell value={mapping.targetDataType} onChange={v => onUpdate("targetDataType", v)} placeholder="varchar" mono />
+        </td>
+        {/* Target Length */}
+        <td className="py-1 border-r border-slate-100 min-w-[60px]">
+          <EditableCell value={mapping.targetLength} onChange={v => onUpdate("targetLength", v)} placeholder="255" mono />
+        </td>
+
+        {/* Transformation */}
+        <td className="py-1 border-r border-slate-100 min-w-[160px]">
           <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={TRANSFORMATIONS} />
         </td>
+
+        {/* Expression cell - only for custom_sql, otherwise show hint about params row */}
+        <td className="py-1 min-w-[140px]">
+          {showExpressionCell ? (
+            <EditableCell
+              value={mapping.expression}
+              onChange={v => onUpdate("expression", v)}
+              placeholder="CAST({col} AS VARCHAR)"
+            />
+          ) : needsParams ? (
+            <span className="text-xs text-blue-400 italic px-2">↓ see params</span>
+          ) : null}
+        </td>
+
         <td className="py-1 pr-2 w-6">
           <button type="button" onClick={onRemove} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
             <X className="w-3 h-3" />
           </button>
         </td>
       </tr>
-    );
-  }
 
-  // Full Excel-style row
-  return (
-    <tr
-      ref={ref}
-      className={cn(
-        "border-b border-slate-100 transition-colors group",
-        isDragging ? "bg-blue-50 shadow-lg" : isAudit ? "bg-amber-50/60 hover:bg-amber-50" : "hover:bg-blue-50/40"
+      {/* Transformation parameter sub-row */}
+      {needsParams && mapping.transformation !== "custom_sql" && (
+        <TransformParams mapping={mapping} onUpdate={onUpdate} isCondensed={isCondensed} />
       )}
-      {...dragProps}
-    >
-      <td className="pl-2 py-1 w-6" {...dragHandleProps}>
-        <GripVertical className="w-3 h-3 text-slate-300 cursor-move group-hover:text-slate-500" />
-      </td>
-      <td className="py-1 w-6">
-        <Checkbox checked={isSelected} onCheckedChange={onSelect} disabled={isAudit} className="h-3 w-3" />
-      </td>
-      {/* Audit indicator */}
-      <td className="py-1 w-5 text-center">
-        {isAudit && <Lock className="w-3 h-3 text-amber-500 inline" />}
-      </td>
 
-      {/* Source Name */}
-      <td className="py-1 px-2 text-xs font-mono text-slate-800 border-r border-slate-100 min-w-[120px]">
-        {mapping.source || <span className="text-slate-400 italic text-xs">computed</span>}
-      </td>
-      {/* Source Type */}
-      <td className="py-1 text-xs font-mono text-slate-500 border-r border-slate-100 min-w-[80px] px-2">
-        {mapping.sourceDataType || ""}
-      </td>
-      {/* Source Length */}
-      <td className="py-1 text-xs font-mono text-slate-400 border-r border-slate-100 min-w-[60px] px-2">
-        {mapping.sourceLength || ""}
-      </td>
-
-      {/* Target Name */}
-      <td className="py-1 border-r border-slate-100 min-w-[120px]">
-        <EditableCell value={mapping.target} onChange={v => onUpdate("target", v)} placeholder="target_col" mono />
-      </td>
-      {/* Target Type */}
-      <td className="py-1 border-r border-slate-100 min-w-[80px]">
-        <EditableCell value={mapping.targetDataType} onChange={v => onUpdate("targetDataType", v)} placeholder="varchar" mono />
-      </td>
-      {/* Target Length */}
-      <td className="py-1 border-r border-slate-100 min-w-[60px]">
-        <EditableCell value={mapping.targetLength} onChange={v => onUpdate("targetLength", v)} placeholder="255" mono />
-      </td>
-
-      {/* Transformation */}
-      <td className="py-1 border-r border-slate-100 min-w-[140px]">
-        <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={TRANSFORMATIONS} />
-      </td>
-
-      {/* Expression (shown only for custom transforms) */}
-      <td className="py-1 min-w-[120px]">
-        <EditableCell
-          value={mapping.expression}
-          onChange={v => onUpdate("expression", v)}
-          placeholder={mapping.transformation === "custom_sql" ? "SQL expr..." : ""}
-          disabled={mapping.transformation !== "custom_sql"}
-        />
-      </td>
-
-      <td className="py-1 pr-2 w-6">
-        <button type="button" onClick={onRemove} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
-          <X className="w-3 h-3" />
-        </button>
-      </td>
-    </tr>
+      {/* Column DQ rules (not for audit cols) */}
+      {!isAudit && <ColumnDQPanel mapping={mapping} onUpdate={onUpdate} colSpan={colSpan} />}
+    </>
   );
 });
 
