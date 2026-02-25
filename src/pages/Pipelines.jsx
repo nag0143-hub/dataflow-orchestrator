@@ -477,15 +477,21 @@ export default function Pipelines() {
                 ))}
                 {hasNextPage && searchTerm.trim() && (
                   <div className="flex justify-center pt-4">
-                    <Button variant="outline" onClick={() => retry(async () => fetchSearchResults(async (params) => {
-                      const res = await base44.functions.invoke('searchPipelines', {
-                        searchTerm: searchTerm.trim(),
-                        filters: filterStatus !== 'all' ? { status: filterStatus } : {},
-                        cursor: params.cursor,
-                        limit: params.limit,
-                      });
-                      return res.data;
-                    })))} disabled={searchLoading}>
+                    <Button variant="outline" disabled={searchLoading} onClick={async () => {
+                      try {
+                        await retry(async () => {
+                          const res = await base44.functions.invoke('searchPipelines', {
+                            searchTerm: searchTerm.trim(),
+                            filters: filterStatus !== 'all' ? { status: filterStatus } : {},
+                            cursor: null,
+                            limit: 50,
+                          });
+                          return res.data;
+                        });
+                      } catch (err) {
+                        console.error('[Pipelines] Load more error:', err);
+                      }
+                    }}>
                       {searchLoading ? 'Loading...' : 'Load More'}
                     </Button>
                   </div>
