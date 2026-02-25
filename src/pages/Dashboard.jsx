@@ -24,6 +24,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import ErrorState from "@/components/ErrorState";
 import { createIndex } from "@/components/dataIndexing";
 import moment from "moment";
+import AirflowSection from "@/components/AirflowSection";
 
 import { Input } from "@/components/ui/input";
 
