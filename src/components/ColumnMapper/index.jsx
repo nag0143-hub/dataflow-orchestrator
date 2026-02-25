@@ -354,8 +354,19 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
             <div className="border border-slate-200 rounded-xl overflow-hidden">
               <div className="bg-slate-100 px-4 py-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-slate-900">Column Mappings ({tableMappings.filter(m => !m.is_audit).length})</span>
+                   <span className="text-sm font-semibold text-slate-900">Column Mappings ({tableMappings.filter(m => !m.is_audit).length})</span>
                   <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 text-xs gap-1 border-amber-300 text-amber-700 hover:bg-amber-50"
+                      onClick={() => {
+                        const newAudit = { source: null, target: `audit_col_${Date.now()}`, transformation: "direct", derived: true, is_audit: true };
+                        onChange(prev => ({ ...prev, [tableKey]: [...(prev[tableKey] || []), newAudit] }));
+                      }}
+                    >
+                      <Lock className="w-3 h-3" /> Add Audit Column
+                    </Button>
                     <ColumnMapperImportExport
                       mappings={tableMappings.filter(m => !m.is_audit)}
                       tableName={selectedTable}
