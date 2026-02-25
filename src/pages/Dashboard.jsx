@@ -29,6 +29,8 @@ import moment from "moment";
 
 import AirflowSection from "@/components/AirflowSection";
 
+const EMPTY_FN = { name: "", label: "", category: "spark_udf", description: "", expression_template: "" };
+
 export default function Dashboard() {
   const { scope } = useTenant();
   const [connections, setConnections] = useState([]);
@@ -37,6 +39,10 @@ export default function Dashboard() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [customFunctions, setCustomFunctions] = useState([]);
+  const [fnForm, setFnForm] = useState(EMPTY_FN);
+  const [fnEditing, setFnEditing] = useState(null); // null | "new" | record
+  const [fnSaving, setFnSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -46,22 +52,44 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [connectionsData, jobsData, runsData, logsData] = await Promise.all([
+      const [connectionsData, jobsData, runsData, logsData, fnsData] = await Promise.all([
         base44.entities.Connection.list(),
         base44.entities.Pipeline.list(),
         base44.entities.PipelineRun.list("-created_date", 50),
-        base44.entities.ActivityLog.list("-created_date", 10)
+        base44.entities.ActivityLog.list("-created_date", 10),
+        base44.entities.CustomFunction.list(),
       ]);
       setConnections(scope(connectionsData));
       setJobs(scope(jobsData));
       setRuns(runsData);
       setLogs(logsData);
+      setCustomFunctions(fnsData);
     } catch (err) {
       console.error("[Dashboard] loadData error:", err);
       setError(err?.message || "Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
+  };
+
+  const saveFn = async () => {
+    setFnSaving(true);
+    if (fnEditing === "new") {
+      const created = await base44.entities.CustomFunction.create(fnForm);
+      setCustomFunctions(prev => [...prev, created]);
+    } else {
+      await base44.entities.CustomFunction.update(fnEditing.id, fnForm);
+      setCustomFunctions(prev => prev.map(f => f.id === fnEditing.id ? { ...f, ...fnForm } : f));
+    }
+    setFnEditing(null);
+    setFnForm(EMPTY_FN);
+    setFnSaving(false);
+  };
+
+  const deleteFn = async (fn) => {
+    if (!window.confirm(`Delete "${fn.label}"?`)) return;
+    await base44.entities.CustomFunction.delete(fn.id);
+    setCustomFunctions(prev => prev.filter(f => f.id !== fn.id));
   };
 
   const stats = {
