@@ -366,14 +366,14 @@ const entities = [
     ]
   },
   {
-    name: "JobRun",
+    name: "PipelineRun",
     color: "from-amber-500 to-orange-600",
-    description: "A single execution instance of an IngestionJob, capturing metrics and outcomes.",
+    description: "A single execution instance of a Pipeline, capturing metrics and outcomes.",
     fields: [
       { name: "id", type: "string", required: true, note: "Auto-generated" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
-      { name: "job_id", type: "string", required: true, note: "→ IngestionJob.id" },
-      { name: "run_number", type: "number", required: false, note: "Sequential run counter per job" },
+      { name: "pipeline_id", type: "string", required: true, note: "→ Pipeline.id" },
+      { name: "run_number", type: "number", required: false, note: "Sequential run counter per pipeline" },
       { name: "status", type: "string", required: true, note: 'running | completed | failed | cancelled | retrying' },
       { name: "started_at", type: "date-time", required: false, note: "When execution began" },
       { name: "completed_at", type: "date-time", required: false, note: "When execution finished" },
