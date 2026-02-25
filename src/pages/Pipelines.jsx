@@ -57,6 +57,8 @@ const defaultFormData = {
 
 export default function Pipelines() {
   const { user: currentUser, scope } = useTenant();
+  const { retry } = useRetry();
+  const { data: searchResults, fetchPage: fetchSearchResults, hasNextPage, loading: searchLoading, reset: resetSearch } = usePagination(50);
   const [pipelines, setPipelines] = useState([]);
   const [connections, setConnections] = useState([]);
   const [runs, setRuns] = useState([]);
@@ -117,11 +119,38 @@ export default function Pipelines() {
   const getConnection = useCallback((id) => connectionIndex.get(id), [connectionIndex]);
   const getPipelineRuns = useCallback((pipelineId) => runsByPipeline[pipelineId] || [], [runsByPipeline]);
 
-  const filteredPipelines = useMemo(() => pipelines.filter(p => {
-    const matchesSearch = p.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === "all" || p.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  }), [pipelines, searchTerm, filterStatus]);
+  // Use server-side search when search term is provided, otherwise filter client-side
+  const displayPipelines = useMemo(() => {
+    if (searchTerm.trim()) {
+      return searchResults;
+    }
+    return pipelines.filter(p => filterStatus === "all" || p.status === filterStatus);
+  }, [searchTerm, searchResults, pipelines, filterStatus]);
+
+  // Trigger server-side search on search term change
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      resetSearch();
+      const performSearch = async () => {
+        try {
+          await retry(async () => {
+            await fetchSearchResults(async (params) => {
+              const res = await base44.functions.invoke('searchPipelines', {
+                searchTerm: searchTerm.trim(),
+                filters: filterStatus !== 'all' ? { status: filterStatus } : {},
+                cursor: params.cursor,
+                limit: params.limit,
+              });
+              return res.data;
+            });
+          });
+        } catch (err) {
+          console.error('[Pipelines] Search error:', err);
+        }
+      };
+      performSearch();
+    }
+  }, [searchTerm, filterStatus]);
 
   const handleEdit = useCallback((pipeline) => {
     setEditingPipeline(pipeline);
@@ -425,10 +454,10 @@ export default function Pipelines() {
               </Select>
             </div>
 
-            {filteredPipelines.length > 0 ? (
+            {displayPipelines.length > 0 ? (
               <div className="space-y-4">
-                {filteredPipelines.map((pipeline) => (
-                  <ErrorBoundary key={pipeline.id}>
+                {displayPipelines.map((pipeline) => (
+                   <ErrorBoundary key={pipeline.id}>
                     <PipelineCard
                       job={pipeline}
                       sourceConn={getConnection(pipeline.source_connection_id)}
@@ -446,6 +475,21 @@ export default function Pipelines() {
                     />
                   </ErrorBoundary>
                 ))}
+                {hasNextPage && searchTerm.trim() && (
+                  <div className="flex justify-center pt-4">
+                    <Button variant="outline" onClick={() => retry(async () => fetchSearchResults(async (params) => {
+                      const res = await base44.functions.invoke('searchPipelines', {
+                        searchTerm: searchTerm.trim(),
+                        filters: filterStatus !== 'all' ? { status: filterStatus } : {},
+                        cursor: params.cursor,
+                        limit: params.limit,
+                      });
+                      return res.data;
+                    })))} disabled={searchLoading}>
+                      {searchLoading ? 'Loading...' : 'Load More'}
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <EmptyStateGuide
