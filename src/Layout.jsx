@@ -28,6 +28,25 @@ export default function Layout({ children }) {
     localStorage.setItem("dataflow-dark", darkMode);
   }, [darkMode]);
 
+  const [undoRedoState, setUndoRedoState] = useState({ canUndo: false, canRedo: false, page: null });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const path = location.pathname.toLowerCase();
+      const isConns = path.includes("connections");
+      const isPipes = path.includes("pipelines");
+      
+      if (isConns) {
+        setUndoRedoState({ canUndo: window.__connCanUndo, canRedo: window.__connCanRedo, page: "conn" });
+      } else if (isPipes) {
+        setUndoRedoState({ canUndo: window.__pipeCanUndo, canRedo: window.__pipeCanRedo, page: "pipe" });
+      } else {
+        setUndoRedoState({ canUndo: false, canRedo: false, page: null });
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, [location]);
+
   const navItems = [
         { name: "Dashboard", icon: Home, page: "Dashboard" },
         { name: "Connections", icon: Cable, page: "Connections" },

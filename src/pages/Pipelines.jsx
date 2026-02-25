@@ -418,6 +418,12 @@ export default function Pipelines() {
             <Button variant="outline" onClick={loadData} className="gap-2">
               <RefreshCw className="w-4 h-4" />
             </Button>
+            <Button variant="outline" disabled={!canUndo} onClick={() => window.__pipeUndo?.()} title="Undo">
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" disabled={!canRedo} onClick={() => window.__pipeRedo?.()} title="Redo">
+              <RotateCw className="w-4 h-4" />
+            </Button>
             <Button variant="outline" onClick={() => setShowOnboarding(true)} className="gap-2">
               <Rocket className="w-4 h-4" />
               Quick Start
