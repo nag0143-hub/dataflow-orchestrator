@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ColumnMapperRow from "./ColumnMapperRow";
 import ColumnMapperBulkActions from "./ColumnMapperBulkActions";
 import ColumnMapperImportExport from "./ColumnMapperImportExport";
+import CustomFunctionQuickAdd from "./CustomFunctionQuickAdd";
 import { GLOBAL_RULES, DQ_RULES, ENCRYPTION_TYPES, TRANSFORMATIONS, PAGE_SIZE, MAPPING_PAGE_SIZE, DATA_TYPES } from "./constants";
 import { columnCacheManager, invalidateCacheForObjects } from "./cacheManager";
 import { base44 } from "@/api/base44Client";
