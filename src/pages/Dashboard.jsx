@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -11,8 +11,8 @@ import {
   ArrowRight,
   Activity,
   RefreshCw,
-  Workflow,
-  BookOpen
+  BookOpen,
+  Search
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { createIndex } from "@/components/dataIndexing";
 import moment from "moment";
 
 import AirflowSection from "@/components/AirflowSection";
+import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
   const { scope } = useTenant();
@@ -35,6 +36,7 @@ export default function Dashboard() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
 
   useEffect(() => {
@@ -72,8 +74,17 @@ export default function Dashboard() {
     failedRuns: runs.filter(r => r.status === "failed").length,
   };
 
-  const recentRuns = runs.slice(0, 10);
   const jobIndex = createIndex(jobs, "id");
+  
+  const filteredRuns = useMemo(() => {
+    const recentRuns = runs.slice(0, 50);
+    if (!searchTerm.trim()) return recentRuns;
+    const term = searchTerm.toLowerCase();
+    return recentRuns.filter(run => {
+      const job = jobIndex.get(run.pipeline_id);
+      return job?.name?.toLowerCase().includes(term) || run.status?.toLowerCase().includes(term);
+    });
+  }, [runs, searchTerm, jobIndex]);
 
   if (loading) {
     return (
@@ -139,10 +150,10 @@ export default function Dashboard() {
 
         {/* Recent Pipeline Runs + Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Pipeline Runs */}
+          {/* Recent Pipeline Runs + Airflow */}
           <Card className="lg:col-span-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between mb-3">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
                   <Play className="w-5 h-5 text-blue-600" />
                   Recent Pipeline Runs
@@ -154,51 +165,65 @@ export default function Dashboard() {
                   </Button>
                 </Link>
               </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Search by pipeline name or status..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-9 text-sm dark:bg-slate-700 dark:border-slate-600"
+                />
+              </div>
             </CardHeader>
             <CardContent>
-              {recentRuns.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-slate-100 dark:border-slate-700">
-                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Pipeline</th>
-                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Status</th>
-                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Rows</th>
-                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Duration</th>
-                        <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Started</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentRuns.map((run) => {
-                        const job = jobIndex.get(run.pipeline_id);
-                        return (
-                          <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
-                            <td className="py-3 px-4">
-                              <span className="font-medium text-slate-900 dark:text-slate-100">{job?.name || "Unknown Pipeline"}</span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <StatusBadge status={run.status} size="sm" />
-                            </td>
-                            <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
-                              {(run.rows_processed || 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
-                              {run.duration_seconds ? `${run.duration_seconds}s` : "-"}
-                            </td>
-                            <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400">
-                              {moment(run.started_at || run.created_date).fromNow()}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+              {filteredRuns.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-slate-100 dark:border-slate-700">
+                          <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Pipeline</th>
+                          <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Status</th>
+                          <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Rows</th>
+                          <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Duration</th>
+                          <th className="text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider py-3 px-4">Started</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredRuns.map((run) => {
+                          const job = jobIndex.get(run.pipeline_id);
+                          return (
+                            <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                              <td className="py-3 px-4">
+                                <span className="font-medium text-slate-900 dark:text-slate-100">{job?.name || "Unknown Pipeline"}</span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <StatusBadge status={run.status} size="sm" />
+                              </td>
+                              <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
+                                {(run.rows_processed || 0).toLocaleString()}
+                              </td>
+                              <td className="py-3 px-4 text-sm text-slate-600 dark:text-slate-300">
+                                {run.duration_seconds ? `${run.duration_seconds}s` : "-"}
+                              </td>
+                              <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400">
+                                {moment(run.started_at || run.created_date).fromNow()}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Airflow DAGs</h3>
+                    <AirflowSection />
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-12">
                   <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 dark:text-slate-400">No pipeline runs yet</p>
-                  <p className="text-sm text-slate-400 dark:text-slate-500">Create and run a pipeline to see activity here</p>
+                  <p className="text-slate-500 dark:text-slate-400">No pipeline runs match your search</p>
                 </div>
               )}
             </CardContent>
