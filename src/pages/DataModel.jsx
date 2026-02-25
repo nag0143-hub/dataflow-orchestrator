@@ -445,13 +445,13 @@ const entities = [
 ];
 
 const relationships = [
-  { from: "IngestionJob", to: "Connection", label: "source_connection_id", type: "many-to-one" },
-  { from: "IngestionJob", to: "Connection", label: "target_connection_id", type: "many-to-one" },
-  { from: "JobRun", to: "IngestionJob", label: "job_id", type: "many-to-one" },
-  { from: "ActivityLog", to: "IngestionJob", label: "job_id (optional)", type: "many-to-one" },
-  { from: "ActivityLog", to: "JobRun", label: "run_id (optional)", type: "many-to-one" },
+  { from: "Pipeline", to: "Connection", label: "source_connection_id", type: "many-to-one" },
+  { from: "Pipeline", to: "Connection", label: "target_connection_id", type: "many-to-one" },
+  { from: "PipelineRun", to: "Pipeline", label: "pipeline_id", type: "many-to-one" },
+  { from: "ActivityLog", to: "Pipeline", label: "job_id (optional)", type: "many-to-one" },
+  { from: "ActivityLog", to: "PipelineRun", label: "run_id (optional)", type: "many-to-one" },
   { from: "ActivityLog", to: "Connection", label: "connection_id (optional)", type: "many-to-one" },
-  { from: "PipelineVersion", to: "IngestionJob", label: "job_id", type: "many-to-one" },
+  { from: "PipelineVersion", to: "Pipeline", label: "pipeline_id", type: "many-to-one" },
   { from: "ConnectionPrerequisite", to: "Connection", label: "connection_id", type: "many-to-one" },
 ];
 
