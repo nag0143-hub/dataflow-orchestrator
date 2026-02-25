@@ -314,6 +314,12 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
 
   return (
     <div className="space-y-4">
+      {/* Custom Functions quick panel */}
+      <CustomFunctionQuickAdd
+        customFunctions={customFunctions}
+        onFunctionAdded={loadCustomFunctions}
+      />
+
       {/* Dataset-level settings */}
       <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
         <h3 className="text-sm font-semibold text-slate-900 mb-4">Dataset Selection</h3>
