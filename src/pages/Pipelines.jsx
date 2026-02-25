@@ -428,7 +428,7 @@ export default function Pipelines() {
           <div className="space-y-4">
             {filteredPipelines.map((pipeline) => (
               <ErrorBoundary key={pipeline.id}>
-                <JobCard
+                <PipelineCard
                   job={pipeline}
                   sourceConn={getConnection(pipeline.source_connection_id)}
                   targetConn={getConnection(pipeline.target_connection_id)}
