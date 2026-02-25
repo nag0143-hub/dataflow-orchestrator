@@ -176,8 +176,8 @@ export default function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              {filteredRuns.length > 0 ? (
-                <div className="space-y-4">
+              <div className="space-y-4">
+                {filteredRuns.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
@@ -215,17 +215,17 @@ export default function Dashboard() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Airflow DAGs</h3>
-                    <AirflowSection />
+                ) : (
+                  <div className="text-center py-8">
+                    <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500 dark:text-slate-400">No pipeline runs match your search</p>
                   </div>
+                )}
+                <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Airflow DAGs</h3>
+                  <AirflowSection />
                 </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 dark:text-slate-400">No pipeline runs match your search</p>
-                </div>
-              )}
+              </div>
             </CardContent>
           </Card>
 
