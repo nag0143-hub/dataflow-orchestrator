@@ -313,13 +313,6 @@ export default function Dashboard() {
           </Link>
         </div>
 
-{/* Airflow DAGs — lazy loaded */}
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Apache Airflow DAGs</h2>
-          <ErrorBoundary>
-            <AirflowSection />
-          </ErrorBoundary>
-        </div>
       </div>
     </ErrorBoundary>
   );
