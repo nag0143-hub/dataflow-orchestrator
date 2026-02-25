@@ -105,9 +105,13 @@ const defaultFormData = {
 
 export default function Connections() {
   const { user, scope } = useTenant();
-  const [connections, setConnections] = useState([]);
+  const { retry } = useRetry();
+  const { data: cachedConnections = [], loading: cacheLoading } = useCache(
+    'connections',
+    () => base44.entities.Connection.list(),
+    { staleTime: 5 * 60 * 1000 }
+  );
   const [prereqs, setPrereqs] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -123,23 +127,27 @@ export default function Connections() {
   const [testingId, setTestingId] = useState(null);
   const [testResult, setTestResult] = useState(null);
 
-  useEffect(() => { loadData(); }, []);
+  const connections = scope(cachedConnections);
+  const loading = cacheLoading;
+
+  useEffect(() => { loadPrereqs(); }, []);
+
+  const loadPrereqs = async () => {
+    try {
+      const data = await base44.entities.ConnectionPrerequisite.list();
+      setPrereqs(data);
+    } catch (err) {
+      console.error("[Connections] loadPrereqs error:", err);
+    }
+  };
 
   const loadData = async () => {
-    setLoading(true);
-    setError(null);
+    // Trigger cache revalidation
     try {
-      const [data, prereqData] = await Promise.all([
-        base44.entities.Connection.list(),
-        base44.entities.ConnectionPrerequisite.list()
-      ]);
-      setConnections(scope(data));
-      setPrereqs(prereqData);
+      await base44.entities.Connection.list();
+      await loadPrereqs();
     } catch (err) {
-      console.error("[Connections] loadData error:", err);
-      setError(err?.message || "Failed to load connections");
-    } finally {
-      setLoading(false);
+      setError(err?.message || "Failed to refresh connections");
     }
   };
 
@@ -159,11 +167,11 @@ export default function Connections() {
 
     try {
       if (editingConnection) {
-        await base44.entities.Connection.update(editingConnection.id, payload);
+        await retry(() => base44.entities.Connection.update(editingConnection.id, payload));
         base44.entities.ActivityLog.create({ log_type: "info", category: "connection", connection_id: editingConnection.id, message: `Connection "${formData.name}" updated` }).catch(() => {});
         toast.success("Connection updated");
       } else {
-        const created = await base44.entities.Connection.create(payload);
+        const created = await retry(() => base44.entities.Connection.create(payload));
         base44.entities.ActivityLog.create({ log_type: "success", category: "connection", connection_id: created.id, message: `Connection "${formData.name}" created` }).catch(() => {});
         toast.success("Connection created");
       }
@@ -199,7 +207,7 @@ export default function Connections() {
   const handleDelete = async (connection) => {
     if (!confirm(`Delete connection "${connection.name}"?`)) return;
     try {
-      await base44.entities.Connection.delete(connection.id);
+      await retry(() => base44.entities.Connection.delete(connection.id));
       base44.entities.ActivityLog.create({ log_type: "warning", category: "connection", message: `Connection "${connection.name}" deleted` }).catch(() => {});
       toast.success("Connection deleted");
       loadData();
@@ -219,7 +227,7 @@ export default function Connections() {
       const success = !!(hasRequired && hasAuth);
       const latency = Date.now() - startTime;
 
-      await base44.entities.Connection.update(connection.id, { status: success ? "active" : "error", last_tested: new Date().toISOString() });
+      await retry(() => base44.entities.Connection.update(connection.id, { status: success ? "active" : "error", last_tested: new Date().toISOString() }));
       base44.entities.ActivityLog.create({
         log_type: success ? "success" : "error", category: "connection", connection_id: connection.id,
         message: success ? `Connection "${connection.name}" test passed (${latency}ms)` : `Connection "${connection.name}" test failed`
