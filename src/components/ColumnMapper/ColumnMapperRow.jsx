@@ -115,7 +115,6 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
             </button>
           </td>
         </tr>
-        {!isAudit && <ColumnDQPanel mapping={mapping} onUpdate={onUpdate} colSpan={colSpan} />}
       </>
     );
   }
