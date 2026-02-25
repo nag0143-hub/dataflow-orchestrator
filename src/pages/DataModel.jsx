@@ -335,14 +335,14 @@ const entities = [
     ]
   },
   {
-    name: "IngestionJob",
+    name: "Pipeline",
     color: "from-emerald-500 to-teal-600",
     description: "Defines a data transfer pipeline from a source to a target, including schedule and retry config.",
     fields: [
       { name: "id", type: "string", required: true, note: "Auto-generated" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
       { name: "created_by", type: "string", required: true, note: "User email (auto)" },
-      { name: "name", type: "string", required: true, note: "Job display name" },
+      { name: "name", type: "string", required: true, note: "Pipeline display name" },
       { name: "description", type: "string", required: false, note: "Optional description" },
       { name: "source_connection_id", type: "string", required: true, note: "→ Connection.id (source)" },
       { name: "target_connection_id", type: "string", required: true, note: "→ Connection.id (target)" },
