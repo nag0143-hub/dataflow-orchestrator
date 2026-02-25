@@ -67,18 +67,46 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                   </div>
                 </Card>
 
-                {/* Rules Tabs */}
-                <Tabs defaultValue="mapping" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="mapping" className="text-xs">Mapping</TabsTrigger>
-                    <TabsTrigger value="quality" className="text-xs">Quality</TabsTrigger>
+                {/* ── Core tabs: Cleansing → Quality → Column Mapping ── */}
+                <Tabs defaultValue="cleansing" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="cleansing" className="text-xs">Cleansing</TabsTrigger>
-                    <TabsTrigger value="security" className="text-xs">Security</TabsTrigger>
-                    <TabsTrigger value="sla" className="text-xs">SLA</TabsTrigger>
+                    <TabsTrigger value="quality" className="text-xs">Quality</TabsTrigger>
+                    <TabsTrigger value="column_mapping" className="text-xs">Column Mapping</TabsTrigger>
                   </TabsList>
 
+                  {/* Data Cleansing */}
+                  <TabsContent value="cleansing" className="space-y-3">
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Zap className="w-4 h-4 text-amber-600" />
+                        <h4 className="font-semibold text-sm">Data Cleansing</h4>
+                      </div>
+                      <DataCleansing
+                        selectedObjects={[ds]}
+                        cleansing={formData.data_cleansing}
+                        onChange={(cleansing) => setFormData(prev => ({ ...prev, data_cleansing: cleansing }))}
+                      />
+                    </Card>
+                  </TabsContent>
+
+                  {/* Data Quality */}
+                  <TabsContent value="quality" className="space-y-3">
+                    <Card className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FileText className="w-4 h-4 text-emerald-600" />
+                        <h4 className="font-semibold text-sm">Data Quality Rules</h4>
+                      </div>
+                      <DataQualityRules
+                        selectedObjects={[ds]}
+                        rules={formData.dq_rules}
+                        onChange={(rules) => setFormData(prev => ({ ...prev, dq_rules: rules }))}
+                      />
+                    </Card>
+                  </TabsContent>
+
                   {/* Column Mapping */}
-                  <TabsContent value="mapping" className="space-y-3">
+                  <TabsContent value="column_mapping" className="space-y-3">
                     <Card className="p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <Zap className="w-4 h-4 text-violet-600" />
@@ -98,45 +126,23 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                       />
                     </Card>
                   </TabsContent>
+                </Tabs>
 
-                  {/* Data Quality */}
-                  <TabsContent value="quality" className="space-y-3">
-                    <Card className="p-4 space-y-4">
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <FileText className="w-4 h-4 text-emerald-600" />
-                            <h4 className="font-semibold text-sm">Data Quality Rules</h4>
-                          </div>
-                          <DataQualityRules
-                            selectedObjects={[ds]}
-                            rules={formData.dq_rules}
-                            onChange={(rules) => setFormData(prev => ({ ...prev, dq_rules: rules }))}
-                          />
-                        </div>
-                      </div>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Data Cleansing */}
-                  <TabsContent value="cleansing" className="space-y-3">
-                    <Card className="p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Zap className="w-4 h-4 text-amber-600" />
-                        <h4 className="font-semibold text-sm">Data Cleansing</h4>
-                      </div>
-                      <DataCleansing
-                        selectedObjects={[ds]}
-                        cleansing={formData.data_cleansing}
-                        onChange={(cleansing) => setFormData(prev => ({ ...prev, data_cleansing: cleansing }))}
-                      />
-                    </Card>
-                  </TabsContent>
-
-                  {/* Security */}
-                  <TabsContent value="security" className="space-y-3">
-                    <div className="space-y-3">
-                      {/* Encryption & Masking */}
+                {/* ── Optional: Security ── */}
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowSecurity(v => !v)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-sm font-medium text-slate-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-purple-600" />
+                      Security (optional)
+                    </div>
+                    {showSecurity ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                  </button>
+                  {showSecurity && (
+                    <div className="p-4 space-y-3">
                       <Card className="p-4">
                         <div className="flex items-center gap-2 mb-3">
                           <Shield className="w-4 h-4 text-purple-600" />
@@ -147,15 +153,11 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                           onChange={(rules) => setFormData({ ...formData, data_masking_rules: rules })}
                         />
                       </Card>
-
-                      {/* Classification & Access */}
                       <Card className="p-4 space-y-4">
                         <div className="flex items-center gap-2">
                           <Lock className="w-4 h-4 text-blue-600" />
                           <h4 className="font-semibold text-sm">Classification & Access</h4>
                         </div>
-
-                        {/* Data Classification */}
                         <div>
                           <Label className="text-xs text-slate-600">Data Classification</Label>
                           <Select
@@ -176,8 +178,6 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                             </SelectContent>
                           </Select>
                         </div>
-
-                        {/* Dataset Access Entitlements */}
                         <div>
                           <Label className="text-xs text-slate-600">Dataset Access Entitlements</Label>
                           <Input
@@ -192,22 +192,31 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                         </div>
                       </Card>
                     </div>
-                  </TabsContent>
+                  )}
+                </div>
 
-                  {/* SLA */}
-                  <TabsContent value="sla" className="space-y-3">
-                    <Card className="p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <ShieldCheck className="w-4 h-4 text-blue-600" />
-                        <h4 className="font-semibold text-sm">Service Level Agreement</h4>
-                      </div>
+                {/* ── Optional: SLA ── */}
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowSLA(v => !v)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-sm font-medium text-slate-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-blue-600" />
+                      SLA (optional)
+                    </div>
+                    {showSLA ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                  </button>
+                  {showSLA && (
+                    <div className="p-4">
                       <SLAConfig
                         value={ds.sla_config || {}}
                         onChange={(sla) => updateDataset({ sla_config: sla })}
                       />
-                    </Card>
-                  </TabsContent>
-                </Tabs>
+                    </div>
+                  )}
+                </div>
               </TabsContent>
             );
           })}
