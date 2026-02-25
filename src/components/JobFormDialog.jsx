@@ -99,11 +99,11 @@ export default function JobFormDialog({
 
     try {
       if (editingJob) {
-        await base44.entities.IngestionJob.update(editingJob.id, payload);
+        await base44.entities.Pipeline.update(editingJob.id, payload);
         toast.success("Pipeline draft saved");
         onSaveSuccess?.();
       } else {
-        const created = await base44.entities.IngestionJob.create(payload);
+        const created = await base44.entities.Pipeline.create(payload);
         toast.success("Pipeline draft saved");
         onSaveSuccess?.();
       }
@@ -129,7 +129,7 @@ export default function JobFormDialog({
 
     try {
       if (editingJob) {
-        await base44.entities.IngestionJob.update(editingJob.id, payload);
+        await base44.entities.Pipeline.update(editingJob.id, payload);
         await base44.entities.ActivityLog.create({
           log_type: "info",
           category: "job",
@@ -141,7 +141,7 @@ export default function JobFormDialog({
         onSaveSuccess?.();
         return;
       } else {
-        const created = await base44.entities.IngestionJob.create(payload);
+        const created = await base44.entities.Pipeline.create(payload);
         await base44.entities.ActivityLog.create({
           log_type: "success",
           category: "job",

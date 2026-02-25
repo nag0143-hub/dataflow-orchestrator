@@ -58,6 +58,7 @@ import LDAPIntegration from './pages/LDAPIntegration';
 import Lineage from './pages/Lineage';
 import Requirements from './pages/Requirements';
 import UserGuide from './pages/UserGuide';
+import Pipelines from './pages/Pipelines';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "Lineage": Lineage,
     "Requirements": Requirements,
     "UserGuide": UserGuide,
+    "Pipelines": Pipelines,
 }
 
 export const pagesConfig = {
