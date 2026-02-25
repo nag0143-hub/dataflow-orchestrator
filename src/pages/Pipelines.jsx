@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, Play, Filter, Rocket, RefreshCw } from "lucide-react";
+import { Plus, Search, Play, Filter, Rocket, RefreshCw, Workflow, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
@@ -16,6 +16,7 @@ import PipelineCard from "@/components/PipelineCard";
 import JobDetailsDialog from "@/components/JobDetailsDialog";
 import JobSpecExport from "@/components/JobSpecExport";
 import OnboardingWizard from "@/components/OnboardingWizard";
+import VisualPipelineBuilder from "@/components/VisualPipelineBuilder";
 
 const defaultFormData = {
   name: "",
