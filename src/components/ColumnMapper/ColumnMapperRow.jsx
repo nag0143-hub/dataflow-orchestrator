@@ -68,6 +68,7 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
   dragProps,
   dragHandleProps,
   isAudit,
+  transformations = TRANSFORMATIONS,
 }, ref) {
 
   const needsParams = !!TRANSFORMATION_PARAMS[mapping.transformation];
