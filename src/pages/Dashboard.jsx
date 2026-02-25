@@ -25,7 +25,7 @@ import ErrorState from "@/components/ErrorState";
 import { createIndex } from "@/components/dataIndexing";
 import moment from "moment";
 
-const AirflowSection = lazy(() => import("@/components/AirflowSection"));
+import AirflowSection from "@/components/AirflowSection";
 
 export default function Dashboard() {
   const { scope } = useTenant();
@@ -316,9 +316,7 @@ export default function Dashboard() {
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Apache Airflow DAGs</h2>
           <ErrorBoundary>
-            <Suspense fallback={<SkeletonLoader count={3} height="h-20" />}>
-              <AirflowSection />
-            </Suspense>
+            <AirflowSection />
           </ErrorBoundary>
         </div>
       </div>

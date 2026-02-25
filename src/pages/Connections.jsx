@@ -22,8 +22,8 @@ import ErrorState from "@/components/ErrorState";
 import moment from "moment";
 import { toast } from "sonner";
 
-const PrerequisitePanel = lazy(() => import("@/components/PrerequisitePanel"));
-const ConnectionProfilePicker = lazy(() => import("@/components/ConnectionProfilePicker"));
+import PrerequisitePanel from "@/components/PrerequisitePanel";
+import ConnectionProfilePicker from "@/components/ConnectionProfilePicker";
 
 function SaveAsProfileButton({ formData }) {
   const [saving, setSaving] = useState(false);
