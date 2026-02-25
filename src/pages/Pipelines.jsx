@@ -447,10 +447,10 @@ export default function Pipelines() {
               <SelectItem value="paused">Paused</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div>}
 
         {/* Pipelines List */}
-        {filteredPipelines.length > 0 ? (
+        {viewMode === "list" && filteredPipelines.length > 0 ? (
           <div className="space-y-4">
             {filteredPipelines.map((pipeline) => (
               <ErrorBoundary key={pipeline.id}>
