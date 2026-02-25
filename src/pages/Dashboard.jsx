@@ -44,6 +44,7 @@ export default function Dashboard() {
   const [fnForm, setFnForm] = useState(EMPTY_FN);
   const [fnEditing, setFnEditing] = useState(null); // null | "new" | record
   const [fnSaving, setFnSaving] = useState(false);
+  const [fnVisible, setFnVisible] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -322,23 +323,28 @@ export default function Dashboard() {
         <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
-                <Workflow className="w-5 h-5 text-violet-600" />
-                Custom Functions
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-slate-500 dark:text-slate-400">Used in Column Mapping transform dropdown</p>
-                <Button
-                  size="sm"
-                  className="gap-1.5 bg-[#003478] hover:bg-[#002560] h-7 text-xs"
-                  onClick={() => { setFnEditing("new"); setFnForm(EMPTY_FN); }}
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add Function
-                </Button>
-              </div>
+              <button onClick={() => setFnVisible(!fnVisible)} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
+                  <Workflow className="w-5 h-5 text-violet-600" />
+                  Custom Functions
+                </CardTitle>
+              </button>
+              {fnVisible && (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Used in Column Mapping transform dropdown</p>
+                  <Button
+                    size="sm"
+                    className="gap-1.5 bg-[#003478] hover:bg-[#002560] h-7 text-xs"
+                    onClick={() => { setFnEditing("new"); setFnForm(EMPTY_FN); }}
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Function
+                  </Button>
+                </div>
+              )}
             </div>
           </CardHeader>
-          <CardContent>
+          {fnVisible && (
+            <CardContent>
             {/* Quick-add / edit form */}
             {fnEditing && (
               <div className="mb-4 p-3 border border-violet-200 bg-violet-50/40 rounded-lg space-y-2">
@@ -439,7 +445,8 @@ export default function Dashboard() {
                 </table>
               </div>
             )}
-          </CardContent>
+            </CardContent>
+          )}
         </Card>
 
         {/* Airflow DAGs — lazy loaded */}
