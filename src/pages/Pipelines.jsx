@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Search, Play, Filter, Rocket, RefreshCw } from "lucide-react";
+import { Plus, Search, Play, Filter, Rocket, RefreshCw, RotateCcw, RotateCw } from "lucide-react";
+import { useHistory } from "@/components/useHistory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EmptyStateGuide from "@/components/EmptyStateGuide";
@@ -57,6 +58,7 @@ const defaultFormData = {
 
 export default function Pipelines() {
   const { user: currentUser, scope } = useTenant();
+  const { push, undo, redo, canUndo, canRedo } = useHistory();
   const [pipelines, setPipelines] = useState([]);
   const [connections, setConnections] = useState([]);
   const [runs, setRuns] = useState([]);
@@ -76,6 +78,36 @@ export default function Pipelines() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Store undo/redo state for header to access
+  useEffect(() => {
+    window.__pipeUndo = () => {
+      const action = undo();
+      if (action) {
+        if (action.type === "create") {
+          base44.entities.Pipeline.delete(action.id).then(loadData).catch(() => {});
+        } else if (action.type === "update") {
+          base44.entities.Pipeline.update(action.id, action.prevData).then(loadData).catch(() => {});
+        } else if (action.type === "delete") {
+          base44.entities.Pipeline.create(action.data).then(loadData).catch(() => {});
+        }
+      }
+    };
+    window.__pipeRedo = () => {
+      const action = redo();
+      if (action) {
+        if (action.type === "create") {
+          base44.entities.Pipeline.create(action.data).then(loadData).catch(() => {});
+        } else if (action.type === "update") {
+          base44.entities.Pipeline.update(action.id, action.newData).then(loadData).catch(() => {});
+        } else if (action.type === "delete") {
+          base44.entities.Pipeline.delete(action.id).then(loadData).catch(() => {});
+        }
+      }
+    };
+    window.__pipeCanUndo = canUndo;
+    window.__pipeCanRedo = canRedo;
+  }, [undo, redo, canUndo, canRedo]);
 
   useEffect(() => {
     if (!loading && !error && pipelines.length === 0 && connections.length > 0) {
@@ -153,6 +185,7 @@ export default function Pipelines() {
     if (!confirm(`Delete pipeline "${pipeline.name}"?`)) return;
     try {
       await base44.entities.Pipeline.delete(pipeline.id);
+      push({ type: "delete", id: pipeline.id, data: pipeline });
       await base44.entities.ActivityLog.create({
         log_type: "warning",
         category: "job",
@@ -164,7 +197,7 @@ export default function Pipelines() {
       console.error("[Pipelines] handleDelete error:", err);
       toast.error("Failed to delete pipeline");
     }
-  }, []);
+  }, [push]);
 
   const handleRunPipeline = useCallback(async (pipeline) => {
     try {
