@@ -50,17 +50,17 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const logTypeConfig = {
-  info: { icon: Info, color: "bg-blue-100 text-blue-700 border-blue-200", dotColor: "bg-blue-500" },
-  warning: { icon: AlertTriangle, color: "bg-amber-100 text-amber-700 border-amber-200", dotColor: "bg-amber-500" },
-  error: { icon: AlertCircle, color: "bg-red-100 text-red-700 border-red-200", dotColor: "bg-red-500" },
-  success: { icon: CheckCircle2, color: "bg-emerald-100 text-emerald-700 border-emerald-200", dotColor: "bg-emerald-500" },
+  info: { icon: Info, color: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200", dotColor: "bg-blue-500" },
+  warning: { icon: AlertTriangle, color: "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200", dotColor: "bg-amber-500" },
+  error: { icon: AlertCircle, color: "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-200", dotColor: "bg-red-500" },
+  success: { icon: CheckCircle2, color: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200", dotColor: "bg-emerald-500" },
 };
 
 const categoryConfig = {
-  connection: { label: "Connection", color: "bg-purple-100 text-purple-700" },
-  job: { label: "Job", color: "bg-blue-100 text-blue-700" },
-  system: { label: "System", color: "bg-slate-100 text-slate-700" },
-  authentication: { label: "Auth", color: "bg-orange-100 text-orange-700" },
+  connection: { label: "Connection", color: "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300" },
+  job: { label: "Job", color: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" },
+  system: { label: "System", color: "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300" },
+  authentication: { label: "Auth", color: "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300" },
 };
 
 export default function ActivityLogs() {
