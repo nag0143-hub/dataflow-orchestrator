@@ -280,16 +280,13 @@ export default function Dashboard() {
                   <Cable className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                    Manage Connections
-                  </h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">Manage Connections</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">Add or configure data sources and targets</p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
               </CardContent>
             </Card>
           </Link>
-
           <Link to={createPageUrl("Pipelines")}>
             <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer group">
               <CardContent className="p-6 flex items-center gap-4">
@@ -297,50 +294,138 @@ export default function Dashboard() {
                   <Play className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
-                    Create Pipeline
-                  </h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">Create Pipeline</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">Set up bulk data transfers with retry logic</p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
               </CardContent>
             </Card>
           </Link>
-
-          <Link to={createPageUrl("UserGuide")}>
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500 hover:shadow-md transition-all cursor-pointer group">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                  <BookOpen className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors">
-                    User Guide
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Learn how to use DataFlow step-by-step</p>
-                </div>
-                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link to={createPageUrl("Requirements")}>
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-md transition-all cursor-pointer group">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                  <FileText className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-purple-600 transition-colors">
-                    Requirements & Use Cases
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">View platform features and capabilities</p>
-                </div>
-                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
-              </CardContent>
-            </Card>
-          </Link>
         </div>
+
+        {/* Custom Functions Manager */}
+        <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
+                <Workflow className="w-5 h-5 text-violet-600" />
+                Custom Functions
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400">Used in Column Mapping transform dropdown</p>
+                <Button
+                  size="sm"
+                  className="gap-1.5 bg-[#003478] hover:bg-[#002560] h-7 text-xs"
+                  onClick={() => { setFnEditing("new"); setFnForm(EMPTY_FN); }}
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Function
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Quick-add / edit form */}
+            {fnEditing && (
+              <div className="mb-4 p-3 border border-violet-200 bg-violet-50/40 rounded-lg space-y-2">
+                <p className="text-xs font-semibold text-slate-700">{fnEditing === "new" ? "New Function" : `Edit: ${fnEditing.label}`}</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Key (no spaces)</p>
+                    <input
+                      className="w-full h-7 px-2 text-xs border border-slate-200 rounded font-mono focus:outline-none focus:ring-1 focus:ring-violet-300"
+                      value={fnForm.name}
+                      onChange={e => setFnForm(f => ({ ...f, name: e.target.value.replace(/\s+/g, "_") }))}
+                      placeholder="my_udf"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Display Label</p>
+                    <input
+                      className="w-full h-7 px-2 text-xs border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-violet-300"
+                      value={fnForm.label}
+                      onChange={e => setFnForm(f => ({ ...f, label: e.target.value }))}
+                      placeholder="My UDF(col)"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Category</p>
+                    <select
+                      className="w-full h-7 px-2 text-xs border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-violet-300"
+                      value={fnForm.category}
+                      onChange={e => setFnForm(f => ({ ...f, category: e.target.value }))}
+                    >
+                      <option value="spark_udf">Spark UDF</option>
+                      <option value="custom_expression">Custom Expression</option>
+                    </select>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 mb-0.5">Expression Template</p>
+                    <input
+                      className="w-full h-7 px-2 text-xs border border-slate-200 rounded font-mono focus:outline-none focus:ring-1 focus:ring-violet-300"
+                      value={fnForm.expression_template}
+                      onChange={e => setFnForm(f => ({ ...f, expression_template: e.target.value }))}
+                      placeholder="my_udf({col})"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" className="h-7 text-xs bg-[#003478] hover:bg-[#002560]" disabled={!fnForm.name || !fnForm.label || fnSaving} onClick={saveFn}>
+                    {fnSaving ? "Saving…" : "Save"}
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setFnEditing(null); setFnForm(EMPTY_FN); }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Functions table */}
+            {customFunctions.length === 0 && !fnEditing ? (
+              <div className="text-center py-8 text-slate-400 text-sm border border-dashed border-slate-200 rounded-lg">
+                <Workflow className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                No custom functions yet. Add one above — it will appear in the Column Mapping transform dropdown automatically.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50">
+                      <th className="px-3 py-2 text-left font-semibold text-slate-600">Key</th>
+                      <th className="px-3 py-2 text-left font-semibold text-slate-600">Label</th>
+                      <th className="px-3 py-2 text-left font-semibold text-slate-600">Category</th>
+                      <th className="px-3 py-2 text-left font-semibold text-slate-600">Expression</th>
+                      <th className="py-2 w-16"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {customFunctions.map(fn => (
+                      <tr key={fn.id} className="border-b border-slate-100 hover:bg-slate-50 group">
+                        <td className="px-3 py-2 font-mono text-slate-800">{fn.name}</td>
+                        <td className="px-3 py-2 text-slate-700">{fn.label}</td>
+                        <td className="px-3 py-2">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${fn.category === "spark_udf" ? "bg-violet-100 text-violet-700" : "bg-amber-100 text-amber-700"}`}>
+                            {fn.category === "spark_udf" ? "Spark UDF" : "Custom Expr"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 font-mono text-slate-500">{fn.expression_template || "—"}</td>
+                        <td className="px-3 py-2">
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => { setFnEditing(fn); setFnForm({ name: fn.name, label: fn.label, category: fn.category, description: fn.description || "", expression_template: fn.expression_template || "" }); }} className="text-slate-400 hover:text-blue-600">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => deleteFn(fn)} className="text-slate-400 hover:text-red-500">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Airflow DAGs — lazy loaded */}
         <div>
