@@ -89,6 +89,7 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
   // Full Excel-style row
   return (
     <tr
+      ref={ref}
       className={cn(
         "border-b border-slate-100 transition-colors group",
         isDragging ? "bg-blue-50 shadow-lg" : isAudit ? "bg-amber-50/60 hover:bg-amber-50" : "hover:bg-blue-50/40"
