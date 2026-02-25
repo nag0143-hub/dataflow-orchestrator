@@ -383,18 +383,37 @@ export default function Pipelines() {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Pipelines</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Configure and run data pipelines between connections</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={loadData} className="gap-2">
               <RefreshCw className="w-4 h-4" />
             </Button>
+            {/* View toggle */}
+            <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "list" ? "bg-[#003478] text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
+              >
+                <List className="w-4 h-4" />
+                List
+              </button>
+              <button
+                onClick={() => setViewMode("builder")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors border-l border-slate-200 dark:border-slate-700 ${viewMode === "builder" ? "bg-[#003478] text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
+              >
+                <Workflow className="w-4 h-4" />
+                Visual Builder
+              </button>
+            </div>
             <Button variant="outline" onClick={() => setShowOnboarding(true)} className="gap-2">
               <Rocket className="w-4 h-4" />
               Quick Start
             </Button>
-            <Button onClick={openNew} className="gap-2">
-              <Plus className="w-4 h-4" />
-              New Pipeline
-            </Button>
+            {viewMode === "list" && (
+              <Button onClick={openNew} className="gap-2 bg-[#003478] hover:bg-[#002560]">
+                <Plus className="w-4 h-4" />
+                New Pipeline
+              </Button>
+            )}
           </div>
         </div>
 
