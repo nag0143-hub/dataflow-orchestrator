@@ -416,7 +416,7 @@ const entities = [
       { name: "version_number", type: "number", required: true, note: "Monotonically increasing" },
       { name: "label", type: "string", required: false, note: 'e.g. "v3", "Restored from v1"' },
       { name: "commit_message", type: "string", required: false, note: "User-provided change description" },
-      { name: "snapshot", type: "object", required: true, note: "Full copy of IngestionJob fields at that point in time" },
+      { name: "snapshot", type: "object", required: true, note: "Full copy of Pipeline fields at that point in time" },
       { name: "changed_by", type: "string", required: false, note: "User email who made the change" },
       { name: "change_type", type: "string", required: false, note: 'created | updated | paused | resumed | deleted' },
     ]
