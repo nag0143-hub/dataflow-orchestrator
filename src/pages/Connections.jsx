@@ -129,7 +129,7 @@ export default function Connections() {
   const [testingId, setTestingId] = useState(null);
   const [testResult, setTestResult] = useState(null);
 
-  const connections = scope(cachedConnections);
+  const connections = scope(cachedConnections || []);
   const loading = cacheLoading;
 
   useEffect(() => { loadPrereqs(); }, []);
