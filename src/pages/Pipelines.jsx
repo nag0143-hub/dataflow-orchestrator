@@ -16,7 +16,6 @@ import PipelineCard from "@/components/PipelineCard";
 import JobDetailsDialog from "@/components/JobDetailsDialog";
 import JobSpecExport from "@/components/JobSpecExport";
 import OnboardingWizard from "@/components/OnboardingWizard";
-import VisualPipelineBuilder from "@/components/VisualPipelineBuilder";
 
 const defaultFormData = {
   name: "",
