@@ -318,59 +318,50 @@ export default function Connections() {
 
         {/* Grid */}
         {filteredConnections.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredConnections.map((connection) => (
-              <Card key={connection.id} className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:shadow-lg transition-shadow">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <PlatformIcon platform={connection.platform} />
-                      <div>
-                        <h3 className="font-semibold text-slate-900 dark:text-white">{connection.name}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{connection.connection_type}</p>
-                      </div>
+          groupedByTag ? (
+            <div className="space-y-8">
+              {Object.entries(groupedByTag)
+                .sort(([a], [b]) => a === "Untagged" ? 1 : b === "Untagged" ? -1 : a.localeCompare(b))
+                .map(([tag, conns]) => (
+                  <div key={tag}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Tag className="w-4 h-4 text-slate-400" />
+                      <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{tag}</h2>
+                      <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full px-2 py-0.5">{conns.length}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-slate-500 hover:text-slate-800" onClick={() => setPrereqDialogConn(connection)}>
-                        <Shield className="w-3.5 h-3.5" />
-                        {(() => { const s = getPrereqSummary(connection.id); return s.total > 0 ? `${s.done}/${s.total}` : "Setup"; })()}
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleTestConnection(connection)}><TestTube className="w-4 h-4 mr-2" />Test Connection</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(connection)}><Edit className="w-4 h-4 mr-2" />Edit</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(connection)} className="text-red-600 focus:text-red-600"><Trash2 className="w-4 h-4 mr-2" />Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {conns.map(connection => (
+                        <ConnectionCard
+                          key={connection.id}
+                          connection={connection}
+                          getPrereqSummary={getPrereqSummary}
+                          testingId={testingId}
+                          setPrereqDialogConn={setPrereqDialogConn}
+                          handleTestConnection={handleTestConnection}
+                          handleEdit={handleEdit}
+                          handleDelete={handleDelete}
+                        />
+                      ))}
                     </div>
                   </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span className="text-slate-500">Platform</span><span className="text-slate-700 dark:text-slate-300 font-medium">{platformConfig[connection.platform]?.label || connection.platform}</span></div>
-                    {connection.source_system_name && <div className="flex justify-between"><span className="text-slate-500">System</span><span className="text-slate-700 dark:text-slate-300">{connection.source_system_name}</span></div>}
-                    {connection.car_id && <div className="flex justify-between"><span className="text-slate-500">CarID</span><span className="text-slate-700 dark:text-slate-300">{connection.car_id}</span></div>}
-                    {connection.host && <div className="flex justify-between"><span className="text-slate-500">Host</span><span className="text-slate-700 dark:text-slate-300 truncate ml-2 max-w-[150px]">{connection.host}</span></div>}
-                    {connection.database && <div className="flex justify-between"><span className="text-slate-500">Database</span><span className="text-slate-700 dark:text-slate-300">{connection.database}</span></div>}
-                    {connection.bucket_container && <div className="flex justify-between"><span className="text-slate-500">Container</span><span className="text-slate-700 dark:text-slate-300">{connection.bucket_container}</span></div>}
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2">
-                    <StatusBadge status={connection.status} size="sm" />
-                    <div className="flex items-center gap-2">
-                      {connection.last_tested && <span className="text-xs text-slate-400">{moment(connection.last_tested).fromNow()}</span>}
-                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={() => handleTestConnection(connection)} disabled={testingId === connection.id}>
-                        {testingId === connection.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wifi className="w-3 h-3" />}
-                        {testingId === connection.id ? "Testing..." : "Test"}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredConnections.map((connection) => (
+                <ConnectionCard
+                  key={connection.id}
+                  connection={connection}
+                  getPrereqSummary={getPrereqSummary}
+                  testingId={testingId}
+                  setPrereqDialogConn={setPrereqDialogConn}
+                  handleTestConnection={handleTestConnection}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                />
+              ))}
+            </div>
+          )
         ) : (
           <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="py-16 text-center">
