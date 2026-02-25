@@ -25,7 +25,6 @@ import ErrorState from "@/components/ErrorState";
 import { createIndex } from "@/components/dataIndexing";
 import moment from "moment";
 
-import AirflowSection from "@/components/AirflowSection";
 import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
@@ -37,7 +36,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-
 
   useEffect(() => {
     loadData();
