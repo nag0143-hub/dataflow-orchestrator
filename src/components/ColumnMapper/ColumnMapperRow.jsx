@@ -20,9 +20,9 @@ const EditableCell = memo(function EditableCell({ value, onChange, placeholder =
       )}
     />
   );
-}
+});
 
-function SelectCell({ value, onChange, options, disabled = false }) {
+const SelectCell = memo(function SelectCell({ value, onChange, options, disabled = false }) {
   return (
     <TransformSelect value={value} onChange={onChange} options={options} disabled={disabled} />
   );
@@ -51,9 +51,9 @@ const TransformParams = memo(function TransformParams({ mapping, onUpdate, isCon
           ))}
         </div>
       </td>
-      </tr>
-      );
-      });
+    </tr>
+  );
+});
 
 
       const ColumnMapperRow = memo(forwardRef(function ColumnMapperRow({
