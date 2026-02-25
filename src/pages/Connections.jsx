@@ -420,7 +420,9 @@ export default function Connections() {
                   </div>
                   ))}
                   </div>
-                  ) : viewMode === "list" ? (
+                  )
+                  ) : (
+                  viewMode === "list" ? (
             <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-800">
               {/* List header */}
               <div className="flex items-center gap-4 px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-500 uppercase tracking-wider">
