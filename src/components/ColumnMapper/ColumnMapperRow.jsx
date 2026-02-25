@@ -40,7 +40,7 @@ function SelectCell({ value, onChange, options, disabled = false }) {
   );
 }
 
-export default function ColumnMapperRow({
+const ColumnMapperRow = forwardRef(function ColumnMapperRow({
   mapping,
   sourceCol,
   isSelected,
@@ -52,7 +52,7 @@ export default function ColumnMapperRow({
   dragProps,
   dragHandleProps,
   isAudit,
-}) {
+}, ref) {
   const isLocked = mapping.is_audit;
 
   if (isCondensed) {
