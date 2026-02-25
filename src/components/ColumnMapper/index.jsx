@@ -343,44 +343,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
             </div>
           )}
 
-          {/* Audit Columns - Dataset level */}
-          {selectedTable && (
-            <div className="border border-amber-200 rounded-lg bg-amber-50 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-amber-600" />
-                  <h4 className="text-sm font-semibold text-amber-900">Audit & System Columns</h4>
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                    {tableMappings.filter(m => m.is_audit).length}
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  className="h-7 text-xs px-3 bg-amber-600 hover:bg-amber-700 text-white gap-1"
-                  onClick={() => {
-                    const newDerived = { source: null, target: `audit_${Date.now()}`, transformation: "direct", derived: true, is_audit: true };
-                    onChange(prev => ({ ...prev, [tableKey]: [...tableMappings, newDerived] }));
-                  }}
-                >
-                  <Plus className="w-3 h-3" /> Add Column
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-                {tableMappings.filter(m => m.is_audit).length === 0 ? (
-                  <span className="text-xs text-amber-600 py-3">No audit columns configured</span>
-                ) : (
-                  tableMappings.filter(m => m.is_audit).map(m => (
-                    <div key={m.target} className="flex items-center justify-between gap-2 p-2 bg-white rounded border border-amber-100 hover:border-amber-300">
-                      <span className="font-mono text-xs text-amber-900 flex-1 truncate">{m.target}</span>
-                      <button type="button" onClick={() => removeMapping(m.target)} className="text-amber-300 hover:text-red-600 flex-shrink-0 transition-colors">
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+          
         </div>
       </div>
 
