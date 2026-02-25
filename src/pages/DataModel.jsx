@@ -64,10 +64,10 @@ CREATE INDEX idx_connection_status   ON connection(status);
 CREATE INDEX idx_connection_platform ON connection(platform);
 
 -- ------------------------------------------------------------
--- INGESTION JOB
+-- PIPELINE
 -- ------------------------------------------------------------
 
-CREATE TABLE ingestion_job (
+CREATE TABLE pipeline (
     id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_date         TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_date         TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -96,19 +96,19 @@ CREATE TABLE ingestion_job (
     failed_runs          INTEGER DEFAULT 0
 );
 
-CREATE INDEX idx_ingestion_job_status ON ingestion_job(status);
-CREATE INDEX idx_ingestion_job_source ON ingestion_job(source_connection_id);
-CREATE INDEX idx_ingestion_job_target ON ingestion_job(target_connection_id);
+CREATE INDEX idx_pipeline_status ON pipeline(status);
+CREATE INDEX idx_pipeline_source ON pipeline(source_connection_id);
+CREATE INDEX idx_pipeline_target ON pipeline(target_connection_id);
 
 -- ------------------------------------------------------------
--- JOB RUN
+-- PIPELINE RUN
 -- ------------------------------------------------------------
 
-CREATE TABLE job_run (
+CREATE TABLE pipeline_run (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_date      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    job_id            UUID NOT NULL REFERENCES ingestion_job(id) ON DELETE CASCADE,
+    pipeline_id       UUID NOT NULL REFERENCES pipeline(id) ON DELETE CASCADE,
     run_number        INTEGER,
     status            run_status_enum NOT NULL,
     started_at        TIMESTAMPTZ,
