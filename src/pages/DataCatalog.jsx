@@ -48,7 +48,7 @@ export default function DataCatalog() {
 
   const { data: jobs = [] } = useQuery({
     queryKey: ['jobs'],
-    queryFn: () => base44.entities.IngestionJob.list()
+    queryFn: () => base44.entities.Pipeline.list()
   });
 
   // Extract all unique tags
