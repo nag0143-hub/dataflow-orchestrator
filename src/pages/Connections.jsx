@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import PrerequisitePanel from "@/components/PrerequisitePanel";
 import ConnectionProfilePicker from "@/components/ConnectionProfilePicker";
 import ConnectionCard from "@/components/ConnectionCard";
+import ConnectionListRow from "@/components/ConnectionListRow";
 
 function SaveAsProfileButton({ formData }) {
   const [saving, setSaving] = useState(false);
