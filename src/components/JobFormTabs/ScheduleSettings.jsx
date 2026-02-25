@@ -54,7 +54,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
       {/* Schedule */}
       <div className="border border-slate-200 rounded-lg p-4 space-y-3">
         <Label className="text-sm font-semibold">Run Schedule</Label>
-        <p className="text-xs text-slate-500">When this job should run</p>
+        <p className="text-xs text-slate-500">When this pipeline should run</p>
 
         {/* Schedule type buttons */}
         <div className="flex flex-wrap gap-2">
@@ -368,7 +368,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                   <div className="space-y-1">
                     <Label className="text-xs">Webhook Endpoint (read-only)</Label>
                     <Input
-                      value={`/api/webhooks/job/${formData.name || "<job-name>"}/trigger`}
+                      value={`/api/webhooks/pipeline/${formData.name || "<pipeline-name>"}/trigger`}
                       readOnly
                       className="font-mono text-sm bg-slate-50 text-slate-500"
                     />

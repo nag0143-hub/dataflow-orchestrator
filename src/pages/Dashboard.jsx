@@ -113,9 +113,9 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Recent Job Runs + Activity */}
+      {/* Recent Pipeline Runs + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Job Runs */}
+        {/* Recent Pipeline Runs */}
         <Card className="lg:col-span-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -146,7 +146,7 @@ export default function Dashboard() {
                   </thead>
                   <tbody>
                     {recentRuns.map((run) => {
-                        const job = jobIndex.get(run.job_id);
+                        const job = jobIndex.get(run.pipeline_id);
                         return (
                           <tr key={run.id} className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
                             <td className="py-3 px-4">
