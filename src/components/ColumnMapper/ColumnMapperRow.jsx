@@ -158,7 +158,7 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
 
         {/* Transformation */}
         <td className="py-1 border-r border-slate-100 min-w-[160px]">
-          <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={TRANSFORMATIONS} />
+          <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={transformations} />
         </td>
 
         {/* Expression cell - only for custom_sql, otherwise show hint about params row */}
