@@ -12,7 +12,7 @@ import { useTenant } from "@/components/useTenant";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import JobFormDialog from "@/components/JobFormDialog";
-import JobCard from "@/components/JobCard";
+import PipelineCard from "@/components/PipelineCard";
 import JobDetailsDialog from "@/components/JobDetailsDialog";
 import JobSpecExport from "@/components/JobSpecExport";
 import OnboardingWizard from "@/components/OnboardingWizard";
