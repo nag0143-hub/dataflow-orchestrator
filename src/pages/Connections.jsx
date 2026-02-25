@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { 
   Plus, Search, MoreVertical, Edit, Trash2, TestTube,
   Cable, Filter, Shield, CheckCircle2, XCircle, Loader2, Wifi, BookOpen, RefreshCw,
   Tag, X, Layers, LayoutGrid, List
 } from "lucide-react";
+import { useRetry } from "@/components/hooks/useRetry";
+import { useCache } from "@/components/hooks/useCache";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
