@@ -408,11 +408,11 @@ const entities = [
   {
     name: "PipelineVersion",
     color: "from-rose-500 to-pink-600",
-    description: "Version snapshot of an IngestionJob for audit and rollback purposes.",
+    description: "Version snapshot of a Pipeline for audit and rollback purposes.",
     fields: [
       { name: "id", type: "string", required: true, note: "Auto-generated" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
-      { name: "job_id", type: "string", required: true, note: "→ IngestionJob.id" },
+      { name: "pipeline_id", type: "string", required: true, note: "→ Pipeline.id" },
       { name: "version_number", type: "number", required: true, note: "Monotonically increasing" },
       { name: "label", type: "string", required: false, note: 'e.g. "v3", "Restored from v1"' },
       { name: "commit_message", type: "string", required: false, note: "User-provided change description" },
