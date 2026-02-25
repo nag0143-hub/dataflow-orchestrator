@@ -186,6 +186,7 @@ export default function Connections() {
       username: connection.username || "", auth_method: connection.auth_method || "password",
       region: connection.region || "", bucket_container: connection.bucket_container || "",
       status: connection.status || "active", notes: connection.notes || "",
+      tags: connection.tags || [],
       file_config: connection.file_config || defaultFormData.file_config
     });
     setFormTab("general");
