@@ -5,8 +5,6 @@ import {
   Cable, Filter, Shield, CheckCircle2, XCircle, Loader2, Wifi, BookOpen, RefreshCw,
   Tag, X, Layers, LayoutGrid, List
 } from "lucide-react";
-import { useRetry } from "@/components/hooks/useRetry";
-import { useCache } from "@/components/hooks/useCache";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -269,31 +267,6 @@ export default function Connections() {
   const isDelimited = formData.platform === "flat_file_delimited";
   const isCobol = formData.platform === "cobol_ebcdic";
 
-  // Platform categories for organization
-  const platformCategories = {
-    "Databases": ["sql_server", "oracle", "postgresql", "mysql", "mongodb"],
-    "Cloud Storage": ["adls2", "s3"],
-    "File Systems": ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"]
-  };
-
-  const getPlatformCategory = (platform) => {
-    for (const [category, platforms] of Object.entries(platformCategories)) {
-      if (platforms.includes(platform)) return category;
-    }
-    return "Other";
-  };
-
-  const groupedByPlatform = useMemo(() => {
-    const grouped = {};
-    Object.keys(platformCategories).forEach(cat => grouped[cat] = []);
-    filteredConnections.forEach(c => {
-      const cat = getPlatformCategory(c.platform);
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(c);
-    });
-    return grouped;
-  }, [filteredConnections]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -327,30 +300,30 @@ export default function Connections() {
         </div>
 
         {/* Filters */}
-         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
-           <div className="relative flex-1 max-w-md">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-             <Input placeholder="Search connections..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
-           </div>
-           <Select value={filterType} onValueChange={setFilterType}>
-             <SelectTrigger className="w-40">
-               <Filter className="w-4 h-4 mr-2 text-slate-400" />
-               <SelectValue />
-             </SelectTrigger>
-             <SelectContent>
-               <SelectItem value="all">All Types</SelectItem>
-               <SelectItem value="source">Sources</SelectItem>
-               <SelectItem value="target">Targets</SelectItem>
-             </SelectContent>
-           </Select>
-           <Button
-             variant={groupByTag ? "default" : "outline"}
-             className="gap-2 shrink-0"
-             onClick={() => setGroupByTag(g => !g)}
-           >
-             <Layers className="w-4 h-4" />
-             Group by Tag
-           </Button>
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input placeholder="Search connections..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+          </div>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-40">
+              <Filter className="w-4 h-4 mr-2 text-slate-400" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="source">Sources</SelectItem>
+              <SelectItem value="target">Targets</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant={groupByTag ? "default" : "outline"}
+            className="gap-2 shrink-0"
+            onClick={() => setGroupByTag(g => !g)}
+          >
+            <Layers className="w-4 h-4" />
+            Group by Tag
+          </Button>
           <div className="flex border rounded-md overflow-hidden shrink-0">
             <button
               className={`px-2.5 py-1.5 ${viewMode === "grid" ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
@@ -364,8 +337,8 @@ export default function Connections() {
         </div>
 
         {/* Connection list/grid */}
-         {filteredConnections.length > 0 ? (
-           groupByTag ? (
+        {filteredConnections.length > 0 ? (
+          groupedByTag ? (
             <div className="space-y-8">
               {Object.entries(groupedByTag)
                 .sort(([a], [b]) => a === "Untagged" ? 1 : b === "Untagged" ? -1 : a.localeCompare(b))
@@ -390,39 +363,9 @@ export default function Connections() {
                       </div>
                     )}
                   </div>
-                  ))}
-                  </div>
-                  ) : (
-                  <div className="space-y-8">
-                  {/* Group by Platform Category */}
-                  {Object.entries(groupedByPlatform)
-                  .filter(([_, conns]) => conns.length > 0)
-                  .map(([category, conns]) => (
-                  <div key={category}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Layers className="w-4 h-4 text-blue-500" />
-                      <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wider">{category}</h2>
-                      <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full px-2 py-0.5">{conns.length}</span>
-                    </div>
-                    {viewMode === "list" ? (
-                      <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                        {conns.map(connection => (
-                          <ConnectionListRow key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {conns.map(connection => (
-                          <ConnectionCard key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  ))}
-                  </div>
-                  )
-                  ) : (
-                  viewMode === "list" ? (
+                ))}
+            </div>
+          ) : viewMode === "list" ? (
             <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-800">
               {/* List header */}
               <div className="flex items-center gap-4 px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -444,17 +387,10 @@ export default function Connections() {
               {filteredConnections.map((connection) => (
                 <ConnectionCard key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
               ))}
-              </div>
-              ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredConnections.map((connection) => (
-                <ConnectionCard key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
-              ))}
-              </div>
-              )
-              )
-              ) : (
-              <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+            </div>
+          )
+        ) : (
+          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="py-16 text-center">
               <Cable className="w-12 h-12 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No connections found</h3>

@@ -96,6 +96,7 @@ export default function ActivityLogs() {
         base44.entities.Pipeline.list(),
         base44.entities.Connection.list()
       ]);
+      // Don't load all logs initially - use server-side search instead
       setLogs([]);
       setAuditLogs(auditLogsData);
       setJobs(jobsData);
@@ -105,6 +106,7 @@ export default function ActivityLogs() {
     }
   };
 
+  // Server-side search for activity logs
   useEffect(() => {
     const searchLogs = async () => {
       setServerSearching(true);
@@ -128,16 +130,18 @@ export default function ActivityLogs() {
       }
     };
 
-    const timeout = setTimeout(searchLogs, 300);
+    const timeout = setTimeout(searchLogs, 300); // Debounce
     return () => clearTimeout(timeout);
   }, [searchTerm, filterType, filterCategory, currentPage]);
 
+  // Indexed lookups for better performance
   const jobIndex = createIndex(jobs, "id");
   const connectionIndex = createIndex(connections, "id");
   
   const getJobName = (jobId) => jobIndex.get(jobId)?.name || "Unknown Job";
   const getConnectionName = (connId) => connectionIndex.get(connId)?.name || "Unknown Connection";
 
+  // Pagination (server returns paginated results)
   const totalPages = Math.ceil(logs.length / logsPerPage);
   const paginatedLogs = logs;
 
@@ -240,6 +244,7 @@ export default function ActivityLogs() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Activity & Audit Logs</h1>
@@ -257,6 +262,7 @@ export default function ActivityLogs() {
         </div>
       </div>
 
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="dark:bg-slate-800 dark:border dark:border-slate-700">
           <TabsTrigger value="activity" className="gap-2 dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-white">
@@ -270,175 +276,233 @@ export default function ActivityLogs() {
         </TabsList>
 
         <TabsContent value="activity" className="space-y-6 mt-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Total Logs</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900 flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-300" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.errors}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Errors</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-300" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.warnings}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Warnings</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.today}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Today</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Search logs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 dark:bg-slate-700 dark:border-slate-600"
-              />
-            </div>
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-36 dark:bg-slate-700 dark:border-slate-600">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="info">Info</SelectItem>
-                <SelectItem value="success">Success</SelectItem>
-                <SelectItem value="warning">Warning</SelectItem>
-                <SelectItem value="error">Error</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-40 dark:bg-slate-700 dark:border-slate-600">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="connection">Connection</SelectItem>
-                <SelectItem value="job">Job</SelectItem>
-                <SelectItem value="system">System</SelectItem>
-                <SelectItem value="authentication">Authentication</SelectItem>
-              </SelectContent>
-            </Select>
-            {hasFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
-                <X className="w-4 h-4" />
-                Clear
-              </Button>
-            )}
-          </div>
-
-          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-            <CardContent className="p-0">
-              {paginatedLogs.length > 0 ? (
-                <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                  {paginatedLogs.map((log) => {
-                    const typeConfig = logTypeConfig[log.log_type] || logTypeConfig.info;
-                    const catConfig = categoryConfig[log.category] || categoryConfig.system;
-                    const Icon = typeConfig.icon;
-
-                    return (
-                      <div
-                        key={log.id}
-                        className="flex items-start gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
-                        onClick={() => { setSelectedLog(log); setDetailsOpen(true); }}
-                      >
-                        <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                          typeConfig.color.split(" ")[0]
-                        )}>
-                          <Icon className={cn("w-4 h-4", typeConfig.color.split(" ")[1])} />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <Badge variant="outline" className={cn("text-xs dark:border-slate-600", catConfig.color)}>
-                              {catConfig.label}
-                            </Badge>
-                            {log.job_id && (
-                              <span className="text-xs text-slate-500 dark:text-slate-400">
-                                Job: {getJobName(log.job_id)}
-                              </span>
-                            )}
-                            {log.connection_id && (
-                              <span className="text-xs text-slate-500 dark:text-slate-400">
-                                Connection: {getConnectionName(log.connection_id)}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-slate-900 dark:text-slate-100">{log.message}</p>
-                          {log.object_name && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Object: {log.object_name}</p>
-                          )}
-                        </div>
-
-                        <div className="text-right shrink-0">
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {moment(log.created_date).format("h:mm A")}
-                          </p>
-                          <p className="text-xs text-slate-400 dark:text-slate-500">
-                            {moment(log.created_date).format("MMM D")}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="border-slate-200 dark:dark-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                 </div>
-              ) : (
-                <div className="py-16 text-center">
-                  <Clock className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No logs found</h3>
-                  <p className="text-slate-500 dark:text-slate-400">
-                    {hasFilters ? "Try adjusting your filters" : "Activity logs will appear here"}
-                  </p>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Total Logs</p>
                 </div>
-              )}
+              </div>
             </CardContent>
           </Card>
+          <Card className="border-slate-200 dark:dark-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-300" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.errors}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Errors</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-slate-200 dark:dark-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-300" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.warnings}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Warnings</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-slate-200 dark:dark-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.today}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Today</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Search logs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 dark:dark-input dark:dark-text"
+            />
+          </div>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-36 dark:dark-input dark:dark-text">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="info">Info</SelectItem>
+              <SelectItem value="success">Success</SelectItem>
+              <SelectItem value="warning">Warning</SelectItem>
+              <SelectItem value="error">Error</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="connection">Connection</SelectItem>
+              <SelectItem value="job">Job</SelectItem>
+              <SelectItem value="system">System</SelectItem>
+              <SelectItem value="authentication">Authentication</SelectItem>
+            </SelectContent>
+          </Select>
+          {hasFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 dark:dark-text">
+              <X className="w-4 h-4" />
+              Clear
+            </Button>
+          )}
+        </div>
+
+        {/* Logs List */}
+        <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+          <CardContent className="p-0">
+          {paginatedLogs.length > 0 ? (
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              {paginatedLogs.map((log) => {
+                const typeConfig = logTypeConfig[log.log_type] || logTypeConfig.info;
+                const catConfig = categoryConfig[log.category] || categoryConfig.system;
+                const Icon = typeConfig.icon;
+
+                return (
+                  <div
+                    key={log.id}
+                    className="flex items-start gap-4 p-4 hover:bg-slate-50 dark:dark-hover cursor-pointer transition-colors"
+                    onClick={() => { setSelectedLog(log); setDetailsOpen(true); }}
+                  >
+                    {/* Type Indicator */}
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                      typeConfig.color.split(" ")[0]
+                    )}>
+                      <Icon className={cn("w-4 h-4", typeConfig.color.split(" ")[1])} />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <Badge variant="outline" className={cn("text-xs dark:border-slate-600", catConfig.color)}>
+                          {catConfig.label}
+                        </Badge>
+                        {log.job_id && (
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            Job: {getJobName(log.job_id)}
+                          </span>
+                        )}
+                        {log.connection_id && (
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            Connection: {getConnectionName(log.connection_id)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-900 dark:text-slate-100">{log.message}</p>
+                      {log.object_name && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Object: {log.object_name}</p>
+                      )}
+                    </div>
+
+                    {/* Timestamp */}
+                    <div className="text-right shrink-0">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {moment(log.created_date).format("h:mm A")}
+                      </p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
+                        {moment(log.created_date).format("MMM D")}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-16 text-center">
+              <Clock className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No logs found</h3>
+              <p className="text-slate-500 dark:text-slate-400">
+                {hasFilters ? "Try adjusting your filters" : "Activity logs will appear here"}
+              </p>
+            </div>
+          )}
+          </CardContent>
+        </Card>
+
+        {/* Pagination */}
+         {totalPages > 1 && (
+           <div className="flex items-center justify-between">
+             <p className="text-sm text-slate-500 dark:text-slate-400">
+               Showing {(currentPage - 1) * logsPerPage + 1} to {Math.min(currentPage * logsPerPage, logs.length)} of {logs.length} logs
+             </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="dark:dark-input dark:dark-text"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + 1;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded text-sm font-medium ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white"
+                          : "hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                {totalPages > 5 && <span className="text-slate-400">...</span>}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="dark:dark-input dark:dark-text"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
         </TabsContent>
 
         <TabsContent value="audit" className="space-y-6 mt-6">
+          {/* Audit Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+            <Card className="dark:dark-card">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-blue-600">{auditStats.total}</p>
@@ -446,7 +510,7 @@ export default function ActivityLogs() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+            <Card className="dark:dark-card">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-green-600">{auditStats.creates}</p>
@@ -454,7 +518,7 @@ export default function ActivityLogs() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+            <Card className="dark:dark-card">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-amber-600">{auditStats.updates}</p>
@@ -462,7 +526,7 @@ export default function ActivityLogs() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+            <Card className="dark:dark-card">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-red-600">{auditStats.deletes}</p>
@@ -472,6 +536,7 @@ export default function ActivityLogs() {
             </Card>
           </div>
 
+          {/* Audit Filters */}
           <div className="flex flex-wrap gap-3">
             <div className="flex-1 min-w-[300px]">
               <div className="relative">
@@ -480,13 +545,13 @@ export default function ActivityLogs() {
                   placeholder="Search by entity name, user..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 dark:bg-slate-700 dark:border-slate-600"
+                  className="pl-10 dark:dark-input dark:dark-text"
                 />
               </div>
             </div>
 
             <Select value={selectedAction} onValueChange={setSelectedAction}>
-              <SelectTrigger className="w-40 dark:bg-slate-700 dark:border-slate-600">
+              <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
                 <SelectValue placeholder="All Actions" />
               </SelectTrigger>
               <SelectContent>
@@ -502,7 +567,7 @@ export default function ActivityLogs() {
             </Select>
 
             <Select value={selectedEntity} onValueChange={setSelectedEntity}>
-              <SelectTrigger className="w-40 dark:bg-slate-700 dark:border-slate-600">
+              <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
                 <SelectValue placeholder="All Entities" />
               </SelectTrigger>
               <SelectContent>
@@ -516,9 +581,10 @@ export default function ActivityLogs() {
             </Select>
           </div>
 
+          {/* Audit Logs */}
           <div className="space-y-3">
             {paginatedAuditLogs.length === 0 ? (
-              <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+              <Card className="dark:dark-card">
                 <CardContent className="py-12 text-center">
                   <Clock className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                   <p className="text-slate-500 dark:text-slate-400">
@@ -532,7 +598,7 @@ export default function ActivityLogs() {
               paginatedAuditLogs.map(log => {
                 const ActionIcon = actionIcons[log.action] || FileEdit;
                 return (
-                  <Card key={log.id} className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:shadow-md transition-shadow">
+                  <Card key={log.id} className="dark:dark-card hover:shadow-md transition-shadow">
                     <CardContent className="py-4">
                       <div className="flex items-start gap-4">
                         <div className={cn(
@@ -593,6 +659,7 @@ export default function ActivityLogs() {
             )}
           </div>
 
+          {/* Audit Pagination */}
           {totalAuditPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -604,7 +671,7 @@ export default function ActivityLogs() {
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="dark:bg-slate-700 dark:border-slate-600"
+                  className="dark:dark-input dark:dark-text"
                 >
                   Previous
                 </Button>
@@ -616,7 +683,7 @@ export default function ActivityLogs() {
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.min(totalAuditPages, p + 1))}
                   disabled={currentPage === totalAuditPages}
-                  className="dark:bg-slate-700 dark:border-slate-600"
+                  className="dark:dark-input dark:dark-text"
                 >
                   Next
                 </Button>
@@ -624,29 +691,30 @@ export default function ActivityLogs() {
             </div>
           )}
 
+          {/* Audit Details Dialog */}
           {viewAuditDetails && (
             <Dialog open={!!viewAuditDetails} onOpenChange={() => setViewAuditDetails(null)}>
-              <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto dark:bg-slate-800">
+              <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto dark:dark-card">
                 <DialogHeader>
-                  <DialogTitle className="dark:text-white">Change Details</DialogTitle>
+                  <DialogTitle className="dark:dark-text">Change Details</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium mb-1 dark:text-white">Entity:</p>
+                    <p className="text-sm font-medium mb-1 dark:dark-text">Entity:</p>
                     <p className="text-sm text-slate-600 dark:text-slate-400">{viewAuditDetails.entity_name}</p>
                   </div>
                   {viewAuditDetails.changes?.before && (
                     <div>
-                      <p className="text-sm font-medium mb-2 dark:text-white">Before:</p>
-                      <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-xs overflow-x-auto dark:text-slate-300">
+                      <p className="text-sm font-medium mb-2 dark:dark-text">Before:</p>
+                      <pre className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-xs overflow-x-auto dark:text-slate-300">
                         {JSON.stringify(viewAuditDetails.changes.before, null, 2)}
                       </pre>
                     </div>
                   )}
                   {viewAuditDetails.changes?.after && (
                     <div>
-                      <p className="text-sm font-medium mb-2 dark:text-white">After:</p>
-                      <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-xs overflow-x-auto dark:text-slate-300">
+                      <p className="text-sm font-medium mb-2 dark:dark-text">After:</p>
+                      <pre className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-xs overflow-x-auto dark:text-slate-300">
                         {JSON.stringify(viewAuditDetails.changes.after, null, 2)}
                       </pre>
                     </div>
@@ -658,10 +726,11 @@ export default function ActivityLogs() {
         </TabsContent>
       </Tabs>
 
+      {/* Log Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-lg dark:bg-slate-800">
+        <DialogContent className="max-w-lg dark:dark-card">
           <DialogHeader>
-            <DialogTitle className="dark:text-white">Log Details</DialogTitle>
+            <DialogTitle className="dark:dark-text">Log Details</DialogTitle>
           </DialogHeader>
 
           {selectedLog && (
@@ -687,7 +756,7 @@ export default function ActivityLogs() {
                 </div>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
                 <p className="text-sm text-slate-900 dark:text-slate-100">{selectedLog.message}</p>
               </div>
 
@@ -734,7 +803,7 @@ export default function ActivityLogs() {
               {selectedLog.details && (
                 <div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Additional Details</p>
-                  <pre className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 text-xs overflow-x-auto dark:text-slate-300">
+                  <pre className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-xs overflow-x-auto dark:text-slate-300">
                     {JSON.stringify(selectedLog.details, null, 2)}
                   </pre>
                 </div>
