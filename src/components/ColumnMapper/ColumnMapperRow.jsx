@@ -196,8 +196,6 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
         <TransformParams mapping={mapping} onUpdate={onUpdate} isCondensed={isCondensed} />
       )}
 
-      {/* Column DQ rules (not for audit cols) */}
-      {!isAudit && <ColumnDQPanel mapping={mapping} onUpdate={onUpdate} colSpan={colSpan} />}
     </>
   );
 });
