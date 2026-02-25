@@ -229,11 +229,11 @@ export default function ActivityLogs() {
           <p className="text-slate-500 dark:text-slate-400 mt-1">Monitor system activities and track user changes</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={loadData} className="gap-2 dark:dark-input dark:dark-text">
+          <Button variant="outline" onClick={loadData} className="gap-2 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-600">
             <RefreshCw className="w-4 h-4" />
             Refresh
           </Button>
-          <Button variant="outline" onClick={handleExport} className="gap-2 dark:dark-input dark:dark-text">
+          <Button variant="outline" onClick={handleExport} className="gap-2 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-600">
             <Download className="w-4 h-4" />
             Export
           </Button>
