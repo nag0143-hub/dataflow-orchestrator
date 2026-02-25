@@ -396,13 +396,8 @@ export default function Pipelines() {
           </div>
         </div>
 
-        {/* Visual Builder View */}
-        {viewMode === "builder" && (
-          <VisualPipelineBuilder connections={connections} onSaveSuccess={() => { loadData(); setViewMode("list"); }} />
-        )}
-
-        {/* Filters + List — only in list view */}
-        {viewMode === "list" && (
+        {/* Filters + List */}
+        {(
           <>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1 max-w-md">
