@@ -45,22 +45,22 @@ export default function JobCard({
               <StatusBadge status={job.status} size="sm" />
             </div>
             {job.description && (
-              <p className="text-sm text-slate-500 mb-3">{job.description}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{job.description}</p>
             )}
 
             {/* Connection Flow */}
             <div className="flex items-center gap-2 flex-wrap">
               {sourceConn && (
-                <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-1.5">
+                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700 rounded-lg px-3 py-1.5">
                   <PlatformIcon platform={sourceConn.platform} size="sm" />
-                  <span className="text-sm text-slate-600">{sourceConn.name}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-300">{sourceConn.name}</span>
                 </div>
               )}
               <ArrowRight className="w-4 h-4 text-slate-400" />
               {targetConn && (
-                <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-1.5">
+                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700 rounded-lg px-3 py-1.5">
                   <PlatformIcon platform={targetConn.platform} size="sm" />
-                  <span className="text-sm text-slate-600">{targetConn.name}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-300">{targetConn.name}</span>
                 </div>
               )}
             </div>
@@ -69,22 +69,22 @@ export default function JobCard({
           {/* Stats */}
           <div className="flex items-center gap-6 text-sm">
             <div className="text-center">
-              <p className="text-slate-400">Datasets</p>
-              <p className="font-semibold text-slate-900">{job.selected_datasets?.length || 0}</p>
+              <p className="text-slate-400 dark:text-slate-500">Datasets</p>
+              <p className="font-semibold text-slate-900 dark:text-white">{job.selected_datasets?.length || 0}</p>
             </div>
             <div className="text-center">
-              <p className="text-slate-400">Runs</p>
-              <p className="font-semibold text-slate-900">{job.total_runs || 0}</p>
+              <p className="text-slate-400 dark:text-slate-500">Runs</p>
+              <p className="font-semibold text-slate-900 dark:text-white">{job.total_runs || 0}</p>
             </div>
             <div className="text-center">
-              <p className="text-slate-400">Success</p>
+              <p className="text-slate-400 dark:text-slate-500">Success</p>
               <p className="font-semibold text-emerald-600">
                 {job.total_runs ? Math.round((job.successful_runs || 0) / job.total_runs * 100) : 0}%
               </p>
             </div>
             {job.sla_config?.enabled && (
               <div className="text-center">
-                <p className="text-slate-400">SLA</p>
+                <p className="text-slate-400 dark:text-slate-500">SLA</p>
                 <p className={`font-semibold ${job.sla_compliance_rate >= 95 ? 'text-emerald-600' : job.sla_compliance_rate >= 80 ? 'text-amber-600' : 'text-red-600'}`}>
                   {job.sla_compliance_rate || 0}%
                 </p>
@@ -92,8 +92,8 @@ export default function JobCard({
             )}
             {job.last_run && (
               <div className="text-center">
-                <p className="text-slate-400">Last Run</p>
-                <p className="text-slate-600">{moment(job.last_run).fromNow()}</p>
+                <p className="text-slate-400 dark:text-slate-500">Last Run</p>
+                <p className="text-slate-600 dark:text-slate-300">{moment(job.last_run).fromNow()}</p>
               </div>
             )}
           </div>
