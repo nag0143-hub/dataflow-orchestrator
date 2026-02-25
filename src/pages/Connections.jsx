@@ -506,6 +506,44 @@ export default function Connections() {
                       </Select>
                     </div>
                     <div className="col-span-2"><Label>Notes</Label><Textarea value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} placeholder="Optional notes..." rows={2} /></div>
+                    <div className="col-span-2">
+                      <Label>Tags</Label>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {(formData.tags || []).map(tag => (
+                          <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-100">
+                            {tag}
+                            <button type="button" onClick={() => setFormData(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }))} className="hover:text-red-500">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={tagInput}
+                          onChange={e => setTagInput(e.target.value)}
+                          placeholder="Add a tag..."
+                          className="h-8 text-sm"
+                          onKeyDown={e => {
+                            if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+                              e.preventDefault();
+                              const newTag = tagInput.trim();
+                              if (!formData.tags?.includes(newTag)) {
+                                setFormData(f => ({ ...f, tags: [...(f.tags || []), newTag] }));
+                              }
+                              setTagInput("");
+                            }
+                          }}
+                        />
+                        <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={() => {
+                          const newTag = tagInput.trim();
+                          if (newTag && !formData.tags?.includes(newTag)) {
+                            setFormData(f => ({ ...f, tags: [...(f.tags || []), newTag] }));
+                          }
+                          setTagInput("");
+                        }}>Add</Button>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
 
