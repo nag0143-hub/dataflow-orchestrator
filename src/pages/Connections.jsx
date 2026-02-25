@@ -112,6 +112,7 @@ export default function Connections() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [groupByTag, setGroupByTag] = useState(false);
+  const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
   const [tagInput, setTagInput] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [prereqDialogConn, setPrereqDialogConn] = useState(null);
