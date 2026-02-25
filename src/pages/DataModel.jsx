@@ -123,11 +123,11 @@ CREATE TABLE pipeline_run (
     triggered_by      triggered_by_enum DEFAULT 'manual'
 );
 
-CREATE INDEX idx_job_run_job_id ON job_run(job_id);
-CREATE INDEX idx_job_run_status ON job_run(status);
-CREATE INDEX idx_job_run_job_status ON job_run(job_id, status);
-CREATE INDEX idx_job_run_triggered ON job_run(triggered_by);
-CREATE INDEX idx_job_run_started ON job_run(started_at DESC);
+CREATE INDEX idx_pipeline_run_pipeline_id ON pipeline_run(pipeline_id);
+CREATE INDEX idx_pipeline_run_status ON pipeline_run(status);
+CREATE INDEX idx_pipeline_run_pipeline_status ON pipeline_run(pipeline_id, status);
+CREATE INDEX idx_pipeline_run_triggered ON pipeline_run(triggered_by);
+CREATE INDEX idx_pipeline_run_started ON pipeline_run(started_at DESC);
 
 -- ------------------------------------------------------------
 -- ACTIVITY LOG
