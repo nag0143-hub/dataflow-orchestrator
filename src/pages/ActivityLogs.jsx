@@ -64,6 +64,7 @@ const categoryConfig = {
 };
 
 export default function ActivityLogs() {
+  const { retry } = useRetry();
   const [logs, setLogs] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [jobs, setJobs] = useState([]);
@@ -75,6 +76,7 @@ export default function ActivityLogs() {
   const [selectedLog, setSelectedLog] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [serverSearching, setServerSearching] = useState(false);
   const logsPerPage = 20;
   const [selectedAction, setSelectedAction] = useState("all");
   const [selectedEntity, setSelectedEntity] = useState("all");
@@ -87,18 +89,49 @@ export default function ActivityLogs() {
 
   const loadData = async () => {
     setLoading(true);
-    const [logsData, auditLogsData, jobsData, connectionsData] = await Promise.all([
-      base44.entities.ActivityLog.list("-created_date", 500),
-      base44.entities.AuditLog.list("-created_date", 1000),
-      base44.entities.Pipeline.list(),
-      base44.entities.Connection.list()
-    ]);
-    setLogs(logsData);
-    setAuditLogs(auditLogsData);
-    setJobs(jobsData);
-    setConnections(connectionsData);
-    setLoading(false);
+    try {
+      const [auditLogsData, jobsData, connectionsData] = await Promise.all([
+        base44.entities.AuditLog.list("-created_date", 1000),
+        base44.entities.Pipeline.list(),
+        base44.entities.Connection.list()
+      ]);
+      // Don't load all logs initially - use server-side search instead
+      setLogs([]);
+      setAuditLogs(auditLogsData);
+      setJobs(jobsData);
+      setConnections(connectionsData);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Server-side search for activity logs
+  useEffect(() => {
+    const searchLogs = async () => {
+      setServerSearching(true);
+      try {
+        const result = await retry(async () => {
+          const res = await base44.functions.invoke('searchActivityLogs', {
+            searchTerm: searchTerm.trim(),
+            filters: {
+              ...(filterType !== 'all' && { log_type: filterType }),
+              ...(filterCategory !== 'all' && { category: filterCategory }),
+            },
+            limit: logsPerPage * currentPage,
+          });
+          return res.data;
+        });
+        setLogs(result.items || []);
+      } catch (err) {
+        console.error('[ActivityLogs] Server search error:', err);
+      } finally {
+        setServerSearching(false);
+      }
+    };
+
+    const timeout = setTimeout(searchLogs, 300); // Debounce
+    return () => clearTimeout(timeout);
+  }, [searchTerm, filterType, filterCategory, currentPage]);
 
   // Indexed lookups for better performance
   const jobIndex = createIndex(jobs, "id");
@@ -107,21 +140,9 @@ export default function ActivityLogs() {
   const getJobName = (jobId) => jobIndex.get(jobId)?.name || "Unknown Job";
   const getConnectionName = (connId) => connectionIndex.get(connId)?.name || "Unknown Connection";
 
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.message?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === "all" || log.log_type === filterType;
-    const matchesCategory = filterCategory === "all" || log.category === filterCategory;
-    return matchesSearch && matchesType && matchesCategory;
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
-  const paginatedLogs = filteredLogs.slice((currentPage - 1) * logsPerPage, currentPage * logsPerPage);
-  
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterType, filterCategory]);
+  // Pagination (server returns paginated results)
+  const totalPages = Math.ceil(logs.length / logsPerPage);
+  const paginatedLogs = logs;
 
   const handleExport = () => {
     const csvContent = [
