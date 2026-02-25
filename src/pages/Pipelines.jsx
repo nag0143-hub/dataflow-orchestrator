@@ -463,8 +463,7 @@ export default function Pipelines() {
                 } : null}
               />
             )}
-          </>
-        )}
+        </>
 
         {/* Dialogs — only rendered when opened */}
         <JobFormDialog
