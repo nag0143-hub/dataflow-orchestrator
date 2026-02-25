@@ -73,6 +73,7 @@ export default function Pipelines() {
   const [activeTab, setActiveTab] = useState("general");
   const [exportPipeline, setExportPipeline] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [viewMode, setViewMode] = useState("list"); // "list" | "builder"
 
   useEffect(() => {
     loadData();
