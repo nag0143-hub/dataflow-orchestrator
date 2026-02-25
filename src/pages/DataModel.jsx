@@ -162,11 +162,11 @@ CREATE TABLE pipeline_version (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_date   TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    job_id         UUID NOT NULL REFERENCES ingestion_job(id) ON DELETE CASCADE,
+    pipeline_id    UUID NOT NULL REFERENCES pipeline(id) ON DELETE CASCADE,
     version_number INTEGER NOT NULL,
     label          TEXT,
     commit_message TEXT,
-    snapshot       JSONB NOT NULL,  -- full copy of ingestion_job at this point in time
+    snapshot       JSONB NOT NULL,  -- full copy of pipeline at this point in time
     changed_by     TEXT,
     change_type    change_type_enum NOT NULL,
 
