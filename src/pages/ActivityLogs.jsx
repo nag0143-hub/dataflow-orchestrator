@@ -90,7 +90,7 @@ export default function ActivityLogs() {
     const [logsData, auditLogsData, jobsData, connectionsData] = await Promise.all([
       base44.entities.ActivityLog.list("-created_date", 500),
       base44.entities.AuditLog.list("-created_date", 1000),
-      base44.entities.IngestionJob.list(),
+      base44.entities.Pipeline.list(),
       base44.entities.Connection.list()
     ]);
     setLogs(logsData);

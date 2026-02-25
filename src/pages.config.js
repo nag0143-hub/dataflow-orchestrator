@@ -55,9 +55,9 @@ import DataCatalog from './pages/DataCatalog';
 import DataModel from './pages/DataModel';
 import LDAPIntegration from './pages/LDAPIntegration';
 import Lineage from './pages/Lineage';
+import Pipelines from './pages/Pipelines';
 import Requirements from './pages/Requirements';
 import UserGuide from './pages/UserGuide';
-import Pipelines from './pages/Pipelines';
 import __Layout from './Layout.jsx';
 
 
@@ -70,9 +70,9 @@ export const PAGES = {
     "DataModel": DataModel,
     "LDAPIntegration": LDAPIntegration,
     "Lineage": Lineage,
+    "Pipelines": Pipelines,
     "Requirements": Requirements,
     "UserGuide": UserGuide,
-    "Pipelines": Pipelines,
 }
 
 export const pagesConfig = {
