@@ -58,6 +58,7 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
   if (isCondensed) {
     return (
       <tr
+        ref={ref}
         className={cn(
           "border-b border-slate-100 transition-colors group",
           isDragging ? "bg-blue-50 shadow-lg" : isAudit ? "bg-amber-50 hover:bg-amber-100" : "hover:bg-blue-50/50"
