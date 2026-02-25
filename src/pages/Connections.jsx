@@ -97,7 +97,7 @@ const defaultFormData = {
   name: "", source_system_name: "", description: "", car_id: "",
   connection_type: "source", platform: "", host: "", port: "", database: "",
   username: "", auth_method: "password", region: "", bucket_container: "",
-  status: "active", notes: "",
+  status: "active", notes: "", tags: [],
   file_config: { delimiter: ",", encoding: "UTF-8", has_header: true, quote_char: '"', escape_char: "\\", record_length: "", copybook_path: "", file_pattern: "*", nas_path: "", archive_path: "" }
 };
 
