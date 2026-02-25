@@ -170,7 +170,7 @@ CREATE TABLE pipeline_version (
     changed_by     TEXT,
     change_type    change_type_enum NOT NULL,
 
-    UNIQUE (job_id, version_number)
+    UNIQUE (pipeline_id, version_number)
 );
 
 CREATE INDEX idx_pipeline_version_pipeline ON pipeline_version(pipeline_id, version_number DESC);
