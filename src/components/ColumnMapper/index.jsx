@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X, Plus, ArrowRight, ChevronLeft, ChevronRight, Copy, GripVertical, Lock, CheckSquare, Eye, EyeOff } from "lucide-react";
+import { Search, X, Plus, ChevronLeft, ChevronRight, Lock, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Checkbox } from "@/components/ui/checkbox";
