@@ -65,6 +65,25 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     const [isCondensed, setIsCondensed] = useState(false);
     const [selectedMappings, setSelectedMappings] = useState(new Set());
     const autoMappedRef = useRef(new Set());
+    const [customFunctions, setCustomFunctions] = useState([]);
+
+    // Load custom functions from the database
+    useEffect(() => {
+      base44.entities.CustomFunction.list().then(funcs => {
+        setCustomFunctions(funcs.map(f => ({
+          value: `custom_${f.name}`,
+          label: f.label || f.name,
+          category: f.category === "spark_udf" ? "spark_udf" : "custom",
+          expressionTemplate: f.expression_template,
+        })));
+      }).catch(() => {});
+    }, []);
+
+    // Merge built-in + custom function options
+    const allTransformations = useMemo(() => [
+      ...TRANSFORMATIONS,
+      ...customFunctions
+    ], [customFunctions]);
 
   const tableKey = selectedTable;
 
