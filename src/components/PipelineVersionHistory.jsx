@@ -30,7 +30,7 @@ export default function PipelineVersionHistory({ job, onRestore }) {
     if (!confirm(`Restore pipeline to v${version.version_number}?`)) return;
     setRestoring(true);
     const snapshot = version.snapshot;
-    await base44.entities.IngestionJob.update(job.id, {
+    await base44.entities.Pipeline.update(job.id, {
       name: snapshot.name,
       description: snapshot.description,
       source_connection_id: snapshot.source_connection_id,

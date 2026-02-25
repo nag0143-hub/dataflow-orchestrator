@@ -161,7 +161,7 @@ export function buildJobSpec(job, connections) {
   };
 }
 
-export default function JobSpecExport({ job, connections, onClose }) {
+export default function PipelineSpecExport({ job, connections, onClose }) {
   // legacy standalone dialog — still usable
   const [format, setFormat] = useState("json");
   const [copied, setCopied] = useState(false);
@@ -169,9 +169,9 @@ export default function JobSpecExport({ job, connections, onClose }) {
   const spec = buildJobSpec(job, connections);
   const content = format === "json"
     ? JSON.stringify(spec, null, 2)
-    : `# DataFlow Job Spec — ${job.name}\n` + toYaml(spec);
+    : `# DataFlow Pipeline Spec — ${job.name}\n` + toYaml(spec);
 
-  const filename = `${job.name.replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-jobspec.${format === "json" ? "json" : "yaml"}`;
+  const filename = `${job.name.replace(/[^a-z0-9_-]/gi, "_").toLowerCase()}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
@@ -195,7 +195,7 @@ export default function JobSpecExport({ job, connections, onClose }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileJson className="w-5 h-5 text-blue-600" />
-            Export Job Spec — {job.name}
+            Export Pipeline Spec — {job.name}
           </DialogTitle>
         </DialogHeader>
 

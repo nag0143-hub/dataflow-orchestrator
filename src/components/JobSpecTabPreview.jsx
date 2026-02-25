@@ -13,7 +13,7 @@ export default function JobSpecTabPreview({ formData, connections }) {
 
   const getMissingFields = () => {
     const missing = [];
-    if (!formData.name?.trim()) missing.push("Job name");
+    if (!formData.name?.trim()) missing.push("Pipeline name");
     if (!formData.source_connection_id) missing.push("Source connection");
     if (!formData.target_connection_id) missing.push("Target connection");
     if (formData.source_connection_id === formData.target_connection_id) missing.push("Source and target must be different");

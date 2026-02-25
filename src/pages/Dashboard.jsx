@@ -39,8 +39,8 @@ export default function Dashboard() {
   const loadData = async () => {
     const [connectionsData, jobsData, runsData, logsData] = await Promise.all([
       base44.entities.Connection.list(),
-      base44.entities.IngestionJob.list(),
-      base44.entities.JobRun.list("-created_date", 50),
+      base44.entities.Pipeline.list(),
+      base44.entities.PipelineRun.list("-created_date", 50),
       base44.entities.ActivityLog.list("-created_date", 10)
     ]);
     setConnections(scope(connectionsData));
