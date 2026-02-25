@@ -472,7 +472,7 @@ export default function Pipelines() {
               </ErrorBoundary>
             ))}
           </div>
-        ) : (
+        ) : viewMode === "list" ? (
           <EmptyStateGuide
             icon={Play}
             title={searchTerm ? "No pipelines found" : "No data pipelines yet"}
@@ -487,7 +487,7 @@ export default function Pipelines() {
               onClick: openNew
             } : null}
           />
-        )}
+        ) : null}
 
         {/* Dialogs — only rendered when opened */}
         <JobFormDialog
