@@ -316,6 +316,16 @@ export default function Connections() {
             <Layers className="w-4 h-4" />
             Group by Tag
           </Button>
+          <div className="flex border rounded-md overflow-hidden shrink-0">
+            <button
+              className={`px-2.5 py-1.5 ${viewMode === "grid" ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+              onClick={() => setViewMode("grid")} title="Grid view"
+            ><LayoutGrid className="w-4 h-4" /></button>
+            <button
+              className={`px-2.5 py-1.5 ${viewMode === "list" ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+              onClick={() => setViewMode("list")} title="List view"
+            ><List className="w-4 h-4" /></button>
+          </div>
         </div>
 
         {/* Grid */}
