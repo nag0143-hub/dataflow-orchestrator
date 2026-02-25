@@ -3,8 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { 
   Plus, Search, MoreVertical, Edit, Trash2, TestTube,
   Cable, Filter, Shield, CheckCircle2, XCircle, Loader2, Wifi, BookOpen, RefreshCw,
-  Tag, X, Layers, LayoutGrid, List
+  Tag, X, Layers, LayoutGrid, List, RotateCcw, RotateCw
 } from "lucide-react";
+import { useHistory } from "@/components/useHistory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -105,6 +106,7 @@ const defaultFormData = {
 
 export default function Connections() {
   const { user, scope } = useTenant();
+  const { push, undo, redo, canUndo, canRedo } = useHistory();
   const [connections, setConnections] = useState([]);
   const [prereqs, setPrereqs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -124,6 +126,36 @@ export default function Connections() {
   const [testResult, setTestResult] = useState(null);
 
   useEffect(() => { loadData(); }, []);
+
+  // Store undo/redo state for header to access
+  useEffect(() => {
+    window.__connUndo = () => {
+      const action = undo();
+      if (action) {
+        if (action.type === "create") {
+          base44.entities.Connection.delete(action.id).then(loadData).catch(() => {});
+        } else if (action.type === "update") {
+          base44.entities.Connection.update(action.id, action.prevData).then(loadData).catch(() => {});
+        } else if (action.type === "delete") {
+          base44.entities.Connection.create(action.data).then(loadData).catch(() => {});
+        }
+      }
+    };
+    window.__connRedo = () => {
+      const action = redo();
+      if (action) {
+        if (action.type === "create") {
+          base44.entities.Connection.create(action.data).then(loadData).catch(() => {});
+        } else if (action.type === "update") {
+          base44.entities.Connection.update(action.id, action.newData).then(loadData).catch(() => {});
+        } else if (action.type === "delete") {
+          base44.entities.Connection.delete(action.id).then(loadData).catch(() => {});
+        }
+      }
+    };
+    window.__connCanUndo = canUndo;
+    window.__connCanRedo = canRedo;
+  }, [undo, redo, canUndo, canRedo]);
 
   const loadData = async () => {
     setLoading(true);
@@ -160,10 +192,12 @@ export default function Connections() {
     try {
       if (editingConnection) {
         await base44.entities.Connection.update(editingConnection.id, payload);
+        push({ type: "update", id: editingConnection.id, prevData: editingConnection, newData: payload });
         base44.entities.ActivityLog.create({ log_type: "info", category: "connection", connection_id: editingConnection.id, message: `Connection "${formData.name}" updated` }).catch(() => {});
         toast.success("Connection updated");
       } else {
         const created = await base44.entities.Connection.create(payload);
+        push({ type: "create", id: created.id, data: payload });
         base44.entities.ActivityLog.create({ log_type: "success", category: "connection", connection_id: created.id, message: `Connection "${formData.name}" created` }).catch(() => {});
         toast.success("Connection created");
       }
@@ -200,6 +234,7 @@ export default function Connections() {
     if (!confirm(`Delete connection "${connection.name}"?`)) return;
     try {
       await base44.entities.Connection.delete(connection.id);
+      push({ type: "delete", id: connection.id, data: connection });
       base44.entities.ActivityLog.create({ log_type: "warning", category: "connection", message: `Connection "${connection.name}" deleted` }).catch(() => {});
       toast.success("Connection deleted");
       loadData();
@@ -283,6 +318,12 @@ export default function Connections() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={loadData} title="Refresh">
               <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" disabled={!canUndo} onClick={() => window.__connUndo?.()} title="Undo">
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" disabled={!canRedo} onClick={() => window.__connRedo?.()} title="Redo">
+              <RotateCw className="w-4 h-4" />
             </Button>
             <Button onClick={() => { setEditingConnection(null); setFormData(defaultFormData); setDialogOpen(true); }} className="gap-2">
               <Plus className="w-4 h-4" />
