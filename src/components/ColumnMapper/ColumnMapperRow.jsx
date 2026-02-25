@@ -97,7 +97,7 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
           <td className="py-1 text-xs font-mono text-slate-700 pl-2">{mapping.source || <span className="text-slate-400 italic">computed</span>}</td>
           <td className="py-1"><EditableCell value={mapping.target} onChange={v => onUpdate("target", v)} mono /></td>
           <td className="py-1 min-w-[160px]">
-            <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={TRANSFORMATIONS} />
+            <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={transformations} />
           </td>
           <td className="py-1 pr-2 w-6">
             <button type="button" onClick={onRemove} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
