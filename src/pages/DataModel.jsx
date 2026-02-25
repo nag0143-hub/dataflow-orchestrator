@@ -273,8 +273,8 @@ CREATE TRIGGER trg_connection_updated
   BEFORE UPDATE ON connection
   FOR EACH ROW EXECUTE FUNCTION set_updated_date();
 
-CREATE TRIGGER trg_ingestion_job_updated
-  BEFORE UPDATE ON ingestion_job
+CREATE TRIGGER trg_pipeline_updated
+  BEFORE UPDATE ON pipeline
   FOR EACH ROW EXECUTE FUNCTION set_updated_date();
 
 CREATE TRIGGER trg_connection_prerequisite_updated
