@@ -237,6 +237,19 @@ export default function Connections() {
     return matchesSearch && (filterType === "all" || c.connection_type === filterType);
   });
 
+  // Collect all unique tags across all connections
+  const allTags = [...new Set(connections.flatMap(c => c.tags || []))].sort();
+
+  // Group filtered connections by tag (connections with no tags go under "Untagged")
+  const groupedByTag = groupByTag ? filteredConnections.reduce((acc, c) => {
+    const tags = c.tags?.length ? c.tags : ["Untagged"];
+    tags.forEach(tag => {
+      if (!acc[tag]) acc[tag] = [];
+      acc[tag].push(c);
+    });
+    return acc;
+  }, {}) : null;
+
   const isCloudPlatform = formData.platform === "adls2" || formData.platform === "s3";
   const isFilePlatform = ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"].includes(formData.platform);
   const isFixedOrCobol = formData.platform === "flat_file_fixed_width" || formData.platform === "cobol_ebcdic";
