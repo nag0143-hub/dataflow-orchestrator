@@ -3,6 +3,7 @@ import { X, GripVertical, Lock } from "lucide-react";
 import { TRANSFORMATIONS, TRANSFORMATION_PARAMS } from "./constants";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import TransformSelect from "./TransformSelect";
 
 function EditableCell({ value, onChange, placeholder = "", className = "", mono = false, disabled = false }) {
   return (
