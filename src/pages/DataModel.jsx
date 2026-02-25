@@ -204,10 +204,10 @@ CREATE INDEX idx_prereq_type       ON connection_prerequisite(prereq_type);
 
 -- JSONB indexes for common query patterns
 CREATE INDEX idx_connection_file_config ON connection USING GIN(file_config);
-CREATE INDEX idx_job_selected_objects ON ingestion_job USING GIN(selected_objects);
-CREATE INDEX idx_job_column_mappings ON ingestion_job USING GIN(column_mappings);
-CREATE INDEX idx_job_dq_rules ON ingestion_job USING GIN(dq_rules);
-CREATE INDEX idx_pipeline_snapshot ON pipeline_version USING GIN(snapshot);
+CREATE INDEX idx_pipeline_selected_objects ON pipeline USING GIN(selected_objects);
+CREATE INDEX idx_pipeline_column_mappings ON pipeline USING GIN(column_mappings);
+CREATE INDEX idx_pipeline_dq_rules ON pipeline USING GIN(dq_rules);
+CREATE INDEX idx_pipeline_version_snapshot ON pipeline_version USING GIN(snapshot);
 
 -- ------------------------------------------------------------
 -- CONNECTION PROFILE  (reusable template)
