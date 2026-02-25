@@ -53,8 +53,7 @@ retry_config: {
   max_retries: 3,
   retry_delay_seconds: 60,
   exponential_backoff: true
-},
-dependent_pipeline_ids: []
+}
 };
 
 
@@ -181,9 +180,8 @@ export default function Pipelines() {
       email: pipeline.email || "",
       access_entitlements: pipeline.access_entitlements || [],
       enable_advanced: pipeline.enable_advanced || false,
-      retry_config: pipeline.retry_config || defaultFormData.retry_config,
-      dependent_pipeline_ids: pipeline.dependent_pipeline_ids || []
-    });
+      retry_config: pipeline.retry_config || defaultFormData.retry_config
+      });
     setDialogOpen(true);
     setActiveTab("general");
   }, []);
@@ -286,18 +284,6 @@ export default function Pipelines() {
       console.error("[Pipelines] simulatePipelineRun error:", err);
     }
 
-    // Trigger dependent pipelines on successful completion
-    if (success) {
-      try {
-        await base44.functions.invoke('triggerDependentPipelines', {
-          pipeline_id: pipeline.id,
-          run_status: 'completed'
-        });
-      } catch (err) {
-        console.error("[Pipelines] triggerDependentPipelines error:", err);
-      }
-    }
-
     loadData();
   };
 
@@ -386,9 +372,8 @@ export default function Pipelines() {
       email: pipeline.email || "",
       access_entitlements: pipeline.access_entitlements || [],
       enable_advanced: pipeline.enable_advanced || false,
-      retry_config: pipeline.retry_config || defaultFormData.retry_config,
-      dependent_pipeline_ids: []
-    });
+      retry_config: pipeline.retry_config || defaultFormData.retry_config
+      });
     setEditingPipeline(null);
     setDialogOpen(true);
     setActiveTab("general");
