@@ -1,11 +1,11 @@
-import { forwardRef } from "react";
+import { forwardRef, memo } from "react";
 import { X, GripVertical, Lock } from "lucide-react";
 import { TRANSFORMATIONS, TRANSFORMATION_PARAMS } from "./constants";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import TransformSelect from "./TransformSelect";
 
-function EditableCell({ value, onChange, placeholder = "", className = "", mono = false, disabled = false }) {
+const EditableCell = memo(function EditableCell({ value, onChange, placeholder = "", className = "", mono = false, disabled = false }) {
   return (
     <input
       value={value || ""}
@@ -26,10 +26,10 @@ function SelectCell({ value, onChange, options, disabled = false }) {
   return (
     <TransformSelect value={value} onChange={onChange} options={options} disabled={disabled} />
   );
-}
+});
 
 /** Inline param inputs that appear when a transformation needs extra config */
-function TransformParams({ mapping, onUpdate, isCondensed }) {
+const TransformParams = memo(function TransformParams({ mapping, onUpdate, isCondensed }) {
   const params = TRANSFORMATION_PARAMS[mapping.transformation];
   if (!params || isCondensed) return null;
   return (
@@ -51,12 +51,12 @@ function TransformParams({ mapping, onUpdate, isCondensed }) {
           ))}
         </div>
       </td>
-    </tr>
-  );
-}
+      </tr>
+      );
+      });
 
 
-const ColumnMapperRow = forwardRef(function ColumnMapperRow({
+      const ColumnMapperRow = memo(forwardRef(function ColumnMapperRow({
   mapping,
   sourceCol,
   isSelected,
@@ -187,7 +187,7 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
       )}
 
     </>
-  );
-});
+    );
+    }));
 
-export default ColumnMapperRow;
+    export default ColumnMapperRow;

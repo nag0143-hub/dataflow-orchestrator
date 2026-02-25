@@ -11,23 +11,28 @@ export const useHistory = () => {
       return newHistory;
     });
     setHistoryIndex(prev => prev + 1);
-  }, [historyIndex]);
+  }, []);
 
   const undo = useCallback(() => {
-    if (historyIndex > 0) {
-      setHistoryIndex(prev => prev - 1);
-      return history[historyIndex - 1];
-    }
-    return null;
-  }, [history, historyIndex]);
+    setHistoryIndex(prev => {
+      if (prev > 0) {
+        return prev - 1;
+      }
+      return prev;
+    });
+  }, []);
 
   const redo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(prev => prev + 1);
-      return history[historyIndex + 1];
-    }
-    return null;
-  }, [history, historyIndex]);
+    setHistoryIndex(prev => {
+      setHistory(h => {
+        if (prev < h.length - 1) {
+          return h;
+        }
+        return h;
+      });
+      return prev < history.length - 1 ? prev + 1 : prev;
+    });
+  }, [history.length]);
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;

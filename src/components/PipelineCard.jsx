@@ -1,3 +1,4 @@
+import { memo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -5,10 +6,9 @@ import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon from "@/components/PlatformIcon";
 import { Eye, Play, MoreVertical, FileJson, RotateCcw, Pause, Copy, Edit, Trash2, ArrowRight, GitBranch } from "lucide-react";
 import moment from "moment";
-import { useState } from "react";
 import GitCheckinDialog from "@/components/GitCheckinDialog";
 
-export default function PipelineCard({
+const PipelineCard = memo(function PipelineCard({
   job,
   sourceConn,
   targetConn,
@@ -176,5 +176,7 @@ export default function PipelineCard({
       </CardContent>
     </Card>
     </div>
-  );
-}
+    );
+    });
+
+    export default PipelineCard;

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { MoreVertical, Edit, Trash2, TestTube, Shield, Loader2, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon, { platformConfig } from "@/components/PlatformIcon";
 import moment from "moment";
 
-export default function ConnectionCard({
+const ConnectionCard = memo(function ConnectionCard({
   connection,
   getPrereqSummary,
   testingId,
@@ -76,6 +77,8 @@ export default function ConnectionCard({
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
-}
+      </Card>
+      );
+      });
+
+      export default ConnectionCard;
