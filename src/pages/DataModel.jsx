@@ -173,7 +173,7 @@ CREATE TABLE pipeline_version (
     UNIQUE (job_id, version_number)
 );
 
-CREATE INDEX idx_pipeline_version_job ON pipeline_version(job_id, version_number DESC);
+CREATE INDEX idx_pipeline_version_pipeline ON pipeline_version(pipeline_id, version_number DESC);
 
 -- ------------------------------------------------------------
 -- CONNECTION PREREQUISITE
