@@ -10,7 +10,7 @@ import ErrorState from "@/components/ErrorState";
 import { createIndex } from "@/components/dataIndexing";
 import { useTenant } from "@/components/useTenant";
 import { useRetry } from "@/components/hooks/useRetry";
-import { usePagination } from "@/components/hooks/usePagination";
+import { usePagination } from "@/components/hooks/usePagination" || {};
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
