@@ -471,7 +471,6 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                     {(provided, snapshot) => (
                                       <ColumnMapperRow
                                         ref={provided.innerRef}
-                                        {...provided.draggableProps}
                                         mapping={m}
                                         sourceCol={sourceCol}
                                         isSelected={isSelected}
