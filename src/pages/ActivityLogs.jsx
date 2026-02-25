@@ -148,7 +148,7 @@ export default function ActivityLogs() {
   const handleExport = () => {
     const csvContent = [
       ["Timestamp", "Type", "Category", "Message", "Job", "Connection"].join(","),
-      ...filteredLogs.map(log => [
+      ...paginatedLogs.map(log => [
         moment(log.created_date).format("YYYY-MM-DD HH:mm:ss"),
         log.log_type,
         log.category,
@@ -449,11 +449,11 @@ export default function ActivityLogs() {
         </Card>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Showing {(currentPage - 1) * logsPerPage + 1} to {Math.min(currentPage * logsPerPage, filteredLogs.length)} of {filteredLogs.length} logs
-            </p>
+         {totalPages > 1 && (
+           <div className="flex items-center justify-between">
+             <p className="text-sm text-slate-500 dark:text-slate-400">
+               Showing {(currentPage - 1) * logsPerPage + 1} to {Math.min(currentPage * logsPerPage, logs.length)} of {logs.length} logs
+             </p>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
