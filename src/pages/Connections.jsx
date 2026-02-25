@@ -328,7 +328,7 @@ export default function Connections() {
           </div>
         </div>
 
-        {/* Grid */}
+        {/* Connection list/grid */}
         {filteredConnections.length > 0 ? (
           groupedByTag ? (
             <div className="space-y-8">
@@ -341,36 +341,43 @@ export default function Connections() {
                       <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{tag}</h2>
                       <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full px-2 py-0.5">{conns.length}</span>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {conns.map(connection => (
-                        <ConnectionCard
-                          key={connection.id}
-                          connection={connection}
-                          getPrereqSummary={getPrereqSummary}
-                          testingId={testingId}
-                          setPrereqDialogConn={setPrereqDialogConn}
-                          handleTestConnection={handleTestConnection}
-                          handleEdit={handleEdit}
-                          handleDelete={handleDelete}
-                        />
-                      ))}
-                    </div>
+                    {viewMode === "list" ? (
+                      <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                        {conns.map(connection => (
+                          <ConnectionListRow key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {conns.map(connection => (
+                          <ConnectionCard key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
+            </div>
+          ) : viewMode === "list" ? (
+            <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-800">
+              {/* List header */}
+              <div className="flex items-center gap-4 px-4 py-2 bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <div className="w-8 shrink-0" />
+                <div className="w-52">Name</div>
+                <div className="w-40 hidden sm:block">Platform</div>
+                <div className="flex-1 hidden md:block">Host / System</div>
+                <div className="w-40 hidden lg:block">Tags</div>
+                <div className="shrink-0">Status</div>
+                <div className="w-24 hidden xl:block text-right">Last Tested</div>
+                <div className="shrink-0 w-44" />
+              </div>
+              {filteredConnections.map(connection => (
+                <ConnectionListRow key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredConnections.map((connection) => (
-                <ConnectionCard
-                  key={connection.id}
-                  connection={connection}
-                  getPrereqSummary={getPrereqSummary}
-                  testingId={testingId}
-                  setPrereqDialogConn={setPrereqDialogConn}
-                  handleTestConnection={handleTestConnection}
-                  handleEdit={handleEdit}
-                  handleDelete={handleDelete}
-                />
+                <ConnectionCard key={connection.id} connection={connection} getPrereqSummary={getPrereqSummary} testingId={testingId} setPrereqDialogConn={setPrereqDialogConn} handleTestConnection={handleTestConnection} handleEdit={handleEdit} handleDelete={handleDelete} />
               ))}
             </div>
           )
