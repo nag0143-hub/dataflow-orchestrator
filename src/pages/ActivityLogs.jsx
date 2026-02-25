@@ -242,12 +242,12 @@ export default function ActivityLogs() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="dark:bg-slate-800">
-          <TabsTrigger value="activity" className="gap-2 dark:data-[state=active]:bg-slate-700">
+        <TabsList className="dark:bg-slate-800 dark:border dark:border-slate-700">
+          <TabsTrigger value="activity" className="gap-2 dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-white">
             <AlertCircle className="w-4 h-4" />
             Activity Logs
           </TabsTrigger>
-          <TabsTrigger value="audit" className="gap-2 dark:data-[state=active]:bg-slate-700">
+          <TabsTrigger value="audit" className="gap-2 dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-white">
             <Shield className="w-4 h-4" />
             Audit Trail
           </TabsTrigger>
