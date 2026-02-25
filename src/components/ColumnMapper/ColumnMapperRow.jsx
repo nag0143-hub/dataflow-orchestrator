@@ -1,6 +1,6 @@
-import { forwardRef, useState } from "react";
-import { X, GripVertical, Lock, ShieldCheck, ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
-import { TRANSFORMATIONS, TRANSFORMATION_PARAMS, COLUMN_DQ_RULES } from "./constants";
+import { forwardRef } from "react";
+import { X, GripVertical, Lock } from "lucide-react";
+import { TRANSFORMATIONS, TRANSFORMATION_PARAMS } from "./constants";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 
