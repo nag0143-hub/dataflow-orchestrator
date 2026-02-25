@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { 
   Plus, Search, MoreVertical, Edit, Trash2, TestTube,
-  Cable, Filter, Shield, CheckCircle2, XCircle, Loader2, Wifi, Server, BookOpen, RefreshCw
+  Cable, Filter, Shield, CheckCircle2, XCircle, Loader2, Wifi, Server, BookOpen, RefreshCw,
+  Tag, X, Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
