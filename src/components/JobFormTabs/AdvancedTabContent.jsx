@@ -67,33 +67,14 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                 </Card>
 
                 {/* Rules Tabs */}
-                <Tabs defaultValue="flow" className="w-full">
-                  <TabsList className="grid w-full grid-cols-6">
-                    <TabsTrigger value="flow" className="text-xs">Flow</TabsTrigger>
+                <Tabs defaultValue="mapping" className="w-full">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="mapping" className="text-xs">Mapping</TabsTrigger>
                     <TabsTrigger value="quality" className="text-xs">Quality</TabsTrigger>
                     <TabsTrigger value="cleansing" className="text-xs">Cleansing</TabsTrigger>
                     <TabsTrigger value="security" className="text-xs">Security</TabsTrigger>
                     <TabsTrigger value="sla" className="text-xs">SLA</TabsTrigger>
                   </TabsList>
-
-                  {/* Pipeline Flow Diagram */}
-                  <TabsContent value="flow" className="space-y-3">
-                    <Card className="p-4">
-                      <div className="flex items-center gap-2 mb-4">
-                        <GitBranch className="w-4 h-4 text-indigo-600" />
-                        <h4 className="font-semibold text-sm">Pipeline Flow</h4>
-                      </div>
-                      <PipelineFlowDiagram
-                        job={formData}
-                        connections={formData._connections || []}
-                        columnMappings={formData.column_mappings}
-                        dqRules={formData.dq_rules}
-                        dataCleansing={formData.data_cleansing}
-                        dataMasking={formData.data_masking_rules}
-                      />
-                    </Card>
-                  </TabsContent>
 
                   {/* Column Mapping */}
                   <TabsContent value="mapping" className="space-y-3">
