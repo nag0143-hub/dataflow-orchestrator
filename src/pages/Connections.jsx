@@ -109,6 +109,8 @@ export default function Connections() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [groupByTag, setGroupByTag] = useState(false);
+  const [tagInput, setTagInput] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [prereqDialogConn, setPrereqDialogConn] = useState(null);
   const [editingConnection, setEditingConnection] = useState(null);
