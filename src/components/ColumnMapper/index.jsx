@@ -18,6 +18,7 @@ import ColumnMapperBulkActions from "./ColumnMapperBulkActions";
 import ColumnMapperImportExport from "./ColumnMapperImportExport";
 import { GLOBAL_RULES, DQ_RULES, ENCRYPTION_TYPES, TRANSFORMATIONS, PAGE_SIZE, MAPPING_PAGE_SIZE, DATA_TYPES } from "./constants";
 import { columnCacheManager, invalidateCacheForObjects } from "./cacheManager";
+import { base44 } from "@/api/base44Client";
 
 // Seeded pseudo-random so data types are stable across renders
 function seededRand(seed) {
