@@ -417,21 +417,28 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                         <table className="w-full border-collapse">
                           <thead>
                             <tr className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-6"></th>
-                              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-6"><Checkbox /></th>
+                              <th className="py-2 w-6"></th>
+                              <th className="py-2 w-6"><Checkbox /></th>
                               {isCondensed ? (
                                 <>
-                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Source</th>
-                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Target</th>
-                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Transformation</th>
-                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-6"></th>
+                                  <th className="py-2 w-5"></th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200">Source</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200">Target</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600">Transformation</th>
+                                  <th className="py-2 w-6"></th>
                                 </>
                               ) : (
                                 <>
-                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 col-span-4">Source Details</th>
-                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 col-span-4">Target Details</th>
-                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700">Transformation</th>
-                                  <th className="px-3 py-2 text-left text-xs font-semibold text-slate-700 w-6"></th>
+                                  <th className="py-2 w-5"></th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200 bg-blue-50/50">Source Col</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200 bg-blue-50/50">Src Type</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200 bg-blue-50/50">Src Len</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200 bg-green-50/50">Target Col</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200 bg-green-50/50">Tgt Type</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200 bg-green-50/50">Tgt Len</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600 border-r border-slate-200">Transform</th>
+                                  <th className="px-2 py-2 text-left text-xs font-semibold text-slate-600">Expression</th>
+                                  <th className="py-2 w-6"></th>
                                 </>
                               )}
                             </tr>
@@ -439,7 +446,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                           <tbody>
                             {filteredMappings.filter(m => !m.is_audit).length === 0 ? (
                               <tr>
-                                <td colSpan={isCondensed ? 6 : 12} className="text-center py-6 text-xs text-slate-400">
+                                <td colSpan={isCondensed ? 7 : 11} className="text-center py-6 text-xs text-slate-400">
                                   {mappingSearch ? "No matching column mappings" : "No column mappings yet"}
                                 </td>
                               </tr>
@@ -458,11 +465,8 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                         isSelected={isSelected}
                                         onSelect={() => {
                                           const newSet = new Set(selectedMappings);
-                                          if (isSelected) {
-                                            newSet.delete(mappingIndex);
-                                          } else {
-                                            newSet.add(mappingIndex);
-                                          }
+                                          if (isSelected) newSet.delete(mappingIndex);
+                                          else newSet.add(mappingIndex);
                                           setSelectedMappings(newSet);
                                         }}
                                         onUpdate={(field, value) => updateMapping(m.source, field, value)}
@@ -477,6 +481,57 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                   </Draggable>
                                 );
                               })
+                            )}
+
+                            {/* Audit Columns section */}
+                            {tableMappings.some(m => m.is_audit) && (
+                              <>
+                                <tr className="bg-amber-50 border-t-2 border-amber-200">
+                                  <td colSpan={isCondensed ? 7 : 11} className="px-3 py-1">
+                                    <div className="flex items-center gap-2">
+                                      <Lock className="w-3 h-3 text-amber-600" />
+                                      <span className="text-xs font-semibold text-amber-800">Audit & System Columns</span>
+                                      <span className="text-xs text-amber-600">({tableMappings.filter(m => m.is_audit).length})</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {tableMappings.filter(m => m.is_audit).map((m, i) => {
+                                  const mappingIndex = tableMappings.indexOf(m);
+                                  return (
+                                    <Draggable key={`audit-${m.target}-${i}`} draggableId={`audit-${m.target}-${i}`} index={mappingIndex} type="MAPPING">
+                                      {(provided, snapshot) => (
+                                        <ColumnMapperRow
+                                          ref={provided.innerRef}
+                                          mapping={m}
+                                          sourceCol={null}
+                                          isSelected={false}
+                                          onSelect={() => {}}
+                                          onUpdate={(field, value) => {
+                                            onChange(prev => {
+                                              const key = selectedTable;
+                                              const tbl = [...(prev[key] || [])];
+                                              const idx = tbl.indexOf(m);
+                                              if (idx >= 0) tbl[idx] = { ...tbl[idx], [field]: value };
+                                              return { ...prev, [key]: tbl };
+                                            });
+                                          }}
+                                          onRemove={() => {
+                                            onChange(prev => {
+                                              const key = selectedTable;
+                                              return { ...prev, [key]: prev[key].filter(r => r !== m) };
+                                            });
+                                          }}
+                                          isCondensed={isCondensed}
+                                          isDragging={snapshot.isDragging}
+                                          dragProps={provided.draggableProps}
+                                          dragHandleProps={provided.dragHandleProps}
+                                          isAudit={true}
+                                        />
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                              </>
                             )}
                           </tbody>
                         </table>
