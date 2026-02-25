@@ -12,6 +12,8 @@ import DataMaskingConfig from "@/components/DataMaskingConfig";
 import SLAConfig from "@/components/SLAConfig";
 
 export default function AdvancedTabContent({ formData, setFormData }) {
+  const [showSecurity, setShowSecurity] = useState(false);
+  const [showSLA, setShowSLA] = useState(false);
   const [activeDataset, setActiveDataset] = useState(
     formData.selected_datasets?.[0] ? `${formData.selected_datasets[0].schema}.${formData.selected_datasets[0].table}` : ""
   );
