@@ -64,10 +64,10 @@ function DatasetCard({ ds, index, formData, setFormData }) {
         className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <Database className="w-4 h-4 text-slate-400 shrink-0" />
+        {ds.custom_sql ? <Code2 className="w-4 h-4 text-violet-400 shrink-0" /> : <Database className="w-4 h-4 text-slate-400 shrink-0" />}
         <div className="flex-1 min-w-0">
           <span className="font-mono text-sm font-medium text-slate-800 truncate block">
-            {ds.schema}.{ds.table}
+            {ds.custom_sql ? "Custom SQL" : `${ds.schema}.${ds.table}`}
           </span>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${LOAD_COLORS[method] || LOAD_COLORS.append}`}>
