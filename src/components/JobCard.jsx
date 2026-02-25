@@ -35,13 +35,13 @@ export default function JobCard({
       pipelineData={{ ...job, _isUpdate: true }}
       connections={connections || []}
     />
-    <Card className="border-slate-200 hover:shadow-lg transition-shadow">
+    <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:shadow-lg transition-shadow">
       <CardContent className="p-5">
         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
           {/* Pipeline Info */}
            <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2">
-              <h3 className="font-semibold text-slate-900 text-lg">{job.name}</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-lg">{job.name}</h3>
               <StatusBadge status={job.status} size="sm" />
             </div>
             {job.description && (
