@@ -58,6 +58,7 @@ import Lineage from './pages/Lineage';
 import Pipelines from './pages/Pipelines';
 import Requirements from './pages/Requirements';
 import UserGuide from './pages/UserGuide';
+import CustomFunctions from './pages/CustomFunctions';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "Pipelines": Pipelines,
     "Requirements": Requirements,
     "UserGuide": UserGuide,
+    "CustomFunctions": CustomFunctions,
 }
 
 export const pagesConfig = {
