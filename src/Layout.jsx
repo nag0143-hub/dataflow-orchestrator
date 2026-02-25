@@ -35,7 +35,8 @@ export default function Layout({ children }) {
         { name: "Pipelines", icon: Play, page: "Pipelines" },
         { name: "Data Catalog", icon: BookOpen, page: "DataCatalog" },
         { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
-        { name: "LDAP", icon: Server, page: "LDAPIntegration" },
+        { name: "User Guide", icon: BookOpen, page: "UserGuide" },
+        { name: "Requirements", icon: FileText, page: "Requirements" },
         ];
 
   const isActive = (page) => {
