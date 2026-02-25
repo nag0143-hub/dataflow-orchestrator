@@ -47,11 +47,8 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import ActivityLogs from './pages/ActivityLogs';
 import AuditTrail from './pages/AuditTrail';
-import Connections from './pages/Connections';
 import CustomFunctions from './pages/CustomFunctions';
-import Dashboard from './pages/Dashboard';
 import DataCatalog from './pages/DataCatalog';
 import DataModel from './pages/DataModel';
 import LDAPIntegration from './pages/LDAPIntegration';
@@ -59,15 +56,15 @@ import Lineage from './pages/Lineage';
 import Pipelines from './pages/Pipelines';
 import Requirements from './pages/Requirements';
 import UserGuide from './pages/UserGuide';
+import Dashboard from './pages/Dashboard';
+import ActivityLogs from './pages/ActivityLogs';
+import Connections from './pages/Connections';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "ActivityLogs": ActivityLogs,
     "AuditTrail": AuditTrail,
-    "Connections": Connections,
     "CustomFunctions": CustomFunctions,
-    "Dashboard": Dashboard,
     "DataCatalog": DataCatalog,
     "DataModel": DataModel,
     "LDAPIntegration": LDAPIntegration,
@@ -75,6 +72,9 @@ export const PAGES = {
     "Pipelines": Pipelines,
     "Requirements": Requirements,
     "UserGuide": UserGuide,
+    "Dashboard": Dashboard,
+    "ActivityLogs": ActivityLogs,
+    "Connections": Connections,
 }
 
 export const pagesConfig = {
