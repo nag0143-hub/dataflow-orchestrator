@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   Search,
@@ -25,11 +26,14 @@ import {
   Eye,
   Shield
 } from "lucide-react";
+import { toast } from "sonner";
+import moment from "moment";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import SkeletonLoader from "@/components/SkeletonLoader";
-import { createIndex } from "@/components/dataIndexing";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -43,11 +47,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import moment from "moment";
-import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import { createIndex } from "@/components/dataIndexing";
+import { useRetry } from "@/components/hooks/useRetry";
 
 const logTypeConfig = {
   info: { icon: Info, color: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200", dotColor: "bg-blue-500" },
