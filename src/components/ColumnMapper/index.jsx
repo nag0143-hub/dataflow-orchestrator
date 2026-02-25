@@ -490,24 +490,25 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
                                   <Draggable key={`${m.source}-${mappingIndex}`} draggableId={`${m.source}-${mappingIndex}`} index={mappingIndex} type="MAPPING">
                                     {(provided, snapshot) => (
                                       <ColumnMapperRow
-                                        ref={provided.innerRef}
-                                        mapping={m}
-                                        sourceCol={sourceCol}
-                                        isSelected={isSelected}
-                                        onSelect={() => {
-                                          const newSet = new Set(selectedMappings);
-                                          if (isSelected) newSet.delete(mappingIndex);
-                                          else newSet.add(mappingIndex);
-                                          setSelectedMappings(newSet);
-                                        }}
-                                        onUpdate={(field, value) => updateMapping(m.source, field, value)}
-                                        onRemove={() => removeMapping(m.source)}
-                                        isCondensed={isCondensed}
-                                        isDragging={snapshot.isDragging}
-                                        dragProps={provided.draggableProps}
-                                        dragHandleProps={provided.dragHandleProps}
-                                        isAudit={false}
-                                      />
+                                            ref={provided.innerRef}
+                                            mapping={m}
+                                            sourceCol={sourceCol}
+                                            isSelected={isSelected}
+                                            onSelect={() => {
+                                              const newSet = new Set(selectedMappings);
+                                              if (isSelected) newSet.delete(mappingIndex);
+                                              else newSet.add(mappingIndex);
+                                              setSelectedMappings(newSet);
+                                            }}
+                                            onUpdate={(field, value) => updateMapping(m.source, field, value)}
+                                            onRemove={() => removeMapping(m.source)}
+                                            isCondensed={isCondensed}
+                                            isDragging={snapshot.isDragging}
+                                            dragProps={provided.draggableProps}
+                                            dragHandleProps={provided.dragHandleProps}
+                                            isAudit={false}
+                                            transformations={allTransformations}
+                                          />
                                     )}
                                   </Draggable>
                                 );
