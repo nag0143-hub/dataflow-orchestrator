@@ -54,9 +54,6 @@ const defaultFormData = {
   }
 };
 
-function PipelineCardFallback() {
-  return <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />;
-}
 
 export default function Pipelines() {
   const { user: currentUser, scope } = useTenant();

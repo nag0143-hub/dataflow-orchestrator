@@ -363,9 +363,7 @@ export default function Connections() {
               <div className="flex items-center justify-between">
                 <DialogTitle>{editingConnection ? "Edit Connection" : "New Connection"}</DialogTitle>
                 {!editingConnection && (
-                  <Suspense fallback={null}>
-                    <ConnectionProfilePicker onApply={(fields) => setFormData(prev => ({ ...prev, ...fields }))} />
-                  </Suspense>
+                  <ConnectionProfilePicker onApply={(fields) => setFormData(prev => ({ ...prev, ...fields }))} />
                 )}
               </div>
             </DialogHeader>
@@ -596,9 +594,7 @@ export default function Connections() {
             </DialogHeader>
             {prereqDialogConn && (
               <ErrorBoundary>
-                <Suspense fallback={<div className="h-32 animate-pulse bg-slate-100 rounded" />}>
-                  <PrerequisitePanel connection={prereqDialogConn} onUpdate={loadData} />
-                </Suspense>
+                <PrerequisitePanel connection={prereqDialogConn} onUpdate={loadData} />
               </ErrorBoundary>
             )}
           </DialogContent>
