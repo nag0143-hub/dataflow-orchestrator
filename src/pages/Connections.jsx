@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { 
   Plus, Search, MoreVertical, Edit, Trash2, TestTube,
@@ -235,10 +235,10 @@ export default function Connections() {
     }
   };
 
-  const filteredConnections = connections.filter(c => {
+  const filteredConnections = useMemo(() => connections.filter(c => {
     const matchesSearch = (c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (c.platform || "").toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch && (filterType === "all" || c.connection_type === filterType);
-  });
+  }), [connections, searchTerm, filterType]);
 
   // Collect all unique tags across all connections
   const allTags = [...new Set(connections.flatMap(c => c.tags || []))].sort();

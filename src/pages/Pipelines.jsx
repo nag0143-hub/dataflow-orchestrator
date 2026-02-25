@@ -117,6 +117,12 @@ export default function Pipelines() {
   const getConnection = useCallback((id) => connectionIndex.get(id), [connectionIndex]);
   const getPipelineRuns = useCallback((pipelineId) => runsByPipeline[pipelineId] || [], [runsByPipeline]);
 
+  const filteredPipelines = useMemo(() => pipelines.filter(p => {
+    const matchesSearch = p.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterStatus === "all" || p.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  }), [pipelines, searchTerm, filterStatus]);
+
   const handleEdit = useCallback((pipeline) => {
     setEditingPipeline(pipeline);
     setFormData({
@@ -349,12 +355,6 @@ export default function Pipelines() {
     setDialogOpen(true);
     setActiveTab("general");
   }, []);
-
-  const filteredPipelines = useMemo(() => pipelines.filter(p => {
-    const matchesSearch = p.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === "all" || p.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  }), [pipelines, searchTerm, filterStatus]);
 
   if (loading) {
     return (
