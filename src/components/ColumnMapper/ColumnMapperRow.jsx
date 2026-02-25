@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { forwardRef } from "react";
 import { X, GripVertical, Lock } from "lucide-react";
 import { TRANSFORMATIONS } from "./constants";
 import { cn } from "@/lib/utils";
