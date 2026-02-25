@@ -82,7 +82,6 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
 }, ref) {
 
   const needsParams = !!TRANSFORMATION_PARAMS[mapping.transformation];
-  const colSpan = isCondensed ? 7 : 11;
 
   // Show expression cell only for custom_sql in full mode (params row handles the rest)
   const showExpressionCell = !isCondensed && mapping.transformation === "custom_sql";
