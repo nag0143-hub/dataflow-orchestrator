@@ -422,72 +422,75 @@ export default function Pipelines() {
           <VisualPipelineBuilder connections={connections} onSaveSuccess={() => { loadData(); setViewMode("list"); }} />
         )}
 
-        {/* Filters — only in list view */}
-        {viewMode === "list" && <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Search pipelines..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40">
-              <Filter className="w-4 h-4 mr-2 text-slate-400" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="idle">Idle</SelectItem>
-              <SelectItem value="running">Running</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-              <SelectItem value="paused">Paused</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>}
-
-        {/* Pipelines List */}
-        {viewMode === "list" && filteredPipelines.length > 0 ? (
-          <div className="space-y-4">
-            {filteredPipelines.map((pipeline) => (
-              <ErrorBoundary key={pipeline.id}>
-                <PipelineCard
-                  job={pipeline}
-                  sourceConn={getConnection(pipeline.source_connection_id)}
-                  targetConn={getConnection(pipeline.target_connection_id)}
-                  jobRuns={getPipelineRuns(pipeline.id)}
-                  connections={connections}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onRun={handleRunPipeline}
-                  onRetry={handleRetryPipeline}
-                  onPause={handlePausePipeline}
-                  onClone={handleClonePipeline}
-                  onViewDetails={(p) => { setViewingPipeline(p); setDetailsDialogOpen(true); }}
-                  onExport={setExportPipeline}
+        {/* Filters + List — only in list view */}
+        {viewMode === "list" && (
+          <>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Search pipelines..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
-              </ErrorBoundary>
-            ))}
-          </div>
-        ) : viewMode === "list" ? (
-          <EmptyStateGuide
-            icon={Play}
-            title={searchTerm ? "No pipelines found" : "No data pipelines yet"}
-            description={
-              searchTerm
-                ? "Try adjusting your search or filters"
-                : "Create your first data pipeline to start moving data between connections"
-            }
-            primaryAction={!searchTerm ? {
-              label: "New Pipeline",
-              icon: <Plus className="w-4 h-4" />,
-              onClick: openNew
-            } : null}
-          />
-        ) : null}
+              </div>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-40">
+                  <Filter className="w-4 h-4 mr-2 text-slate-400" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="idle">Idle</SelectItem>
+                  <SelectItem value="running">Running</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                  <SelectItem value="paused">Paused</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {filteredPipelines.length > 0 ? (
+              <div className="space-y-4">
+                {filteredPipelines.map((pipeline) => (
+                  <ErrorBoundary key={pipeline.id}>
+                    <PipelineCard
+                      job={pipeline}
+                      sourceConn={getConnection(pipeline.source_connection_id)}
+                      targetConn={getConnection(pipeline.target_connection_id)}
+                      jobRuns={getPipelineRuns(pipeline.id)}
+                      connections={connections}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onRun={handleRunPipeline}
+                      onRetry={handleRetryPipeline}
+                      onPause={handlePausePipeline}
+                      onClone={handleClonePipeline}
+                      onViewDetails={(p) => { setViewingPipeline(p); setDetailsDialogOpen(true); }}
+                      onExport={setExportPipeline}
+                    />
+                  </ErrorBoundary>
+                ))}
+              </div>
+            ) : (
+              <EmptyStateGuide
+                icon={Play}
+                title={searchTerm ? "No pipelines found" : "No data pipelines yet"}
+                description={
+                  searchTerm
+                    ? "Try adjusting your search or filters"
+                    : "Create your first data pipeline to start moving data between connections"
+                }
+                primaryAction={!searchTerm ? {
+                  label: "New Pipeline",
+                  icon: <Plus className="w-4 h-4" />,
+                  onClick: openNew
+                } : null}
+              />
+            )}
+          </>
+        )}
 
         {/* Dialogs — only rendered when opened */}
         <JobFormDialog
