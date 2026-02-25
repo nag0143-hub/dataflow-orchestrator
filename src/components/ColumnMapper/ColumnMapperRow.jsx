@@ -1,9 +1,44 @@
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { X, GripVertical } from "lucide-react";
+import { useRef } from "react";
+import { X, GripVertical, Lock } from "lucide-react";
 import { TRANSFORMATIONS } from "./constants";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+
+// Excel-like editable cell
+function EditableCell({ value, onChange, placeholder = "", className = "", mono = false, disabled = false }) {
+  return (
+    <input
+      value={value || ""}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      disabled={disabled}
+      className={cn(
+        "w-full h-7 px-2 text-xs border-0 bg-transparent focus:bg-white focus:border focus:border-blue-400 focus:outline-none rounded focus:shadow-sm transition-all",
+        mono && "font-mono",
+        disabled && "opacity-50 cursor-not-allowed",
+        className
+      )}
+    />
+  );
+}
+
+function SelectCell({ value, onChange, options, disabled = false }) {
+  return (
+    <select
+      value={value || ""}
+      onChange={e => onChange(e.target.value)}
+      disabled={disabled}
+      className={cn(
+        "w-full h-7 px-1 text-xs border-0 bg-transparent focus:bg-white focus:border focus:border-blue-400 focus:outline-none rounded transition-all appearance-none cursor-pointer",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
+    >
+      {options.map(o => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  );
+}
 
 export default function ColumnMapperRow({
   mapping,
@@ -18,37 +53,31 @@ export default function ColumnMapperRow({
   dragHandleProps,
   isAudit,
 }) {
+  const isLocked = mapping.is_audit;
+
   if (isCondensed) {
     return (
-      <tr className={cn("border-b border-slate-100 transition-colors", isDragging ? "bg-slate-100 shadow-md" : "hover:bg-blue-50")}>
-        <td className="px-3 py-2" {...dragHandleProps}>
-          <GripVertical className="w-3 h-3 text-slate-300 cursor-move" />
+      <tr
+        className={cn(
+          "border-b border-slate-100 transition-colors group",
+          isDragging ? "bg-blue-50 shadow-lg" : isAudit ? "bg-amber-50 hover:bg-amber-100" : "hover:bg-blue-50/50"
+        )}
+        {...dragProps}
+      >
+        <td className="pl-2 py-1 w-6" {...dragHandleProps}>
+          <GripVertical className="w-3 h-3 text-slate-300 cursor-move group-hover:text-slate-500" />
         </td>
-        <td className="px-3 py-2 w-6">
-          <Checkbox checked={isSelected} onCheckedChange={onSelect} disabled={isAudit} />
+        <td className="py-1 w-6">
+          <Checkbox checked={isSelected} onCheckedChange={onSelect} disabled={isAudit} className="h-3 w-3" />
         </td>
-        <td className="px-3 py-2 text-xs">
-          <span className="font-mono text-slate-900">{mapping.source}</span>
+        {isAudit && <td className="py-1 w-5"><Lock className="w-3 h-3 text-amber-500" /></td>}
+        <td className="py-1 text-xs font-mono text-slate-700 pl-2">{mapping.source || <span className="text-slate-400 italic">computed</span>}</td>
+        <td className="py-1"><EditableCell value={mapping.target} onChange={v => onUpdate("target", v)} mono /></td>
+        <td className="py-1 min-w-[140px]">
+          <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={TRANSFORMATIONS} />
         </td>
-        <td className="px-3 py-2 text-xs">
-          <span className="font-mono text-slate-600">{mapping.target}</span>
-        </td>
-        <td className="px-3 py-2">
-          <Select value={mapping.transformation || "direct"} onValueChange={(v) => onUpdate("transformation", v)}>
-            <SelectTrigger className="h-6 text-xs border-slate-200 w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TRANSFORMATIONS.map((t) => (
-                <SelectItem key={t.value} value={t.value} className="text-xs">
-                  {t.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </td>
-        <td className="px-3 py-2">
-          <button type="button" onClick={onRemove} className="text-slate-400 hover:text-red-500">
+        <td className="py-1 pr-2 w-6">
+          <button type="button" onClick={onRemove} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
             <X className="w-3 h-3" />
           </button>
         </td>
@@ -56,85 +85,69 @@ export default function ColumnMapperRow({
     );
   }
 
+  // Full Excel-style row
   return (
-    <tr className={cn("border-b border-slate-100 transition-colors", isDragging ? "bg-slate-100 shadow-md" : "hover:bg-blue-50")}>
-      <td className="px-3 py-2" {...dragHandleProps}>
-        <GripVertical className="w-3 h-3 text-slate-300 cursor-move" />
+    <tr
+      className={cn(
+        "border-b border-slate-100 transition-colors group",
+        isDragging ? "bg-blue-50 shadow-lg" : isAudit ? "bg-amber-50/60 hover:bg-amber-50" : "hover:bg-blue-50/40"
+      )}
+      {...dragProps}
+    >
+      <td className="pl-2 py-1 w-6" {...dragHandleProps}>
+        <GripVertical className="w-3 h-3 text-slate-300 cursor-move group-hover:text-slate-500" />
       </td>
-      <td className="px-3 py-2 w-6">
-        <Checkbox checked={isSelected} onCheckedChange={onSelect} disabled={isAudit} />
+      <td className="py-1 w-6">
+        <Checkbox checked={isSelected} onCheckedChange={onSelect} disabled={isAudit} className="h-3 w-3" />
       </td>
-      
-      {/* Source Section */}
-      <td colSpan="4" className="px-3 py-2">
-        <div className="space-y-2">
-          <div className="text-xs text-slate-500 font-medium">Source</div>
-          <div className="grid grid-cols-4 gap-2">
-            <div>
-              <span className="text-xs text-slate-400 block mb-1">Name</span>
-              <span className="font-mono text-xs text-slate-900 block">{mapping.source}</span>
-            </div>
-            <div>
-              <span className="text-xs text-slate-400 block mb-1">Type</span>
-              <span className="font-mono text-xs text-slate-600">{mapping.sourceDataType || "-"}</span>
-            </div>
-            <div>
-              <span className="text-xs text-slate-400 block mb-1">Length</span>
-              <span className="font-mono text-xs text-slate-600">{mapping.sourceLength || "-"}</span>
-            </div>
-            <div>
-              <span className="text-xs text-slate-400 block mb-1">Order</span>
-              <span className="font-mono text-xs text-slate-600">{sourceCol?.order || "-"}</span>
-            </div>
-          </div>
-        </div>
+      {/* Audit indicator */}
+      <td className="py-1 w-5 text-center">
+        {isAudit && <Lock className="w-3 h-3 text-amber-500 inline" />}
       </td>
 
-      {/* Target Section */}
-      <td colSpan="4" className="px-3 py-2">
-        <div className="space-y-2">
-          <div className="text-xs text-slate-500 font-medium">Target</div>
-          <div className="grid grid-cols-3 gap-2">
-            <Input
-              value={mapping.target}
-              onChange={(e) => onUpdate("target", e.target.value)}
-              placeholder="Target"
-              className="h-6 text-xs px-2 border-slate-200"
-            />
-            <Input
-              value={mapping.targetDataType || ""}
-              onChange={(e) => onUpdate("targetDataType", e.target.value)}
-              placeholder="varchar"
-              className="h-6 text-xs px-2 border-slate-200 font-mono"
-            />
-            <Input
-              value={mapping.targetLength || ""}
-              onChange={(e) => onUpdate("targetLength", e.target.value)}
-              placeholder="255"
-              className="h-6 text-xs px-2 border-slate-200 font-mono"
-            />
-          </div>
-        </div>
+      {/* Source Name */}
+      <td className="py-1 px-2 text-xs font-mono text-slate-800 border-r border-slate-100 min-w-[120px]">
+        {mapping.source || <span className="text-slate-400 italic text-xs">computed</span>}
+      </td>
+      {/* Source Type */}
+      <td className="py-1 text-xs font-mono text-slate-500 border-r border-slate-100 min-w-[80px] px-2">
+        {mapping.sourceDataType || ""}
+      </td>
+      {/* Source Length */}
+      <td className="py-1 text-xs font-mono text-slate-400 border-r border-slate-100 min-w-[60px] px-2">
+        {mapping.sourceLength || ""}
+      </td>
+
+      {/* Target Name */}
+      <td className="py-1 border-r border-slate-100 min-w-[120px]">
+        <EditableCell value={mapping.target} onChange={v => onUpdate("target", v)} placeholder="target_col" mono />
+      </td>
+      {/* Target Type */}
+      <td className="py-1 border-r border-slate-100 min-w-[80px]">
+        <EditableCell value={mapping.targetDataType} onChange={v => onUpdate("targetDataType", v)} placeholder="varchar" mono />
+      </td>
+      {/* Target Length */}
+      <td className="py-1 border-r border-slate-100 min-w-[60px]">
+        <EditableCell value={mapping.targetLength} onChange={v => onUpdate("targetLength", v)} placeholder="255" mono />
       </td>
 
       {/* Transformation */}
-      <td className="px-3 py-2 min-w-40">
-        <Select value={mapping.transformation || "direct"} onValueChange={(v) => onUpdate("transformation", v)}>
-          <SelectTrigger className="h-6 text-xs border-slate-200">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {TRANSFORMATIONS.map((t) => (
-              <SelectItem key={t.value} value={t.value} className="text-xs">
-                {t.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <td className="py-1 border-r border-slate-100 min-w-[140px]">
+        <SelectCell value={mapping.transformation || "direct"} onChange={v => onUpdate("transformation", v)} options={TRANSFORMATIONS} />
       </td>
 
-      <td className="px-3 py-2">
-        <button type="button" onClick={onRemove} className="text-slate-400 hover:text-red-500">
+      {/* Expression (shown only for custom transforms) */}
+      <td className="py-1 min-w-[120px]">
+        <EditableCell
+          value={mapping.expression}
+          onChange={v => onUpdate("expression", v)}
+          placeholder={mapping.transformation === "custom_sql" ? "SQL expr..." : ""}
+          disabled={mapping.transformation !== "custom_sql"}
+        />
+      </td>
+
+      <td className="py-1 pr-2 w-6">
+        <button type="button" onClick={onRemove} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all">
           <X className="w-3 h-3" />
         </button>
       </td>
