@@ -24,19 +24,7 @@ function EditableCell({ value, onChange, placeholder = "", className = "", mono 
 
 function SelectCell({ value, onChange, options, disabled = false }) {
   return (
-    <select
-      value={value || ""}
-      onChange={e => onChange(e.target.value)}
-      disabled={disabled}
-      className={cn(
-        "w-full h-7 px-1 text-xs border-0 bg-transparent focus:bg-white focus:border focus:border-blue-400 focus:outline-none rounded transition-all appearance-none cursor-pointer",
-        disabled && "opacity-50 cursor-not-allowed"
-      )}
-    >
-      {options.map(o => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
+    <TransformSelect value={value} onChange={onChange} options={options} disabled={disabled} />
   );
 }
 
