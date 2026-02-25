@@ -284,6 +284,18 @@ export default function Pipelines() {
       console.error("[Pipelines] simulatePipelineRun error:", err);
     }
 
+    // Trigger dependent pipelines on successful completion
+    if (success) {
+      try {
+        await base44.functions.invoke('triggerDependentPipelines', {
+          pipeline_id: pipeline.id,
+          run_status: 'completed'
+        });
+      } catch (err) {
+        console.error("[Pipelines] triggerDependentPipelines error:", err);
+      }
+    }
+
     loadData();
   };
 
