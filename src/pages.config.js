@@ -53,7 +53,6 @@ import Connections from './pages/Connections';
 import Dashboard from './pages/Dashboard';
 import DataCatalog from './pages/DataCatalog';
 import DataModel from './pages/DataModel';
-import Jobs from './pages/Jobs';
 import LDAPIntegration from './pages/LDAPIntegration';
 import Lineage from './pages/Lineage';
 import Requirements from './pages/Requirements';
@@ -69,7 +68,6 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "DataCatalog": DataCatalog,
     "DataModel": DataModel,
-    "Jobs": Jobs,
     "LDAPIntegration": LDAPIntegration,
     "Lineage": Lineage,
     "Requirements": Requirements,
