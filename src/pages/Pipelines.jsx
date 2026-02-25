@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Search, Play, Filter, Rocket, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,11 @@ import { createIndex } from "@/components/dataIndexing";
 import { useTenant } from "@/components/useTenant";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Lazy load heavy dialogs
-const JobFormDialog = lazy(() => import("@/components/JobFormDialog"));
-const JobCard = lazy(() => import("@/components/JobCard"));
-const JobDetailsDialog = lazy(() => import("@/components/JobDetailsDialog"));
-const JobSpecExport = lazy(() => import("@/components/JobSpecExport"));
-const OnboardingWizard = lazy(() => import("@/components/OnboardingWizard"));
+import JobFormDialog from "@/components/JobFormDialog";
+import JobCard from "@/components/JobCard";
+import JobDetailsDialog from "@/components/JobDetailsDialog";
+import JobSpecExport from "@/components/JobSpecExport";
+import OnboardingWizard from "@/components/OnboardingWizard";
 
 const defaultFormData = {
   name: "",
