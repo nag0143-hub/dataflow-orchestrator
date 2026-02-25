@@ -428,23 +428,21 @@ export default function Pipelines() {
           <div className="space-y-4">
             {filteredPipelines.map((pipeline) => (
               <ErrorBoundary key={pipeline.id}>
-                <Suspense fallback={<PipelineCardFallback />}>
-                  <JobCard
-                    job={pipeline}
-                    sourceConn={getConnection(pipeline.source_connection_id)}
-                    targetConn={getConnection(pipeline.target_connection_id)}
-                    jobRuns={getPipelineRuns(pipeline.id)}
-                    connections={connections}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onRun={handleRunPipeline}
-                    onRetry={handleRetryPipeline}
-                    onPause={handlePausePipeline}
-                    onClone={handleClonePipeline}
-                    onViewDetails={(p) => { setViewingPipeline(p); setDetailsDialogOpen(true); }}
-                    onExport={setExportPipeline}
-                  />
-                </Suspense>
+                <JobCard
+                  job={pipeline}
+                  sourceConn={getConnection(pipeline.source_connection_id)}
+                  targetConn={getConnection(pipeline.target_connection_id)}
+                  jobRuns={getPipelineRuns(pipeline.id)}
+                  connections={connections}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onRun={handleRunPipeline}
+                  onRetry={handleRetryPipeline}
+                  onPause={handlePausePipeline}
+                  onClone={handleClonePipeline}
+                  onViewDetails={(p) => { setViewingPipeline(p); setDetailsDialogOpen(true); }}
+                  onExport={setExportPipeline}
+                />
               </ErrorBoundary>
             ))}
           </div>
@@ -466,52 +464,38 @@ export default function Pipelines() {
         )}
 
         {/* Dialogs — only rendered when opened */}
-        {dialogOpen && (
-          <Suspense fallback={null}>
-            <JobFormDialog
-              open={dialogOpen}
-              onOpenChange={setDialogOpen}
-              editingJob={editingPipeline}
-              formData={formData}
-              setFormData={setFormData}
-              connections={connections}
-              onSaveSuccess={loadData}
-              currentUser={currentUser}
-            />
-          </Suspense>
-        )}
+        <JobFormDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          editingJob={editingPipeline}
+          formData={formData}
+          setFormData={setFormData}
+          connections={connections}
+          onSaveSuccess={loadData}
+          currentUser={currentUser}
+        />
 
         {exportPipeline && (
-          <Suspense fallback={null}>
-            <JobSpecExport
-              job={exportPipeline}
-              connections={connections}
-              onClose={() => setExportPipeline(null)}
-            />
-          </Suspense>
+          <JobSpecExport
+            job={exportPipeline}
+            connections={connections}
+            onClose={() => setExportPipeline(null)}
+          />
         )}
 
-        {detailsDialogOpen && viewingPipeline && (
-          <Suspense fallback={null}>
-            <JobDetailsDialog
-              open={detailsDialogOpen}
-              onOpenChange={setDetailsDialogOpen}
-              job={viewingPipeline}
-              jobRuns={getPipelineRuns(viewingPipeline.id)}
-            />
-          </Suspense>
-        )}
+        <JobDetailsDialog
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          job={viewingPipeline}
+          jobRuns={viewingPipeline ? getPipelineRuns(viewingPipeline.id) : []}
+        />
 
-        {showOnboarding && (
-          <Suspense fallback={null}>
-            <OnboardingWizard
-              open={showOnboarding}
-              onClose={() => setShowOnboarding(false)}
-              connections={connections}
-              jobs={pipelines}
-            />
-          </Suspense>
-        )}
+        <OnboardingWizard
+          open={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+          connections={connections}
+          jobs={pipelines}
+        />
       </div>
     </ErrorBoundary>
   );
