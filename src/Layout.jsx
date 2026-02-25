@@ -32,7 +32,7 @@ export default function Layout({ children }) {
   const navItems = [
         { name: "Dashboard", icon: Home, page: "Dashboard" },
         { name: "Connections", icon: Cable, page: "Connections" },
-        { name: "Pipelines", icon: Play, page: "Jobs" },
+        { name: "Pipelines", icon: Play, page: "Pipelines" },
         { name: "Data Catalog", icon: BookOpen, page: "DataCatalog" },
         { name: "Activity Logs", icon: FileText, page: "ActivityLogs" },
         { name: "LDAP", icon: Server, page: "LDAPIntegration" },

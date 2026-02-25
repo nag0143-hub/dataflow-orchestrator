@@ -295,7 +295,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
         )}
 
         {schedType === "manual" && (
-          <p className="text-xs text-slate-400">This job will only run when triggered manually.</p>
+          <p className="text-xs text-slate-400">This pipeline will only run when triggered manually.</p>
         )}
 
         {/* Event Driven */}
@@ -372,7 +372,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                       readOnly
                       className="font-mono text-sm bg-slate-50 text-slate-500"
                     />
-                    <p className="text-xs text-slate-400">POST to this endpoint with a valid API key to trigger the job.</p>
+                    <p className="text-xs text-slate-400">POST to this endpoint with a valid API key to trigger the pipeline.</p>
                   </div>
                 )}
                 {formData.event_sensor_type === "upstream_job" && (

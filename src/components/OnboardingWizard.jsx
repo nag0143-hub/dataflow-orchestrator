@@ -26,11 +26,11 @@ export default function OnboardingWizard({ open, onClose, connections, jobs }) {
       action: { label: "Create Connection", href: createPageUrl("Connections") }
     },
     {
-      title: "Step 2: Create Your First Job",
-      description: "Configure a data transfer job between your connections",
+      title: "Step 2: Create Your First Pipeline",
+      description: "Configure a data transfer pipeline between your connections",
       completed: hasJobs,
       disabled: !hasConnections,
-      action: { label: "Create Job", onClick: () => { onClose(); /* Will trigger job dialog */ } }
+      action: { label: "Create Pipeline", onClick: () => { onClose(); } }
     },
     {
       title: "All Set!",

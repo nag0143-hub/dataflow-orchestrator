@@ -207,7 +207,7 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                             placeholder="e.g. data_analyst, finance_user"
                             className="text-xs mt-1"
                           />
-                          <p className="text-xs text-slate-400 mt-1">Leave empty to inherit job-level entitlements</p>
+                          <p className="text-xs text-slate-400 mt-1">Leave empty to inherit pipeline-level entitlements</p>
                         </div>
                       </Card>
                     </div>
