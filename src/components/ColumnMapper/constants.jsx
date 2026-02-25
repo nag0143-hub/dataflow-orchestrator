@@ -27,6 +27,9 @@ export const TRANSFORMATIONS = [
   { value: "trim",            label: "Trim Whitespace" },
   { value: "date_iso",        label: "Date → ISO 8601" },
   { value: "date_epoch",      label: "Date → Epoch (ms)" },
+  { value: "date_format",     label: "Date Format (custom)" },
+  { value: "string_concat",   label: "String Concat" },
+  { value: "regex_replace",   label: "Regex Replace" },
   { value: "round_2dp",       label: "Number → Round 2dp" },
   { value: "round_0dp",       label: "Number → Round Integer" },
   { value: "bool_yn",         label: "Boolean → Y/N" },
@@ -38,6 +41,23 @@ export const TRANSFORMATIONS = [
   { value: "mask_partial",    label: "Mask (Partial)" },
   { value: "mask_full",       label: "Mask (Full)" },
   { value: "custom_sql",      label: "Custom SQL Expression" },
+];
+
+// Which transformations require extra param inputs
+export const TRANSFORMATION_PARAMS = {
+  date_format:   { fields: [{ key: "format_string", label: "Format", placeholder: "YYYY-MM-DD" }] },
+  string_concat: { fields: [{ key: "concat_prefix", label: "Prefix", placeholder: "prefix_" }, { key: "concat_suffix", label: "Suffix", placeholder: "_suffix" }] },
+  regex_replace: { fields: [{ key: "regex_pattern", label: "Pattern", placeholder: "\\d+" }, { key: "regex_replacement", label: "Replace with", placeholder: "" }] },
+  custom_sql:    { fields: [{ key: "expression", label: "SQL Expression", placeholder: "CAST({col} AS VARCHAR)" }] },
+};
+
+export const COLUMN_DQ_RULES = [
+  { value: "not_null",      label: "Not Null",      hasParam: false },
+  { value: "unique",        label: "Unique",         hasParam: false },
+  { value: "range_check",   label: "Range Check",    hasParam: true, paramLabel: "Min,Max", placeholder: "0,100" },
+  { value: "pattern_match", label: "Pattern Match",  hasParam: true, paramLabel: "Regex",   placeholder: "^[A-Z]" },
+  { value: "length_check",  label: "Max Length",     hasParam: true, paramLabel: "Length",  placeholder: "255" },
+  { value: "allowed_values",label: "Allowed Values", hasParam: true, paramLabel: "Values (comma-sep)", placeholder: "A,B,C" },
 ];
 
 export const PAGE_SIZE = 50;
