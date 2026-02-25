@@ -10,6 +10,7 @@ import AdvancedTabContent from "@/components/JobFormTabs/AdvancedTabContent";
 import JobSpecTabPreview from "@/components/JobSpecTabPreview";
 import ScheduleSettings from "@/components/JobFormTabs/ScheduleSettings";
 import GitCheckinDialog from "@/components/GitCheckinDialog";
+import DependencySelector from "@/components/DependencySelector";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { Maximize2 } from "lucide-react";
@@ -22,7 +23,8 @@ export default function JobFormDialog({
   setFormData,
   connections,
   onSaveSuccess,
-  currentUser
+  currentUser,
+  pipelines = []
 }) {
   const [activeTab, setActiveTab] = useState("general");
 
@@ -162,6 +164,7 @@ export default function JobFormDialog({
     { key: "general", label: "Basics" },
     { key: "datasets", label: "Datasets" },
     { key: "settings", label: "Schedule" },
+    { key: "dependencies", label: "Dependencies" },
     ...(formData.enable_advanced ? [{ key: "advanced", label: "Advanced" }] : []),
     { key: "spec", label: "Spec" },
     ...(specGenerated ? [{ key: "checkin", label: "Git Check-in" }] : []),
@@ -228,6 +231,15 @@ export default function JobFormDialog({
 
               <TabsContent value="settings" className="space-y-4 mt-4">
                 <ScheduleSettings formData={formData} setFormData={setFormData} />
+              </TabsContent>
+
+              <TabsContent value="dependencies" className="space-y-4 mt-4">
+                <DependencySelector 
+                  pipelines={pipelines}
+                  selectedIds={formData.dependent_pipeline_ids || []}
+                  currentPipelineId={editingJob?.id}
+                  onChange={(ids) => setFormData({ ...formData, dependent_pipeline_ids: ids })}
+                />
               </TabsContent>
 
               {formData.enable_advanced && (
