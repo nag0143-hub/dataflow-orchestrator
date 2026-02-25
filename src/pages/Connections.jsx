@@ -289,7 +289,7 @@ export default function Connections() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input placeholder="Search connections..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
@@ -305,6 +305,14 @@ export default function Connections() {
               <SelectItem value="target">Targets</SelectItem>
             </SelectContent>
           </Select>
+          <Button
+            variant={groupByTag ? "default" : "outline"}
+            className="gap-2 shrink-0"
+            onClick={() => setGroupByTag(g => !g)}
+          >
+            <Layers className="w-4 h-4" />
+            Group by Tag
+          </Button>
         </div>
 
         {/* Grid */}
