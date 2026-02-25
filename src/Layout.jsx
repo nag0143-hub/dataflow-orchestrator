@@ -9,12 +9,9 @@ import {
         FileText,
         Sun,
         Moon,
-        BookOpen,
-        RotateCcw,
-        RotateCw
+        BookOpen
       } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -30,25 +27,6 @@ export default function Layout({ children }) {
     }
     localStorage.setItem("dataflow-dark", darkMode);
   }, [darkMode]);
-
-  const [undoRedoState, setUndoRedoState] = useState({ canUndo: false, canRedo: false, page: null });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const path = location.pathname.toLowerCase();
-      const isConns = path.includes("connections");
-      const isPipes = path.includes("pipelines");
-      
-      if (isConns) {
-        setUndoRedoState({ canUndo: window.__connCanUndo, canRedo: window.__connCanRedo, page: "conn" });
-      } else if (isPipes) {
-        setUndoRedoState({ canUndo: window.__pipeCanUndo, canRedo: window.__pipeCanRedo, page: "pipe" });
-      } else {
-        setUndoRedoState({ canUndo: false, canRedo: false, page: null });
-      }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [location]);
 
   const navItems = [
         { name: "Dashboard", icon: Home, page: "Dashboard" },
@@ -114,30 +92,6 @@ export default function Layout({ children }) {
                 {item.name}
               </Link>
             ))}
-            {undoRedoState.page && (
-              <div className="flex items-center gap-1 ml-2 pl-2 border-l border-slate-300 dark:border-slate-600">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  disabled={!undoRedoState.canUndo}
-                  onClick={() => undoRedoState.page === "conn" ? window.__connUndo?.() : window.__pipeUndo?.()}
-                  title="Undo"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  disabled={!undoRedoState.canRedo}
-                  onClick={() => undoRedoState.page === "conn" ? window.__connRedo?.() : window.__pipeRedo?.()}
-                  title="Redo"
-                >
-                  <RotateCw className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            )}
           </nav>
           
           <div className="flex items-center gap-3">
