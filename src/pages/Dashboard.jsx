@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [fnEditing, setFnEditing] = useState(null); // null | "new" | record
   const [fnSaving, setFnSaving] = useState(false);
   const [fnVisible, setFnVisible] = useState(true);
+  const [fnType, setFnType] = useState("transform"); // "transform" | "dq"
 
   useEffect(() => {
     loadData();
@@ -321,34 +322,44 @@ export default function Dashboard() {
 
         {/* Custom Functions Manager */}
         <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <button onClick={() => setFnVisible(!fnVisible)} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
-                  <Workflow className="w-5 h-5 text-violet-600" />
-                  Custom Functions
-                </CardTitle>
-              </button>
-              {fnVisible && (
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Used in Column Mapping transform dropdown</p>
-                  <Button
-                    size="sm"
-                    className="gap-1.5 bg-[#003478] hover:bg-[#002560] h-7 text-xs"
-                    onClick={() => { setFnEditing("new"); setFnForm(EMPTY_FN); }}
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Add Function
-                  </Button>
-                </div>
-              )}
-            </div>
+          <CardHeader className="pb-3">
+            <button onClick={() => setFnVisible(!fnVisible)} className="flex items-center gap-2 hover:opacity-70 transition-opacity w-full">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
+                <Workflow className="w-5 h-5 text-violet-600" />
+                Custom Functions
+              </CardTitle>
+            </button>
+            {fnVisible && (
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={() => setFnType("transform")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${fnType === "transform" ? "bg-[#003478] text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                >
+                  Transform Functions
+                </button>
+                <button
+                  onClick={() => setFnType("dq")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${fnType === "dq" ? "bg-[#003478] text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                >
+                  DQ Functions
+                </button>
+                <div className="flex-1"></div>
+                <Button
+                  size="sm"
+                  className="gap-1.5 bg-[#003478] hover:bg-[#002560] h-7 text-xs"
+                  onClick={() => { setFnEditing("new"); setFnForm(EMPTY_FN); }}
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add {fnType === "transform" ? "Transform" : "DQ"} Function
+                </Button>
+              </div>
+            )}
           </CardHeader>
           {fnVisible && (
             <CardContent>
             {/* Quick-add / edit form */}
             {fnEditing && (
               <div className="mb-4 p-3 border border-violet-200 bg-violet-50/40 rounded-lg space-y-2">
-                <p className="text-xs font-semibold text-slate-700">{fnEditing === "new" ? "New Function" : `Edit: ${fnEditing.label}`}</p>
+                <p className="text-xs font-semibold text-slate-700">{fnEditing === "new" ? `New ${fnType === "transform" ? "Transform" : "DQ"} Function` : `Edit: ${fnEditing.label}`}</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   <div>
                     <p className="text-[10px] text-slate-500 mb-0.5">Key (no spaces)</p>
@@ -404,7 +415,7 @@ export default function Dashboard() {
             {customFunctions.length === 0 && !fnEditing ? (
               <div className="text-center py-8 text-slate-400 text-sm border border-dashed border-slate-200 rounded-lg">
                 <Workflow className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                No custom functions yet. Add one above — it will appear in the Column Mapping transform dropdown automatically.
+                No {fnType === "transform" ? "transform" : "DQ"} functions yet. Add one to extend your data pipeline.
               </div>
             ) : (
               <div className="overflow-x-auto">
