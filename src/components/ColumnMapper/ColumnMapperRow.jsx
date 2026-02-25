@@ -155,6 +155,8 @@ const ColumnMapperRow = forwardRef(function ColumnMapperRow({
       </td>
     </tr>
   );
-});
+}
+
+);
 
 export default ColumnMapperRow;
