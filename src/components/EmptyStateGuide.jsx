@@ -4,11 +4,11 @@ import { BookOpen, ArrowRight } from "lucide-react";
 
 export default function EmptyStateGuide({ icon: Icon, title, description, primaryAction, secondaryLinks }) {
   return (
-    <Card className="border-slate-200">
+    <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
       <CardContent className="py-16 text-center">
-        {Icon && <Icon className="w-12 h-12 text-slate-300 mx-auto mb-4" />}
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">{title}</h3>
-        <p className="text-slate-500 mb-6 max-w-md mx-auto">{description}</p>
+        {Icon && <Icon className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />}
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">{title}</h3>
+        <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">{description}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
           {primaryAction && (
             <Button onClick={primaryAction.onClick} className="gap-2">
