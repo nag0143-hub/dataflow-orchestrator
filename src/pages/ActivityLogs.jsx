@@ -355,10 +355,10 @@ export default function ActivityLogs() {
         </div>
 
         {/* Logs List */}
-        <Card className="border-slate-200 dark:dark-card">
+        <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="p-0">
           {paginatedLogs.length > 0 ? (
-            <div className="divide-y divide-slate-100 dark:dark-divide">
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {paginatedLogs.map((log) => {
                 const typeConfig = logTypeConfig[log.log_type] || logTypeConfig.info;
                 const catConfig = categoryConfig[log.category] || categoryConfig.system;
