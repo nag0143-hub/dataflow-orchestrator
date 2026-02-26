@@ -10,7 +10,7 @@ import AdvancedTabContent from "@/components/JobFormTabs/AdvancedTabContent";
 import JobSpecTabPreview from "@/components/JobSpecTabPreview";
 import ScheduleSettings from "@/components/JobFormTabs/ScheduleSettings";
 import GitCheckinDialog from "@/components/GitCheckinDialog";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { toast } from "sonner";
 import { Maximize2 } from "lucide-react";
 
@@ -100,11 +100,11 @@ export default function JobFormDialog({
 
     try {
       if (editingJob) {
-        await base44.entities.Pipeline.update(editingJob.id, payload);
+        await dataflow.entities.Pipeline.update(editingJob.id, payload);
         toast.success("Pipeline draft saved");
         onSaveSuccess?.();
       } else {
-        const created = await base44.entities.Pipeline.create(payload);
+        const created = await dataflow.entities.Pipeline.create(payload);
         toast.success("Pipeline draft saved");
         onSaveSuccess?.();
       }
@@ -130,8 +130,8 @@ export default function JobFormDialog({
 
     try {
       if (editingJob) {
-        await base44.entities.Pipeline.update(editingJob.id, payload);
-        await base44.entities.ActivityLog.create({
+        await dataflow.entities.Pipeline.update(editingJob.id, payload);
+        await dataflow.entities.ActivityLog.create({
           log_type: "info",
           category: "job",
           job_id: editingJob.id,
@@ -142,8 +142,8 @@ export default function JobFormDialog({
         onSaveSuccess?.();
         return;
       } else {
-        const created = await base44.entities.Pipeline.create(payload);
-        await base44.entities.ActivityLog.create({
+        const created = await dataflow.entities.Pipeline.create(payload);
+        await dataflow.entities.ActivityLog.create({
           log_type: "success",
           category: "job",
           job_id: created.id,

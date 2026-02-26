@@ -20,7 +20,7 @@ export default function SLAConfig({ value = {}, onChange }) {
   };
 
   return (
-    <Card className="dark:dark-card">
+    <Card className="dark:bg-slate-800 dark:border-slate-700">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Target className="w-5 h-5 text-blue-600" />
@@ -60,7 +60,7 @@ export default function SLAConfig({ value = {}, onChange }) {
                     min="1"
                     value={sla.max_duration_minutes}
                     onChange={(e) => updateSLA("max_duration_minutes", parseInt(e.target.value))}
-                    className="dark:dark-input"
+                    className="dark:bg-slate-700 dark:border-slate-600"
                     placeholder="60"
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -79,7 +79,7 @@ export default function SLAConfig({ value = {}, onChange }) {
                     max="100"
                     value={sla.alert_threshold_percent}
                     onChange={(e) => updateSLA("alert_threshold_percent", parseInt(e.target.value))}
-                    className="dark:dark-input"
+                    className="dark:bg-slate-700 dark:border-slate-600"
                     placeholder="80"
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -108,7 +108,7 @@ export default function SLAConfig({ value = {}, onChange }) {
                     type="email"
                     value={sla.escalation_email}
                     onChange={(e) => updateSLA("escalation_email", e.target.value)}
-                    className="dark:dark-input"
+                    className="dark:bg-slate-700 dark:border-slate-600"
                     placeholder="team@company.com"
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-400">

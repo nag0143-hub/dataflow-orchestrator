@@ -1,21 +1,21 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 
 /**
  * Returns the current user and a helper to scope entity queries to this user's tenant.
  * Usage:
  *   const { user, tenantFilter } = useTenant();
- *   base44.entities.Connection.filter(tenantFilter)
+ *   dataflow.entities.Connection.filter(tenantFilter)
  *
- * Since Base44 already scopes `created_by` per user for non-admin roles,
- * this also returns a `scopedList` helper to filter lists client-side for safety.
+ * For non-admin roles, records are scoped by `created_by`.
+ * This also returns a `scope` helper to filter lists client-side for safety.
  */
 export function useTenant() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.auth.me()
+    dataflow.auth.me()
       .then(u => { setUser(u); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import {
   Search,
   Filter,
@@ -92,9 +92,9 @@ export default function ActivityLogs() {
     setLoading(true);
     try {
       const [auditLogsData, jobsData, connectionsData] = await Promise.all([
-        base44.entities.AuditLog.list("-created_date", 1000),
-        base44.entities.Pipeline.list(),
-        base44.entities.Connection.list()
+        dataflow.entities.AuditLog.list("-created_date", 1000),
+        dataflow.entities.Pipeline.list(),
+        dataflow.entities.Connection.list()
       ]);
       // Don't load all logs initially - use server-side search instead
       setLogs([]);
@@ -112,7 +112,7 @@ export default function ActivityLogs() {
       setServerSearching(true);
       try {
         const result = await retry(async () => {
-          const res = await base44.functions.invoke('searchActivityLogs', {
+          const res = await dataflow.functions.invoke('searchActivityLogs', {
             searchTerm: searchTerm.trim(),
             filters: {
               ...(filterType !== 'all' && { log_type: filterType }),
@@ -279,7 +279,7 @@ export default function ActivityLogs() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="border-slate-200 dark:dark-card">
+          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
@@ -292,7 +292,7 @@ export default function ActivityLogs() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-slate-200 dark:dark-card">
+          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900 flex items-center justify-center">
@@ -305,7 +305,7 @@ export default function ActivityLogs() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-slate-200 dark:dark-card">
+          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
@@ -318,7 +318,7 @@ export default function ActivityLogs() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-slate-200 dark:dark-card">
+          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
@@ -341,11 +341,11 @@ export default function ActivityLogs() {
               placeholder="Search logs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 dark:dark-input dark:dark-text"
+              className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
             />
           </div>
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-36 dark:dark-input dark:dark-text">
+            <SelectTrigger className="w-36 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -357,7 +357,7 @@ export default function ActivityLogs() {
             </SelectContent>
           </Select>
           <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
+            <SelectTrigger className="w-40 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -369,7 +369,7 @@ export default function ActivityLogs() {
             </SelectContent>
           </Select>
           {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 dark:dark-text">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 dark:text-slate-100">
               <X className="w-4 h-4" />
               Clear
             </Button>
@@ -389,7 +389,7 @@ export default function ActivityLogs() {
                 return (
                   <div
                     key={log.id}
-                    className="flex items-start gap-4 p-4 hover:bg-slate-50 dark:dark-hover cursor-pointer transition-colors"
+                    className="flex items-start gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
                     onClick={() => { setSelectedLog(log); setDetailsOpen(true); }}
                   >
                     {/* Type Indicator */}
@@ -460,7 +460,7 @@ export default function ActivityLogs() {
                 size="sm"
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="dark:dark-input dark:dark-text"
+                className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -489,7 +489,7 @@ export default function ActivityLogs() {
                 size="sm"
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="dark:dark-input dark:dark-text"
+                className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -502,7 +502,7 @@ export default function ActivityLogs() {
         <TabsContent value="audit" className="space-y-6 mt-6">
           {/* Audit Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Card className="dark:dark-card">
+            <Card className="dark:bg-slate-800 dark:border-slate-700">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-blue-600">{auditStats.total}</p>
@@ -510,7 +510,7 @@ export default function ActivityLogs() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="dark:dark-card">
+            <Card className="dark:bg-slate-800 dark:border-slate-700">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-green-600">{auditStats.creates}</p>
@@ -518,7 +518,7 @@ export default function ActivityLogs() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="dark:dark-card">
+            <Card className="dark:bg-slate-800 dark:border-slate-700">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-amber-600">{auditStats.updates}</p>
@@ -526,7 +526,7 @@ export default function ActivityLogs() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="dark:dark-card">
+            <Card className="dark:bg-slate-800 dark:border-slate-700">
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-red-600">{auditStats.deletes}</p>
@@ -545,13 +545,13 @@ export default function ActivityLogs() {
                   placeholder="Search by entity name, user..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 dark:dark-input dark:dark-text"
+                  className="pl-10 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
                 />
               </div>
             </div>
 
             <Select value={selectedAction} onValueChange={setSelectedAction}>
-              <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
+              <SelectTrigger className="w-40 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
                 <SelectValue placeholder="All Actions" />
               </SelectTrigger>
               <SelectContent>
@@ -567,7 +567,7 @@ export default function ActivityLogs() {
             </Select>
 
             <Select value={selectedEntity} onValueChange={setSelectedEntity}>
-              <SelectTrigger className="w-40 dark:dark-input dark:dark-text">
+              <SelectTrigger className="w-40 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100">
                 <SelectValue placeholder="All Entities" />
               </SelectTrigger>
               <SelectContent>
@@ -584,7 +584,7 @@ export default function ActivityLogs() {
           {/* Audit Logs */}
           <div className="space-y-3">
             {paginatedAuditLogs.length === 0 ? (
-              <Card className="dark:dark-card">
+              <Card className="dark:bg-slate-800 dark:border-slate-700">
                 <CardContent className="py-12 text-center">
                   <Clock className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                   <p className="text-slate-500 dark:text-slate-400">
@@ -598,7 +598,7 @@ export default function ActivityLogs() {
               paginatedAuditLogs.map(log => {
                 const ActionIcon = actionIcons[log.action] || FileEdit;
                 return (
-                  <Card key={log.id} className="dark:dark-card hover:shadow-md transition-shadow">
+                  <Card key={log.id} className="dark:bg-slate-800 dark:border-slate-700 hover:shadow-md transition-shadow">
                     <CardContent className="py-4">
                       <div className="flex items-start gap-4">
                         <div className={cn(
@@ -671,7 +671,7 @@ export default function ActivityLogs() {
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="dark:dark-input dark:dark-text"
+                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
                 >
                   Previous
                 </Button>
@@ -683,7 +683,7 @@ export default function ActivityLogs() {
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.min(totalAuditPages, p + 1))}
                   disabled={currentPage === totalAuditPages}
-                  className="dark:dark-input dark:dark-text"
+                  className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
                 >
                   Next
                 </Button>
@@ -694,18 +694,18 @@ export default function ActivityLogs() {
           {/* Audit Details Dialog */}
           {viewAuditDetails && (
             <Dialog open={!!viewAuditDetails} onOpenChange={() => setViewAuditDetails(null)}>
-              <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto dark:dark-card">
+              <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto dark:bg-slate-800 dark:border-slate-700">
                 <DialogHeader>
-                  <DialogTitle className="dark:dark-text">Change Details</DialogTitle>
+                  <DialogTitle className="dark:text-slate-100">Change Details</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium mb-1 dark:dark-text">Entity:</p>
+                    <p className="text-sm font-medium mb-1 dark:text-slate-100">Entity:</p>
                     <p className="text-sm text-slate-600 dark:text-slate-400">{viewAuditDetails.entity_name}</p>
                   </div>
                   {viewAuditDetails.changes?.before && (
                     <div>
-                      <p className="text-sm font-medium mb-2 dark:dark-text">Before:</p>
+                      <p className="text-sm font-medium mb-2 dark:text-slate-100">Before:</p>
                       <pre className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-xs overflow-x-auto dark:text-slate-300">
                         {JSON.stringify(viewAuditDetails.changes.before, null, 2)}
                       </pre>
@@ -713,7 +713,7 @@ export default function ActivityLogs() {
                   )}
                   {viewAuditDetails.changes?.after && (
                     <div>
-                      <p className="text-sm font-medium mb-2 dark:dark-text">After:</p>
+                      <p className="text-sm font-medium mb-2 dark:text-slate-100">After:</p>
                       <pre className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-xs overflow-x-auto dark:text-slate-300">
                         {JSON.stringify(viewAuditDetails.changes.after, null, 2)}
                       </pre>
@@ -728,9 +728,9 @@ export default function ActivityLogs() {
 
       {/* Log Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-lg dark:dark-card">
+        <DialogContent className="max-w-lg dark:bg-slate-800 dark:border-slate-700">
           <DialogHeader>
-            <DialogTitle className="dark:dark-text">Log Details</DialogTitle>
+            <DialogTitle className="dark:text-slate-100">Log Details</DialogTitle>
           </DialogHeader>
 
           {selectedLog && (

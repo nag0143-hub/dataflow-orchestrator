@@ -53,7 +53,7 @@ export default function DataMaskingConfig({ value = [], onChange }) {
   };
 
   return (
-    <Card className="dark:dark-card">
+    <Card className="dark:bg-slate-800 dark:border-slate-700">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export default function DataMaskingConfig({ value = [], onChange }) {
                             placeholder="e.g., ssn, credit_card"
                             value={rule.column_name}
                             onChange={(e) => updateRule(index, "column_name", e.target.value)}
-                            className="dark:dark-input"
+                            className="dark:bg-slate-700 dark:border-slate-600"
                           />
                         </div>
                         <div>
@@ -110,7 +110,7 @@ export default function DataMaskingConfig({ value = [], onChange }) {
                             value={rule.pii_type}
                             onValueChange={(v) => updateRule(index, "pii_type", v)}
                           >
-                            <SelectTrigger className="dark:dark-input">
+                            <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -133,7 +133,7 @@ export default function DataMaskingConfig({ value = [], onChange }) {
                             value={rule.masking_type}
                             onValueChange={(v) => updateRule(index, "masking_type", v)}
                           >
-                            <SelectTrigger className="dark:dark-input">
+                            <SelectTrigger className="dark:bg-slate-700 dark:border-slate-600">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -157,7 +157,7 @@ export default function DataMaskingConfig({ value = [], onChange }) {
                                 min="0"
                                 value={rule.show_first}
                                 onChange={(e) => updateRule(index, "show_first", parseInt(e.target.value))}
-                                className="dark:dark-input"
+                                className="dark:bg-slate-700 dark:border-slate-600"
                               />
                             </div>
                             <div>
@@ -169,7 +169,7 @@ export default function DataMaskingConfig({ value = [], onChange }) {
                                 min="0"
                                 value={rule.show_last}
                                 onChange={(e) => updateRule(index, "show_last", parseInt(e.target.value))}
-                                className="dark:dark-input"
+                                className="dark:bg-slate-700 dark:border-slate-600"
                               />
                             </div>
                           </>

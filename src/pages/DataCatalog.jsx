@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,17 +38,17 @@ export default function DataCatalog() {
 
   const { data: catalogEntries = [], isLoading, refetch } = useQuery({
     queryKey: ['catalog-entries'],
-    queryFn: () => base44.entities.DataCatalogEntry.list('-created_date', 500)
+    queryFn: () => dataflow.entities.DataCatalogEntry.list('-created_date', 500)
   });
 
   const { data: connections = [] } = useQuery({
     queryKey: ['connections'],
-    queryFn: () => base44.entities.Connection.list()
+    queryFn: () => dataflow.entities.Connection.list()
   });
 
   const { data: jobs = [] } = useQuery({
     queryKey: ['jobs'],
-    queryFn: () => base44.entities.Pipeline.list()
+    queryFn: () => dataflow.entities.Pipeline.list()
   });
 
   // Extract all unique tags
@@ -89,7 +89,7 @@ export default function DataCatalog() {
   };
 
   const handleCreate = async () => {
-    await base44.entities.DataCatalogEntry.create(formData);
+    await dataflow.entities.DataCatalogEntry.create(formData);
     refetch();
     setDialogOpen(false);
     setFormData({});
@@ -165,7 +165,7 @@ export default function DataCatalog() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card className="dark:dark-card">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <Database className="w-8 h-8 text-blue-600" />
@@ -176,7 +176,7 @@ export default function DataCatalog() {
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:dark-card">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <Tag className="w-8 h-8 text-emerald-600" />
@@ -187,7 +187,7 @@ export default function DataCatalog() {
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:dark-card">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <Shield className="w-8 h-8 text-purple-600" />
@@ -200,7 +200,7 @@ export default function DataCatalog() {
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:dark-card">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <TrendingUp className="w-8 h-8 text-amber-600" />
@@ -218,7 +218,7 @@ export default function DataCatalog() {
       {/* Catalog Entries */}
       <div className="grid gap-4">
         {filteredEntries.length === 0 ? (
-          <Card className="dark:dark-card">
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="py-12 text-center">
               <Database className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
               <p className="text-slate-500 dark:text-slate-400">
@@ -230,7 +230,7 @@ export default function DataCatalog() {
           </Card>
         ) : (
           filteredEntries.map(entry => (
-            <Card key={entry.id} className="dark:dark-card hover:shadow-lg transition-shadow">
+            <Card key={entry.id} className="dark:bg-slate-800 dark:border-slate-700 hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

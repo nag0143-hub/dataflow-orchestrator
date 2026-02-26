@@ -24,14 +24,14 @@ export default function PipelineStepIndicator({ steps, activeStep, onStepClick, 
                 isCompleted && !isActive
                   ? "bg-emerald-500 border-emerald-500 text-white"
                   : isActive
-                  ? "bg-[#003478] border-[#003478] text-white"
+                  ? "bg-slate-800 border-slate-800 text-white dark:bg-slate-500 dark:border-slate-500"
                   : "bg-white border-slate-300 text-slate-400 group-hover:border-slate-400"
               )}>
                 {isCompleted && !isActive ? <Check className="w-3.5 h-3.5" /> : idx + 1}
               </div>
               <span className={cn(
                 "text-xs font-medium truncate max-w-full",
-                isActive ? "text-[#003478]" : isCompleted ? "text-emerald-600" : "text-slate-400"
+                isActive ? "text-slate-800 dark:text-slate-300" : isCompleted ? "text-emerald-600" : "text-slate-400"
               )}>
                 {step.label}
               </span>

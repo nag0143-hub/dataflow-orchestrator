@@ -1,4 +1,4 @@
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 
 export function generateLineageSpec(job, connections) {
   const sourceConn = connections.find(c => c.id === job.source_connection_id);

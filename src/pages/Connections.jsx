@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { 
   Plus, Search, MoreVertical, Edit, Trash2, TestTube,
   Cable, Filter, Shield, CheckCircle2, XCircle, Loader2, Wifi, BookOpen, RefreshCw,
@@ -41,7 +41,7 @@ function SaveAsProfileButton({ formData }) {
     setSaving(true);
     try {
       const { status, last_tested, notes, name: connName, ...fields } = formData;
-      await base44.entities.ConnectionProfile.create({ ...fields, name: profileName.trim() });
+      await dataflow.entities.ConnectionProfile.create({ ...fields, name: profileName.trim() });
       toast.success(`Saved as profile "${profileName.trim()}"`);
       setNamePrompt(false);
       setProfileName("");
@@ -110,7 +110,7 @@ export default function Connections() {
   const { retry } = useRetry();
   const { data: cachedConnections = [], loading: cacheLoading } = useCache(
     'connections',
-    () => base44.entities.Connection.list(),
+    () => dataflow.entities.Connection.list(),
     { staleTime: 5 * 60 * 1000 }
   );
   const [prereqs, setPrereqs] = useState([]);
@@ -136,7 +136,7 @@ export default function Connections() {
 
   const loadPrereqs = async () => {
     try {
-      const data = await base44.entities.ConnectionPrerequisite.list();
+      const data = await dataflow.entities.ConnectionPrerequisite.list();
       setPrereqs(data);
     } catch (err) {
       console.error("[Connections] loadPrereqs error:", err);
@@ -146,7 +146,7 @@ export default function Connections() {
   const loadData = async () => {
     // Trigger cache revalidation
     try {
-      await base44.entities.Connection.list();
+      await dataflow.entities.Connection.list();
       await loadPrereqs();
     } catch (err) {
       setError(err?.message || "Failed to refresh connections");
@@ -169,12 +169,12 @@ export default function Connections() {
 
     try {
       if (editingConnection) {
-        await retry(() => base44.entities.Connection.update(editingConnection.id, payload));
-        base44.entities.ActivityLog.create({ log_type: "info", category: "connection", connection_id: editingConnection.id, message: `Connection "${formData.name}" updated` }).catch(() => {});
+        await retry(() => dataflow.entities.Connection.update(editingConnection.id, payload));
+        dataflow.entities.ActivityLog.create({ log_type: "info", category: "connection", connection_id: editingConnection.id, message: `Connection "${formData.name}" updated` }).catch(() => {});
         toast.success("Connection updated");
       } else {
-        const created = await retry(() => base44.entities.Connection.create(payload));
-        base44.entities.ActivityLog.create({ log_type: "success", category: "connection", connection_id: created.id, message: `Connection "${formData.name}" created` }).catch(() => {});
+        const created = await retry(() => dataflow.entities.Connection.create(payload));
+        dataflow.entities.ActivityLog.create({ log_type: "success", category: "connection", connection_id: created.id, message: `Connection "${formData.name}" created` }).catch(() => {});
         toast.success("Connection created");
       }
       setDialogOpen(false);
@@ -209,8 +209,8 @@ export default function Connections() {
   const handleDelete = async (connection) => {
     if (!confirm(`Delete connection "${connection.name}"?`)) return;
     try {
-      await retry(() => base44.entities.Connection.delete(connection.id));
-      base44.entities.ActivityLog.create({ log_type: "warning", category: "connection", message: `Connection "${connection.name}" deleted` }).catch(() => {});
+      await retry(() => dataflow.entities.Connection.delete(connection.id));
+      dataflow.entities.ActivityLog.create({ log_type: "warning", category: "connection", message: `Connection "${connection.name}" deleted` }).catch(() => {});
       toast.success("Connection deleted");
       loadData();
     } catch (err) {
@@ -229,8 +229,8 @@ export default function Connections() {
       const success = !!(hasRequired && hasAuth);
       const latency = Date.now() - startTime;
 
-      await retry(() => base44.entities.Connection.update(connection.id, { status: success ? "active" : "error", last_tested: new Date().toISOString() }));
-      base44.entities.ActivityLog.create({
+      await retry(() => dataflow.entities.Connection.update(connection.id, { status: success ? "active" : "error", last_tested: new Date().toISOString() }));
+      dataflow.entities.ActivityLog.create({
         log_type: success ? "success" : "error", category: "connection", connection_id: connection.id,
         message: success ? `Connection "${connection.name}" test passed (${latency}ms)` : `Connection "${connection.name}" test failed`
       }).catch(() => {});

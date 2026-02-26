@@ -19,7 +19,7 @@ import ColumnMapperImportExport from "./ColumnMapperImportExport";
 import CustomFunctionQuickAdd from "./CustomFunctionQuickAdd";
 import { GLOBAL_RULES, DQ_RULES, ENCRYPTION_TYPES, TRANSFORMATIONS, PAGE_SIZE, MAPPING_PAGE_SIZE, DATA_TYPES } from "./constants";
 import { columnCacheManager, invalidateCacheForObjects } from "./cacheManager";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 
 // Seeded pseudo-random so data types are stable across renders
 function seededRand(seed) {
@@ -69,7 +69,7 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
     const [customFunctions, setCustomFunctions] = useState([]);
 
     const loadCustomFunctions = () => {
-      base44.entities.CustomFunction.list().then(funcs => {
+      dataflow.entities.CustomFunction.list().then(funcs => {
         setCustomFunctions(funcs.map(f => ({
           value: `custom_${f.name}`,
           label: f.label || f.name,

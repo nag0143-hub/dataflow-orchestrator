@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { GitCommitHorizontal, ChevronDown, ChevronUp, RotateCcw, Clock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ export default function PipelineVersionHistory({ job, onRestore }) {
 
   useEffect(() => {
     if (!job?.id) return;
-    base44.entities.PipelineVersion.filter({ job_id: job.id }, "-version_number", 50)
+    dataflow.entities.PipelineVersion.filter({ job_id: job.id }, "-version_number", 50)
       .then(data => { setVersions(data); setLoading(false); });
   }, [job?.id]);
 
@@ -30,7 +30,7 @@ export default function PipelineVersionHistory({ job, onRestore }) {
     if (!confirm(`Restore pipeline to v${version.version_number}?`)) return;
     setRestoring(true);
     const snapshot = version.snapshot;
-    await base44.entities.Pipeline.update(job.id, {
+    await dataflow.entities.Pipeline.update(job.id, {
       name: snapshot.name,
       description: snapshot.description,
       source_connection_id: snapshot.source_connection_id,
@@ -41,7 +41,7 @@ export default function PipelineVersionHistory({ job, onRestore }) {
       retry_config: snapshot.retry_config,
     });
     // log restore as new version
-    await base44.entities.PipelineVersion.create({
+    await dataflow.entities.PipelineVersion.create({
       job_id: job.id,
       version_number: (versions[0]?.version_number || 0) + 1,
       label: `Restored from v${version.version_number}`,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,7 +35,7 @@ export default function AuditTrail() {
 
   const { data: auditLogs = [], isLoading } = useQuery({
     queryKey: ['audit-logs'],
-    queryFn: () => base44.entities.AuditLog.list('-created_date', 1000)
+    queryFn: () => dataflow.entities.AuditLog.list('-created_date', 1000)
   });
 
   const actionIcons = {
@@ -141,7 +141,7 @@ export default function AuditTrail() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="dark:dark-card">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-blue-600">{auditLogs.length}</p>
@@ -149,7 +149,7 @@ export default function AuditTrail() {
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:dark-card">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-green-600">
@@ -159,7 +159,7 @@ export default function AuditTrail() {
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:dark-card">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-amber-600">
@@ -169,7 +169,7 @@ export default function AuditTrail() {
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:dark-card">
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-red-600">
@@ -184,7 +184,7 @@ export default function AuditTrail() {
       {/* Audit Logs */}
       <div className="space-y-3">
         {paginatedLogs.length === 0 ? (
-          <Card className="dark:dark-card">
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="py-12 text-center">
               <Clock className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
               <p className="text-slate-500 dark:text-slate-400">
@@ -198,7 +198,7 @@ export default function AuditTrail() {
           paginatedLogs.map(log => {
             const ActionIcon = actionIcons[log.action] || FileEdit;
             return (
-              <Card key={log.id} className="dark:dark-card hover:shadow-md transition-shadow">
+              <Card key={log.id} className="dark:bg-slate-800 dark:border-slate-700 hover:shadow-md transition-shadow">
                 <CardContent className="py-4">
                   <div className="flex items-start gap-4">
                     <div className={cn(

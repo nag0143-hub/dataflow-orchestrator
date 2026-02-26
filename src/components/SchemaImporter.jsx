@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import {
   Upload,
   Code2,
@@ -174,8 +174,8 @@ export default function SchemaImporter({ onImport, onClose }) {
     setLoading(true);
     setError("");
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+      const { file_url } = await dataflow.integrations.Core.UploadFile({ file });
+      const result = await dataflow.integrations.Core.ExtractDataFromUploadedFile({
         file_url,
         json_schema: {
           type: "object",

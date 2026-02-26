@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import {
   Shield, Network, Database, Server, FolderOpen, Key, Lock, Plus, Edit, Trash2,
   CheckCircle2, Clock, XCircle, AlertCircle, MinusCircle, ChevronDown
@@ -89,7 +89,7 @@ export default function PrerequisitePanel({ connection }) {
   }, [connection.id]);
 
   const loadPrereqs = async () => {
-    const data = await base44.entities.ConnectionPrerequisite.filter({ connection_id: connection.id });
+    const data = await dataflow.entities.ConnectionPrerequisite.filter({ connection_id: connection.id });
     setPrereqs(data);
     setLoading(false);
   };
@@ -129,10 +129,10 @@ export default function PrerequisitePanel({ connection }) {
     };
 
     if (editingPrereq) {
-      await base44.entities.ConnectionPrerequisite.update(editingPrereq.id, payload);
+      await dataflow.entities.ConnectionPrerequisite.update(editingPrereq.id, payload);
       toast.success("Prerequisite updated");
     } else {
-      await base44.entities.ConnectionPrerequisite.create(payload);
+      await dataflow.entities.ConnectionPrerequisite.create(payload);
       toast.success("Prerequisite added");
     }
 
@@ -143,13 +143,13 @@ export default function PrerequisitePanel({ connection }) {
 
   const handleDelete = async (prereq) => {
     if (!confirm("Delete this prerequisite?")) return;
-    await base44.entities.ConnectionPrerequisite.delete(prereq.id);
+    await dataflow.entities.ConnectionPrerequisite.delete(prereq.id);
     toast.success("Deleted");
     loadPrereqs();
   };
 
   const handleStatusChange = async (prereq, newStatus) => {
-    await base44.entities.ConnectionPrerequisite.update(prereq.id, {
+    await dataflow.entities.ConnectionPrerequisite.update(prereq.id, {
       status: newStatus,
       completed_at: newStatus === "completed" ? new Date().toISOString() : null
     });

@@ -1,4 +1,4 @@
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 
 /**
  * Log user actions to audit trail
@@ -11,9 +11,9 @@ import { base44 } from "@/api/base44Client";
  */
 export async function logAudit(action, entityType, entityId, entityName, changes = null, metadata = {}) {
   try {
-    const user = await base44.auth.me();
+    const user = await dataflow.auth.me();
     
-    await base44.entities.AuditLog.create({
+    await dataflow.entities.AuditLog.create({
       action,
       entity_type: entityType,
       entity_id: entityId,

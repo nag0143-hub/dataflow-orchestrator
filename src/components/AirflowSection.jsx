@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { RefreshCw, Plus, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,8 +26,8 @@ export default function AirflowSection() {
   const loadData = async () => {
     try {
       const [connections, dagsData] = await Promise.all([
-        base44.entities.Connection.filter({ platform: "airflow" }),
-        base44.entities.AirflowDAG.list()
+        dataflow.entities.Connection.filter({ platform: "airflow" }),
+        dataflow.entities.AirflowDAG.list()
       ]);
       setAirflowConnections(connections);
       setDags(dagsData);
@@ -74,13 +74,13 @@ export default function AirflowSection() {
           );
 
           if (existingDag) {
-            await base44.entities.AirflowDAG.update(existingDag.id, {
+            await dataflow.entities.AirflowDAG.update(existingDag.id, {
               is_paused: airflowDag.is_paused,
               last_sync: new Date().toISOString(),
               status: airflowDag.is_paused ? "paused" : "active"
             });
           } else {
-            await base44.entities.AirflowDAG.create({
+            await dataflow.entities.AirflowDAG.create({
               airflow_connection_id: selectedConnection,
               dag_id: airflowDag.dag_id,
               dag_name: airflowDag.dag_id,
@@ -125,7 +125,7 @@ export default function AirflowSection() {
 
     setSavingConnection(true);
     try {
-      await base44.entities.Connection.create({
+      await dataflow.entities.Connection.create({
         name: newConnForm.name,
         platform: "airflow",
         connection_type: "source",

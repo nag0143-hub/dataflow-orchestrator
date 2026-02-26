@@ -11,7 +11,7 @@ import {
   Settings, Play, Edit, CheckCircle, Clock, Shield, Activity
 } from "lucide-react";
 import { toast } from "sonner";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 
 // ─── Node type config ────────────────────────────────────────────────────────
 const NODE_TYPES = {
@@ -287,7 +287,7 @@ function NodeConfigDialog({ node, connections, open, onClose, onSave }) {
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose} className="dark:border-slate-600 dark:text-slate-300">Cancel</Button>
-          <Button onClick={handleSave} className="bg-[#003478] hover:bg-[#002560]">Apply</Button>
+          <Button onClick={handleSave} className="bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">Apply</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -317,7 +317,7 @@ function PipelineMetaDialog({ open, onClose, meta, onSave }) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} className="dark:border-slate-600 dark:text-slate-300">Cancel</Button>
-          <Button onClick={() => { onSave(val); onClose(); }} className="bg-[#003478] hover:bg-[#002560]">Save</Button>
+          <Button onClick={() => { onSave(val); onClose(); }} className="bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -505,7 +505,7 @@ export default function VisualPipelineBuilder({ connections, onSaveSuccess }) {
     };
 
     try {
-      await base44.entities.Pipeline.create(pipelineData);
+      await dataflow.entities.Pipeline.create(pipelineData);
       toast.success(`Pipeline "${meta.name}" created!`);
       if (onSaveSuccess) onSaveSuccess();
     } catch (err) {
@@ -532,7 +532,7 @@ export default function VisualPipelineBuilder({ connections, onSaveSuccess }) {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="flex items-center gap-3 flex-1">
-          <Zap className="w-5 h-5 text-[#003478] dark:text-blue-400 flex-shrink-0" />
+          <Zap className="w-5 h-5 text-slate-700 dark:text-slate-300 flex-shrink-0" />
           <button
             onClick={() => setShowMeta(true)}
             className="flex items-center gap-2 group"
@@ -550,7 +550,7 @@ export default function VisualPipelineBuilder({ connections, onSaveSuccess }) {
           <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 dark:border-slate-600 dark:text-slate-300">
             <RefreshCw className="w-3.5 h-3.5" /> Reset
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 bg-[#003478] hover:bg-[#002560]">
+          <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">
             {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             {saving ? "Saving..." : "Save & Deploy"}
           </Button>

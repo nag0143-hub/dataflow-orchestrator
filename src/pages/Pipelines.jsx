@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { Plus, Search, Play, Filter, Rocket, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -96,9 +96,9 @@ export default function Pipelines() {
     setError(null);
     try {
       const [pipelinesData, connectionsData, runsData] = await Promise.all([
-        base44.entities.Pipeline.list(),
-        base44.entities.Connection.list(),
-        base44.entities.PipelineRun.list("-created_date", 100)
+        dataflow.entities.Pipeline.list(),
+        dataflow.entities.Connection.list(),
+        dataflow.entities.PipelineRun.list("-created_date", 100)
       ]);
       setPipelines(scope(pipelinesData));
       setConnections(scope(connectionsData));
@@ -137,7 +137,7 @@ export default function Pipelines() {
         try {
           await retry(async () => {
             await fetchSearchResults(async (params) => {
-              const res = await base44.functions.invoke('searchPipelines', {
+              const res = await dataflow.functions.invoke('searchPipelines', {
                 searchTerm: searchTerm.trim(),
                 filters: filterStatus !== 'all' ? { status: filterStatus } : {},
                 cursor: params.cursor,
@@ -189,8 +189,8 @@ export default function Pipelines() {
   const handleDelete = useCallback(async (pipeline) => {
     if (!confirm(`Delete pipeline "${pipeline.name}"?`)) return;
     try {
-      await base44.entities.Pipeline.delete(pipeline.id);
-      await base44.entities.ActivityLog.create({
+      await dataflow.entities.Pipeline.delete(pipeline.id);
+      await dataflow.entities.ActivityLog.create({
         log_type: "warning",
         category: "job",
         message: `Pipeline "${pipeline.name}" deleted`
@@ -205,7 +205,7 @@ export default function Pipelines() {
 
   const handleRunPipeline = useCallback(async (pipeline) => {
     try {
-      const run = await base44.entities.PipelineRun.create({
+      const run = await dataflow.entities.PipelineRun.create({
         pipeline_id: pipeline.id,
         run_number: (pipeline.total_runs || 0) + 1,
         status: "running",
@@ -219,12 +219,12 @@ export default function Pipelines() {
       });
 
       await Promise.all([
-        base44.entities.Pipeline.update(pipeline.id, {
+        dataflow.entities.Pipeline.update(pipeline.id, {
           status: "running",
           last_run: new Date().toISOString(),
           total_runs: (pipeline.total_runs || 0) + 1
         }),
-        base44.entities.ActivityLog.create({
+        dataflow.entities.ActivityLog.create({
           log_type: "info",
           category: "job",
           job_id: pipeline.id,
@@ -255,7 +255,7 @@ export default function Pipelines() {
 
     try {
       await Promise.all([
-        base44.entities.PipelineRun.update(run.id, {
+        dataflow.entities.PipelineRun.update(run.id, {
           status: success ? "completed" : "failed",
           completed_at: completedAt,
           duration_seconds: duration,
@@ -265,12 +265,12 @@ export default function Pipelines() {
           objects_failed: success ? [] : datasets.slice(Math.floor(datasets.length * 0.6)).map(d => `${d.schema}.${d.table}`),
           error_message: success ? null : "Connection timeout on remaining datasets"
         }),
-        base44.entities.Pipeline.update(pipeline.id, {
+        dataflow.entities.Pipeline.update(pipeline.id, {
           status: success ? "completed" : "failed",
           successful_runs: (pipeline.successful_runs || 0) + (success ? 1 : 0),
           failed_runs: (pipeline.failed_runs || 0) + (success ? 0 : 1)
         }),
-        base44.entities.ActivityLog.create({
+        dataflow.entities.ActivityLog.create({
           log_type: success ? "success" : "error",
           category: "job",
           job_id: pipeline.id,
@@ -292,7 +292,7 @@ export default function Pipelines() {
     if (!lastRun) return;
 
     try {
-      const run = await base44.entities.PipelineRun.create({
+      const run = await dataflow.entities.PipelineRun.create({
         pipeline_id: pipeline.id,
         run_number: (pipeline.total_runs || 0) + 1,
         status: "retrying",
@@ -306,12 +306,12 @@ export default function Pipelines() {
       });
 
       await Promise.all([
-        base44.entities.Pipeline.update(pipeline.id, {
+        dataflow.entities.Pipeline.update(pipeline.id, {
           status: "running",
           last_run: new Date().toISOString(),
           total_runs: (pipeline.total_runs || 0) + 1
         }),
-        base44.entities.ActivityLog.create({
+        dataflow.entities.ActivityLog.create({
           log_type: "info",
           category: "job",
           job_id: pipeline.id,
@@ -332,8 +332,8 @@ export default function Pipelines() {
   const handlePausePipeline = useCallback(async (pipeline) => {
     try {
       const newStatus = pipeline.status === "paused" ? "idle" : "paused";
-      await base44.entities.Pipeline.update(pipeline.id, { status: newStatus });
-      base44.entities.ActivityLog.create({
+      await dataflow.entities.Pipeline.update(pipeline.id, { status: newStatus });
+      dataflow.entities.ActivityLog.create({
         log_type: "info",
         category: "job",
         job_id: pipeline.id,
@@ -420,7 +420,7 @@ export default function Pipelines() {
               <Rocket className="w-4 h-4" />
               Quick Start
             </Button>
-            <Button onClick={openNew} className="gap-2 bg-[#003478] hover:bg-[#002560]">
+            <Button onClick={openNew} className="gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">
               <Plus className="w-4 h-4" />
               New Pipeline
             </Button>
@@ -482,7 +482,7 @@ export default function Pipelines() {
                     <Button variant="outline" disabled={searchLoading} onClick={async () => {
                       try {
                         await retry(async () => {
-                          const res = await base44.functions.invoke('searchPipelines', {
+                          const res = await dataflow.functions.invoke('searchPipelines', {
                             searchTerm: searchTerm.trim(),
                             filters: filterStatus !== 'all' ? { status: filterStatus } : {},
                             cursor: null,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ export default function CustomFunctions() {
 
   const load = async () => {
     setLoading(true);
-    const data = await base44.entities.CustomFunction.list();
+    const data = await dataflow.entities.CustomFunction.list();
     setFunctions(data);
     setLoading(false);
   };
@@ -34,9 +34,9 @@ export default function CustomFunctions() {
   const save = async () => {
     setSaving(true);
     if (editing === "new") {
-      await base44.entities.CustomFunction.create(form);
+      await dataflow.entities.CustomFunction.create(form);
     } else {
-      await base44.entities.CustomFunction.update(editing.id, form);
+      await dataflow.entities.CustomFunction.update(editing.id, form);
     }
     await load();
     cancelEdit();
@@ -45,7 +45,7 @@ export default function CustomFunctions() {
 
   const remove = async (fn) => {
     if (!window.confirm(`Delete "${fn.label}"?`)) return;
-    await base44.entities.CustomFunction.delete(fn.id);
+    await dataflow.entities.CustomFunction.delete(fn.id);
     setFunctions(prev => prev.filter(f => f.id !== fn.id));
   };
 
@@ -63,7 +63,7 @@ export default function CustomFunctions() {
             Add Spark UDFs or custom expressions that will appear in the Column Mapping transform dropdown.
           </p>
         </div>
-        <Button onClick={startNew} className="gap-2 bg-[#003478] hover:bg-[#002560]">
+        <Button onClick={startNew} className="gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">
           <Plus className="w-4 h-4" /> New Function
         </Button>
       </div>
@@ -125,7 +125,7 @@ export default function CustomFunctions() {
             </div>
           </div>
           <div className="flex gap-2 pt-1">
-            <Button size="sm" onClick={save} disabled={!form.name || !form.label || saving} className="gap-1.5 bg-[#003478] hover:bg-[#002560]">
+            <Button size="sm" onClick={save} disabled={!form.name || !form.label || saving} className="gap-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">
               <Save className="w-3.5 h-3.5" /> {saving ? "Saving…" : "Save Function"}
             </Button>
             <Button size="sm" variant="ghost" onClick={cancelEdit}>

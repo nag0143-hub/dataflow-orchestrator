@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { Play, Pause, RefreshCw, ExternalLink, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +34,7 @@ export default function AirflowDAGViewer({ dag, airflowConnection }) {
       if (response.ok) {
         toast.success(`DAG "${dag.dag_name}" triggered successfully`);
         // Update last run date
-        await base44.entities.AirflowDAG.update(dag.id, {
+        await dataflow.entities.AirflowDAG.update(dag.id, {
           last_run_date: new Date().toISOString(),
           last_run_status: "running"
         });
@@ -78,7 +78,7 @@ export default function AirflowDAGViewer({ dag, airflowConnection }) {
         const tasksData = tasksResponse.ok ? await tasksResponse.json() : { tasks: [] };
 
         // Update DAG record
-        await base44.entities.AirflowDAG.update(dag.id, {
+        await dataflow.entities.AirflowDAG.update(dag.id, {
           dag_name: dagData.dag_id,
           is_paused: dagData.is_paused,
           task_count: tasksData.tasks?.length || 0,

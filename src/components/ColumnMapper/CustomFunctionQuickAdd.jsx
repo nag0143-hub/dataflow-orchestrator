@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,7 +14,7 @@ export default function CustomFunctionQuickAdd({ customFunctions, onFunctionAdde
   const save = async () => {
     if (!form.name || !form.label) return;
     setSaving(true);
-    await base44.entities.CustomFunction.create(form);
+    await dataflow.entities.CustomFunction.create(form);
     setSaving(false);
     setForm({ name: "", label: "", category: "spark_udf", expression_template: "" });
     setOpen(false);
@@ -102,7 +102,7 @@ export default function CustomFunctionQuickAdd({ customFunctions, onFunctionAdde
           <div className="flex gap-2">
             <Button
               size="sm"
-              className="h-7 text-xs gap-1 bg-[#003478] hover:bg-[#002560]"
+              className="h-7 text-xs gap-1 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500"
               disabled={!form.name || !form.label || saving}
               onClick={save}
             >

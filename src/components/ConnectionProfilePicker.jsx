@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,7 +34,7 @@ export default function ConnectionProfilePicker({ onApply }) {
   }, [open]);
 
   const loadProfiles = async () => {
-    const data = await base44.entities.ConnectionProfile.list();
+    const data = await dataflow.entities.ConnectionProfile.list();
     setProfiles(data);
   };
 
@@ -48,7 +48,7 @@ export default function ConnectionProfilePicker({ onApply }) {
   const handleDelete = async (profile, e) => {
     e.stopPropagation();
     if (!confirm(`Delete profile "${profile.name}"?`)) return;
-    await base44.entities.ConnectionProfile.delete(profile.id);
+    await dataflow.entities.ConnectionProfile.delete(profile.id);
     loadProfiles();
     toast.success("Profile deleted");
   };
@@ -57,7 +57,7 @@ export default function ConnectionProfilePicker({ onApply }) {
     e.preventDefault();
     if (!newProfile.name || !newProfile.platform) return;
     setSaving(true);
-    await base44.entities.ConnectionProfile.create(newProfile);
+    await dataflow.entities.ConnectionProfile.create(newProfile);
     toast.success(`Profile "${newProfile.name}" saved`);
     setNewProfile({ name: "", description: "", platform: "", connection_type: "source" });
     setCreating(false);

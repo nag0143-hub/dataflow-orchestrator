@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { dataflow } from '@/api/client';
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,13 +20,13 @@ export default function LineagePage() {
 
   const { data: jobs } = useQuery({
     queryKey: ["jobs"],
-    queryFn: () => base44.entities.IngestionJob.list("-updated_date", 100),
+    queryFn: () => dataflow.entities.IngestionJob.list("-updated_date", 100),
     initialData: [],
   });
 
   const { data: connections } = useQuery({
     queryKey: ["connections"],
-    queryFn: () => base44.entities.Connection.list(),
+    queryFn: () => dataflow.entities.Connection.list(),
     initialData: [],
   });
 
