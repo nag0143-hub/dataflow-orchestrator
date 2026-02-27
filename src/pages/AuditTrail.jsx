@@ -88,8 +88,8 @@ export default function AuditTrail() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Audit Trail</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Audit Trail</h1>
+        <p className="text-muted-foreground mt-0.5">
           Complete history of user actions and system changes
         </p>
       </div>

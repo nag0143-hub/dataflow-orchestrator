@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,11 @@ import {
   Settings2,
   X,
   Check,
-  Upload
+  Upload,
+  RefreshCw,
+  Loader2,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -81,13 +85,55 @@ const SAMPLE_SCHEMAS = [
   }
 ];
 
-export default function ObjectSelector({ selectedObjects = [], onChange }) {
+export default function ObjectSelector({ selectedObjects = [], onChange, connectionId }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [schemas, setSchemas] = useState(SAMPLE_SCHEMAS);
   const [expandedSchemas, setExpandedSchemas] = useState([]);
   const [configPanelObject, setConfigPanelObject] = useState(null);
   const [objectConfig, setObjectConfig] = useState({});
   const [showImporter, setShowImporter] = useState(false);
+  const [liveLoading, setLiveLoading] = useState(false);
+  const [liveError, setLiveError] = useState(null);
+  const [liveConnected, setLiveConnected] = useState(false);
+  const lastFetchedId = useRef(null);
+
+  const fetchLiveSchemas = async (connId) => {
+    if (!connId) return;
+    setLiveLoading(true);
+    setLiveError(null);
+    try {
+      const resp = await fetch("/api/introspect-schema", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId: connId }),
+      });
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || "Server returned " + resp.status);
+      }
+      const data = await resp.json();
+      if (data.success && data.schemas?.length > 0) {
+        setSchemas(data.schemas);
+        setExpandedSchemas(data.schemas.map(s => s.name));
+        setLiveConnected(true);
+        lastFetchedId.current = connId;
+      } else {
+        setLiveError(data.error || "No schemas found in this database");
+        setLiveConnected(false);
+      }
+    } catch (err) {
+      setLiveError("Failed to connect: " + err.message);
+      setLiveConnected(false);
+    } finally {
+      setLiveLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (connectionId && connectionId !== lastFetchedId.current) {
+      fetchLiveSchemas(connectionId);
+    }
+  }, [connectionId]);
 
   const toggleSchema = (schema) => {
     setExpandedSchemas(prev =>
@@ -191,8 +237,43 @@ export default function ObjectSelector({ selectedObjects = [], onChange }) {
 
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden">
-      {/* Search + Import */}
       <div className="p-3 border-b border-slate-200 bg-slate-50 space-y-2">
+        {liveConnected && (
+          <div className="flex items-center gap-2 px-2 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+            <Wifi className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="text-xs text-emerald-700 font-medium flex-1">
+              Live — {schemas.reduce((sum, s) => sum + s.tables.length, 0)} tables across {schemas.length} schema{schemas.length !== 1 ? "s" : ""}
+            </span>
+            <Button
+              type="button" variant="ghost" size="sm"
+              className="h-6 px-2 text-xs text-emerald-700 hover:text-emerald-800"
+              onClick={() => fetchLiveSchemas(connectionId)}
+              disabled={liveLoading}
+            >
+              {liveLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+            </Button>
+          </div>
+        )}
+        {liveLoading && !liveConnected && (
+          <div className="flex items-center gap-2 px-2 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
+            <Loader2 className="w-3.5 h-3.5 text-[#0060AF] animate-spin" />
+            <span className="text-xs text-[#0060AF] font-medium">Fetching tables from database...</span>
+          </div>
+        )}
+        {liveError && (
+          <div className="flex items-center gap-2 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
+            <WifiOff className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span className="text-xs text-amber-700 flex-1">{liveError} — showing sample data</span>
+            <Button
+              type="button" variant="ghost" size="sm"
+              className="h-6 px-2 text-xs text-amber-700"
+              onClick={() => fetchLiveSchemas(connectionId)}
+              disabled={liveLoading}
+            >
+              Retry
+            </Button>
+          </div>
+        )}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

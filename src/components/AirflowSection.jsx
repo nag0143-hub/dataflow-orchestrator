@@ -1,262 +1,100 @@
-import { useState, useEffect } from "react";
-import { dataflow } from '@/api/client';
-import { RefreshCw, Plus, AlertCircle, X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { RefreshCw, AlertCircle, ExternalLink, CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import AirflowDAGViewer from "./AirflowDAGViewer";
+import { createPageUrl } from "@/utils";
+
+const API = '/api/airflow';
+
+const STATE_ICON = {
+  success: CheckCircle2, failed: XCircle, running: Loader2, queued: Clock,
+};
+const STATE_COLOR = {
+  success: "text-emerald-600", failed: "text-red-600", running: "text-blue-600 animate-spin", queued: "text-amber-500",
+};
 
 export default function AirflowSection() {
-  const [airflowConnections, setAirflowConnections] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [selectedId, setSelectedId] = useState("");
   const [dags, setDags] = useState([]);
-  const [selectedConnection, setSelectedConnection] = useState("");
-  const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [addingConnection, setAddingConnection] = useState(false);
-  const [newConnForm, setNewConnForm] = useState({ name: "", host: "", username: "" });
-  const [savingConnection, setSavingConnection] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const load = useCallback(async () => {
     try {
-      const [connections, dagsData] = await Promise.all([
-        dataflow.entities.Connection.filter({ platform: "airflow" }),
-        dataflow.entities.AirflowDAG.list()
-      ]);
-      setAirflowConnections(connections);
-      setDags(dagsData);
-      if (connections.length > 0 && !selectedConnection) {
-        setSelectedConnection(connections[0].id);
-      }
-    } catch (err) {
-      toast.error("Failed to load Airflow data");
-    } finally {
-      setLoading(false);
-    }
-  };
+      const resp = await fetch(`${API}/connections`);
+      const conns = await resp.json();
+      setConnections(conns);
+      if (conns.length > 0 && !selectedId) setSelectedId(conns[0].id);
+    } catch { /* silent */ }
+    finally { setLoading(false); }
+  }, [selectedId]);
 
-  const handleSyncDAGs = async () => {
-    if (!selectedConnection) {
-      toast.error("Select an Airflow connection first");
-      return;
-    }
-
-    setSyncing(true);
+  const loadDags = useCallback(async () => {
+    if (!selectedId) return;
     try {
-      const connection = airflowConnections.find(c => c.id === selectedConnection);
-      if (!connection?.host) {
-        toast.error("Airflow connection not configured");
-        return;
-      }
+      const resp = await fetch(`${API}/${selectedId}/dags?limit=6`);
+      const data = await resp.json();
+      setDags(data.dags || []);
+    } catch { /* silent */ }
+  }, [selectedId]);
 
-      const airflowUrl = `${connection.host}/api/v1/dags`;
-      const token = connection.username; // API token
+  useEffect(() => { load(); }, []);
+  useEffect(() => { if (selectedId) loadDags(); }, [selectedId, loadDags]);
 
-      const response = await fetch(airflowUrl, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
+  if (loading) return <div className="flex items-center justify-center h-20"><Loader2 className="w-5 h-5 text-blue-600 animate-spin" /></div>;
 
-      if (response.ok) {
-        const { dags: airflowDags } = await response.json();
-
-        // Sync each DAG
-        for (const airflowDag of airflowDags) {
-          const existingDag = dags.find(
-            d => d.dag_id === airflowDag.dag_id && d.airflow_connection_id === selectedConnection
-          );
-
-          if (existingDag) {
-            await dataflow.entities.AirflowDAG.update(existingDag.id, {
-              is_paused: airflowDag.is_paused,
-              last_sync: new Date().toISOString(),
-              status: airflowDag.is_paused ? "paused" : "active"
-            });
-          } else {
-            await dataflow.entities.AirflowDAG.create({
-              airflow_connection_id: selectedConnection,
-              dag_id: airflowDag.dag_id,
-              dag_name: airflowDag.dag_id,
-              owner: airflowDag.owner || "unknown",
-              is_paused: airflowDag.is_paused,
-              status: airflowDag.is_paused ? "paused" : "active",
-              schedule_interval: airflowDag.schedule_interval || "None",
-              task_count: 0,
-              last_sync: new Date().toISOString()
-            });
-          }
-        }
-
-        toast.success(`Synced ${airflowDags.length} DAGs`);
-        loadData();
-      } else {
-        toast.error("Failed to fetch DAGs from Airflow");
-      }
-    } catch (err) {
-      toast.error(`Error: ${err.message}`);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const filteredDags = dags.filter(d => d.airflow_connection_id === selectedConnection);
-  const selectedConnData = airflowConnections.find(c => c.id === selectedConnection);
-
-  if (loading) {
+  if (connections.length === 0) {
     return (
-      <div className="flex items-center justify-center h-40">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="text-center py-6">
+        <AlertCircle className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">No Airflow instances connected</p>
+        <Link to={createPageUrl("Airflow")} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+          Go to Airflow page to connect
+        </Link>
       </div>
-    );
-  }
-
-  const handleAddConnection = async () => {
-    if (!newConnForm.name?.trim() || !newConnForm.host?.trim() || !newConnForm.username?.trim()) {
-      toast.error("All fields are required");
-      return;
-    }
-
-    setSavingConnection(true);
-    try {
-      await dataflow.entities.Connection.create({
-        name: newConnForm.name,
-        platform: "airflow",
-        connection_type: "source",
-        host: newConnForm.host,
-        username: newConnForm.username,
-        status: "active"
-      });
-
-      toast.success("Airflow instance added");
-      setAddingConnection(false);
-      setNewConnForm({ name: "", host: "", username: "" });
-      loadData();
-    } catch (err) {
-      toast.error(`Error: ${err.message}`);
-    } finally {
-      setSavingConnection(false);
-    }
-  };
-
-  if (airflowConnections.length === 0) {
-    if (addingConnection) {
-      return (
-        <Card className="border-slate-200">
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-900">Add Airflow Instance</h3>
-              <button onClick={() => setAddingConnection(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div>
-              <Label className="text-sm">Instance Name</Label>
-              <Input
-                placeholder="My Airflow"
-                value={newConnForm.name}
-                onChange={(e) => setNewConnForm({ ...newConnForm, name: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label className="text-sm">Airflow URL</Label>
-              <Input
-                placeholder="https://airflow.example.com"
-                value={newConnForm.host}
-                onChange={(e) => setNewConnForm({ ...newConnForm, host: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label className="text-sm">API Token</Label>
-              <Input
-                type="password"
-                placeholder="Your Airflow API token"
-                value={newConnForm.username}
-                onChange={(e) => setNewConnForm({ ...newConnForm, username: e.target.value })}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setAddingConnection(false)}>Cancel</Button>
-              <Button onClick={handleAddConnection} disabled={savingConnection}>
-                {savingConnection ? "Adding..." : "Add Instance"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    return (
-      <Card className="border-slate-200">
-        <CardContent className="py-12 text-center">
-          <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">No Airflow Instances</h3>
-          <p className="text-slate-500 mb-4">Monitor Airflow DAGs alongside your data transfer jobs</p>
-          <Button onClick={() => setAddingConnection(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Airflow Instance
-          </Button>
-        </CardContent>
-      </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex-1 min-w-[200px]">
-          <Label className="text-xs text-slate-500 mb-2 block">Airflow Instance</Label>
-          <Select value={selectedConnection} onValueChange={setSelectedConnection}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {airflowConnections.map(conn => (
-                <SelectItem key={conn.id} value={conn.id}>
-                  {conn.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button
-          onClick={handleSyncDAGs}
-          disabled={syncing}
-          className="gap-2 self-end"
-        >
-          <RefreshCw className="w-4 h-4" />
-          {syncing ? "Syncing..." : "Sync DAGs"}
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Select value={selectedId} onValueChange={setSelectedId}>
+          <SelectTrigger className="h-8 text-xs flex-1"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {connections.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button size="sm" variant="ghost" onClick={loadDags} className="h-8 w-8 p-0">
+          <RefreshCw className="w-3.5 h-3.5" />
         </Button>
       </div>
 
-      {filteredDags.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDags.map(dag => (
-            <AirflowDAGViewer
-              key={dag.id}
-              dag={dag}
-              airflowConnection={selectedConnData}
-            />
-          ))}
-        </div>
-      ) : (
-        <Card className="border-slate-200">
-          <CardContent className="py-12 text-center">
-            <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">No DAGs Found</h3>
-            <p className="text-slate-500 mb-4">Sync your Airflow instance to see DAGs</p>
-            <Button onClick={handleSyncDAGs} disabled={syncing} className="gap-2">
-              <RefreshCw className="w-4 h-4" />
-              Sync DAGs
-            </Button>
-          </CardContent>
-        </Card>
+      {dags.length === 0 && (
+        <p className="text-xs text-slate-400 text-center py-4">No DAGs found</p>
+      )}
+
+      <div className="space-y-1.5">
+        {dags.slice(0, 5).map(dag => {
+          const Icon = STATE_ICON[dag.is_paused ? 'queued' : 'success'] || CheckCircle2;
+          const color = dag.is_paused ? 'text-amber-500' : 'text-emerald-500';
+          return (
+            <div key={dag.dag_id} className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 text-xs">
+              <Icon className={`w-3.5 h-3.5 shrink-0 ${color}`} />
+              <span className="font-mono text-slate-700 dark:text-slate-200 truncate flex-1">{dag.dag_id}</span>
+              <span className="text-slate-400 shrink-0">{dag.schedule_interval || 'manual'}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {dags.length > 0 && (
+        <Link to={createPageUrl("Airflow")} className="block text-center text-xs text-blue-600 hover:text-blue-800 font-medium pt-1">
+          View all DAGs →
+        </Link>
       )}
     </div>
   );

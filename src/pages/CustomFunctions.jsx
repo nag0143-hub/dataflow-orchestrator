@@ -63,7 +63,7 @@ export default function CustomFunctions() {
             Add Spark UDFs or custom expressions that will appear in the Column Mapping transform dropdown.
           </p>
         </div>
-        <Button onClick={startNew} className="gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">
+        <Button onClick={startNew} className="gap-2 bg-[#0060AF] hover:bg-[#004d8c] dark:bg-[#0060AF] dark:hover:bg-[#004d8c]">
           <Plus className="w-4 h-4" /> New Function
         </Button>
       </div>
@@ -125,7 +125,7 @@ export default function CustomFunctions() {
             </div>
           </div>
           <div className="flex gap-2 pt-1">
-            <Button size="sm" onClick={save} disabled={!form.name || !form.label || saving} className="gap-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">
+            <Button size="sm" onClick={save} disabled={!form.name || !form.label || saving} className="gap-1.5 bg-[#0060AF] hover:bg-[#004d8c] dark:bg-[#0060AF] dark:hover:bg-[#004d8c]">
               <Save className="w-3.5 h-3.5" /> {saving ? "Saving…" : "Save Function"}
             </Button>
             <Button size="sm" variant="ghost" onClick={cancelEdit}>

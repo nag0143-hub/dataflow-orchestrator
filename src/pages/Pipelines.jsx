@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { dataflow } from '@/api/client';
-import { Plus, Search, Play, Filter, Rocket, RefreshCw } from "lucide-react";
+import { Plus, Search, Play, Filter, Rocket, RefreshCw, Tag, Layers, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import PipelineCard from "@/components/PipelineCard";
 import JobDetailsDialog from "@/components/JobDetailsDialog";
 import JobSpecExport from "@/components/JobSpecExport";
 import OnboardingWizard from "@/components/OnboardingWizard";
+import OrchestrationPanel from "@/components/OrchestrationPanel";
 
 const defaultFormData = {
 name: "",
@@ -53,7 +54,8 @@ retry_config: {
   max_retries: 3,
   retry_delay_seconds: 60,
   exponential_backoff: true
-}
+},
+tags: []
 };
 
 
@@ -76,6 +78,7 @@ export default function Pipelines() {
   const [activeTab, setActiveTab] = useState("general");
   const [exportPipeline, setExportPipeline] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [groupByTag, setGroupByTag] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -124,10 +127,28 @@ export default function Pipelines() {
   // Use server-side search when search term is provided, otherwise filter client-side
   const displayPipelines = useMemo(() => {
     if (searchTerm.trim()) {
-      return searchResults;
+      const term = searchTerm.trim().toLowerCase();
+      const base = searchResults.length > 0 ? searchResults : pipelines;
+      return base.filter(p => {
+        const matchesStatus = filterStatus === "all" || p.status === filterStatus;
+        const matchesSearch =
+          (p.name || "").toLowerCase().includes(term) ||
+          (p.status || "").toLowerCase().includes(term) ||
+          (p.tags || []).some(tag => tag.toLowerCase().includes(term));
+        return matchesStatus && matchesSearch;
+      });
     }
     return pipelines.filter(p => filterStatus === "all" || p.status === filterStatus);
   }, [searchTerm, searchResults, pipelines, filterStatus]);
+
+  const groupedByTag = groupByTag ? displayPipelines.reduce((acc, p) => {
+    const tags = p.tags?.length ? p.tags : ["Untagged"];
+    tags.forEach(tag => {
+      if (!acc[tag]) acc[tag] = [];
+      acc[tag].push(p);
+    });
+    return acc;
+  }, {}) : null;
 
   // Trigger server-side search on search term change
   useEffect(() => {
@@ -180,7 +201,8 @@ export default function Pipelines() {
       email: pipeline.email || "",
       access_entitlements: pipeline.access_entitlements || [],
       enable_advanced: pipeline.enable_advanced || false,
-      retry_config: pipeline.retry_config || defaultFormData.retry_config
+      retry_config: pipeline.retry_config || defaultFormData.retry_config,
+      tags: pipeline.tags || []
       });
     setDialogOpen(true);
     setActiveTab("general");
@@ -372,7 +394,8 @@ export default function Pipelines() {
       email: pipeline.email || "",
       access_entitlements: pipeline.access_entitlements || [],
       enable_advanced: pipeline.enable_advanced || false,
-      retry_config: pipeline.retry_config || defaultFormData.retry_config
+      retry_config: pipeline.retry_config || defaultFormData.retry_config,
+      tags: pipeline.tags || []
       });
     setEditingPipeline(null);
     setDialogOpen(true);
@@ -409,8 +432,8 @@ export default function Pipelines() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Data Pipelines</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Configure and run data pipelines between connections</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Data Pipelines</h1>
+            <p className="text-muted-foreground mt-0.5">Configure and run data pipelines between connections</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={loadData} className="gap-2">
@@ -420,7 +443,7 @@ export default function Pipelines() {
               <Rocket className="w-4 h-4" />
               Quick Start
             </Button>
-            <Button onClick={openNew} className="gap-2 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">
+            <Button onClick={openNew} className="gap-2 bg-[#0060AF] hover:bg-[#004d8c] dark:bg-[#0060AF] dark:hover:bg-[#004d8c]">
               <Plus className="w-4 h-4" />
               New Pipeline
             </Button>
@@ -434,7 +457,7 @@ export default function Pipelines() {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
-                  placeholder="Search pipelines..."
+                  placeholder="Search by name, status, or tag..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -454,9 +477,53 @@ export default function Pipelines() {
                   <SelectItem value="paused">Paused</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                variant={groupByTag ? "default" : "outline"}
+                className="gap-2 shrink-0"
+                onClick={() => setGroupByTag(g => !g)}
+              >
+                <Layers className="w-4 h-4" />
+                Group by Tag
+              </Button>
             </div>
 
             {displayPipelines.length > 0 ? (
+              groupedByTag ? (
+                <div className="space-y-8">
+                  {Object.entries(groupedByTag)
+                    .sort(([a], [b]) => a === "Untagged" ? 1 : b === "Untagged" ? -1 : a.localeCompare(b))
+                    .map(([tag, pipelinesInTag]) => (
+                      <div key={tag}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <Tag className="w-4 h-4 text-slate-400" />
+                          <h2 className="text-sm font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{tag}</h2>
+                          <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full px-2 py-0.5">{pipelinesInTag.length}</span>
+                        </div>
+                        <div className="space-y-4">
+                          {pipelinesInTag.map((pipeline) => (
+                            <ErrorBoundary key={pipeline.id}>
+                              <PipelineCard
+                                job={pipeline}
+                                sourceConn={getConnection(pipeline.source_connection_id)}
+                                targetConn={getConnection(pipeline.target_connection_id)}
+                                jobRuns={getPipelineRuns(pipeline.id)}
+                                connections={connections}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                onRun={handleRunPipeline}
+                                onRetry={handleRetryPipeline}
+                                onPause={handlePausePipeline}
+                                onClone={handleClonePipeline}
+                                onViewDetails={(p) => { setViewingPipeline(p); setDetailsDialogOpen(true); }}
+                                onExport={setExportPipeline}
+                              />
+                            </ErrorBoundary>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) :
               <div className="space-y-4">
                 {displayPipelines.map((pipeline) => (
                    <ErrorBoundary key={pipeline.id}>
@@ -516,6 +583,8 @@ export default function Pipelines() {
               />
             )}
         </>
+
+        <OrchestrationPanel variant="full" />
 
         {/* Dialogs — only rendered when opened */}
         <JobFormDialog

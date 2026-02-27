@@ -25,7 +25,7 @@ import ErrorState from "@/components/ErrorState";
 import { createIndex } from "@/components/dataIndexing";
 import moment from "moment";
 
-import AirflowSection from "@/components/AirflowSection";
+import OrchestrationPanel from "@/components/OrchestrationPanel";
 import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
@@ -113,8 +113,8 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Dashboard</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Monitor your data pipelines and connections</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-0.5">Monitor your data pipelines and connections</p>
           </div>
           <Button variant="outline" size="sm" onClick={loadData} className="gap-2">
             <RefreshCw className="w-4 h-4" />
@@ -129,33 +129,37 @@ export default function Dashboard() {
             value={stats.totalConnections}
             subtitle={`${stats.activeConnections} active`}
             icon={Cable}
+            variant="blue"
           />
           <StatCard 
             title="Ingestion Pipelines" 
             value={stats.totalJobs}
             subtitle={`${stats.runningJobs} running`}
             icon={Play}
+            variant="amber"
           />
           <StatCard 
             title="Successful Runs" 
             value={stats.completedRuns}
             icon={CheckCircle2}
+            variant="green"
           />
           <StatCard 
             title="Failed Runs" 
             value={stats.failedRuns}
             icon={XCircle}
+            variant="red"
           />
         </div>
 
         {/* Recent Pipeline Runs + Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Pipeline Runs + Airflow */}
-          <Card className="lg:col-span-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+          <Card className="lg:col-span-2">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between mb-3">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
-                  <Play className="w-5 h-5 text-blue-600" />
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Play className="w-5 h-5 text-[#0060AF]" />
                   Recent Pipeline Runs
                 </CardTitle>
                 <Link to={createPageUrl("Pipelines")}>
@@ -171,7 +175,7 @@ export default function Dashboard() {
                   placeholder="Search by pipeline name or status..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-9 text-sm dark:bg-slate-700 dark:border-slate-600"
+                  className="pl-10 h-9 text-sm"
                 />
               </div>
             </CardHeader>
@@ -222,23 +226,23 @@ export default function Dashboard() {
                   </div>
                 )}
                 <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Airflow DAGs</h3>
-                  <AirflowSection />
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Orchestration</h3>
+                  <OrchestrationPanel variant="summary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Recent Activity */}
-          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+          <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Activity className="w-5 h-5 text-emerald-600" />
                   Recent Activity
                 </CardTitle>
                 <Link to={createPageUrl("ActivityLogs")}>
-                  <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                  <Button variant="ghost" size="sm" className="text-[#0060AF] hover:text-[#004d8c]">
                     View All
                   </Button>
                 </Link>

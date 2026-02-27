@@ -287,7 +287,7 @@ function NodeConfigDialog({ node, connections, open, onClose, onSave }) {
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose} className="dark:border-slate-600 dark:text-slate-300">Cancel</Button>
-          <Button onClick={handleSave} className="bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">Apply</Button>
+          <Button onClick={handleSave} className="bg-[#0060AF] hover:bg-[#004d8c] dark:bg-[#0060AF] dark:hover:bg-[#004d8c]">Apply</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -317,7 +317,7 @@ function PipelineMetaDialog({ open, onClose, meta, onSave }) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} className="dark:border-slate-600 dark:text-slate-300">Cancel</Button>
-          <Button onClick={() => { onSave(val); onClose(); }} className="bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">Save</Button>
+          <Button onClick={() => { onSave(val); onClose(); }} className="bg-[#0060AF] hover:bg-[#004d8c] dark:bg-[#0060AF] dark:hover:bg-[#004d8c]">Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -550,7 +550,7 @@ export default function VisualPipelineBuilder({ connections, onSaveSuccess }) {
           <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 dark:border-slate-600 dark:text-slate-300">
             <RefreshCw className="w-3.5 h-3.5" /> Reset
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500">
+          <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 bg-[#0060AF] hover:bg-[#004d8c] dark:bg-[#0060AF] dark:hover:bg-[#004d8c]">
             {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             {saving ? "Saving..." : "Save & Deploy"}
           </Button>

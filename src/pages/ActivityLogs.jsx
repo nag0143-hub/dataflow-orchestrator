@@ -247,8 +247,8 @@ export default function ActivityLogs() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Activity & Audit Logs</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Monitor system activities and track user changes</p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Activity & Audit Logs</h1>
+          <p className="text-muted-foreground mt-0.5">Monitor system activities and track user changes</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={loadData} className="gap-2 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-600">

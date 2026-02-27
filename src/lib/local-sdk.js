@@ -64,11 +64,31 @@ function createEntityProxy(entityName) {
     },
 
     async bulkCreate(items) {
-      const results = [];
-      for (const item of items) {
-        results.push(await this.create(item));
+      try {
+        const res = await fetch(`${entityUrl}/batch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items })
+        });
+        if (!res.ok) throw new Error(`Batch create failed: ${res.status}`);
+        return res.json();
+      } catch (err) {
+        const results = [];
+        for (const item of items) {
+          results.push(await this.create(item));
+        }
+        return results;
       }
-      return results;
+    },
+
+    async listWithCursor(cursor, limit) {
+      const params = new URLSearchParams();
+      if (cursor) params.set('cursor', String(cursor));
+      if (limit) params.set('limit', String(limit));
+      const url = `${entityUrl}?${params.toString()}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to list ${entityName} with cursor: ${res.status}`);
+      return res.json();
     },
 
     async deleteMany(query) {

@@ -1,15 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, Check, FileJson, AlertCircle, GitBranch } from "lucide-react";
+import { Copy, Download, Check, FileJson, AlertCircle, ShieldCheck, ShieldAlert, ChevronDown, ChevronUp, Loader2, RefreshCw, LayoutTemplate, Eye, EyeOff, Plus, Pencil } from "lucide-react";
 import { buildJobSpec } from "@/components/JobSpecExport";
-import { generateAirflowDAG } from "@/components/AirflowDAGGenerator";
-import { generateLineageSpec } from "@/components/LineageSpecGenerator";
+import { FLAT_FILE_PLATFORMS } from "@/components/JobSpecExport";
+import { BUILTIN_TEMPLATES, getAllTemplates, getTemplatesForSource, getDefaultTemplateId, fillTemplate } from "@/components/DagTemplates";
+import CustomTemplateEditor from "@/components/CustomTemplateEditor";
+import { dataflow } from "@/api/client";
+import { toYaml } from "@/utils/toYaml";
 
-export default function JobSpecTabPreview({ formData, connections }) {
+export default function JobSpecTabPreview({ formData, connections, setFormData }) {
   const [format, setFormat] = useState("yaml");
-  const [view, setView] = useState("spec");
-  const [gitCheckInFormat, setGitCheckInFormat] = useState(false);
+  const [view, setView] = useState("airflow_dag");
   const [copied, setCopied] = useState(false);
+  const [validation, setValidation] = useState(null);
+  const [validating, setValidating] = useState(false);
+  const [validationOpen, setValidationOpen] = useState(true);
+  const [showRawTemplate, setShowRawTemplate] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState([]);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+
+  useEffect(() => {
+    dataflow.entities.DagTemplate.list().then(res => {
+      if (Array.isArray(res)) setCustomTemplates(res);
+    }).catch(() => {});
+  }, []);
+
+  const sourceConn = connections.find(c => c.id === formData.source_connection_id);
+  const sourcePlatform = sourceConn?.platform || "";
+  const allTemplates = getAllTemplates(customTemplates);
+  const availableTemplates = getTemplatesForSource(sourcePlatform, customTemplates);
+
+  const selectedTemplateId = formData.dag_template_id || getDefaultTemplateId(sourcePlatform);
+  const setSelectedTemplateId = (id) => {
+    if (setFormData) setFormData(prev => ({ ...prev, dag_template_id: id }));
+  };
+
+  useEffect(() => {
+    const currentValid = allTemplates.find(t => t.id === selectedTemplateId);
+    if (!currentValid) setSelectedTemplateId(getDefaultTemplateId(sourcePlatform));
+  }, [sourcePlatform, customTemplates.length]);
 
   const getMissingFields = () => {
     const missing = [];
@@ -30,66 +60,23 @@ export default function JobSpecTabPreview({ formData, connections }) {
     dq_rules: formData.dq_rules || {},
   };
 
-  function toYaml(obj, indent = 0) {
-    const pad = "  ".repeat(indent);
-    if (obj === null || obj === undefined) return "null";
-    if (typeof obj === "boolean") return obj ? "true" : "false";
-    if (typeof obj === "number") return String(obj);
-    if (typeof obj === "string") {
-      if (/[\n:#\[\]{},'"&*?|<>=!%@`]/.test(obj) || obj === "" || /^(true|false|null|yes|no)$/i.test(obj))
-        return `"${obj.replace(/"/g, '\\"')}"`;
-      return obj;
-    }
-    if (Array.isArray(obj)) {
-      if (obj.length === 0) return "[]";
-      return obj.map(item => {
-        const val = toYaml(item, indent + 1);
-        if (typeof item === "object" && item !== null && !Array.isArray(item)) {
-          const lines = val.split("\n");
-          return `${pad}- ${lines[0]}\n${lines.slice(1).join("\n")}`;
-        }
-        return `${pad}- ${val}`;
-      }).join("\n");
-    }
-    if (typeof obj === "object") {
-      const keys = Object.keys(obj);
-      if (keys.length === 0) return "{}";
-      return keys.map(k => {
-        const val = obj[k];
-        if (val !== null && typeof val === "object" && !Array.isArray(val) && Object.keys(val).length > 0)
-          return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
-        if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object")
-          return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
-        return `${pad}${k}: ${toYaml(val, indent)}`;
-      }).join("\n");
-    }
-    return String(obj);
-  }
-
   const pipelineNameClean = (formData.name || "pipeline").replace(/[^a-z0-9_-]/gi, "_").toLowerCase();
-  const specFilename = `${pipelineNameClean}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
-  const dagFilename = `${pipelineNameClean}_dag.py`;
 
   const spec = buildJobSpec(draftJob, connections);
   const cleanSpec = JSON.parse(JSON.stringify(spec));
-  const dagContent = generateAirflowDAG(draftJob, connections);
-  const lineageSpec = generateLineageSpec(draftJob, connections);
-  const lineageContent = JSON.stringify(lineageSpec, null, 2);
 
-  // Generate open format JSON for Git check-in if toggled
-  const gitCheckInContent = gitCheckInFormat ? JSON.stringify(cleanSpec, null, 2) : null;
+  const selectedTmpl = allTemplates.find(t => t.id === selectedTemplateId);
+  const airflowDagYaml = fillTemplate(selectedTemplateId, draftJob, connections, customTemplates);
 
-  const specContent = gitCheckInFormat && gitCheckInContent
-    ? gitCheckInContent
-    : format === "json"
-      ? JSON.stringify(cleanSpec, null, 2)
-      : `# DataFlow Pipeline Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
+  const specContent = format === "json"
+    ? JSON.stringify(cleanSpec, null, 2)
+    : `# DataFlow Pipeline Spec — ${formData.name || "untitled"}\n` + toYaml(cleanSpec);
 
-  const lineageFilename = `${pipelineNameClean}-lineagespec.json`;
-  const content = view === "dag" ? dagContent : view === "lineage" ? lineageContent : specContent;
-  const filename = view === "dag" ? dagFilename : view === "lineage" ? lineageFilename : specFilename;
+  const airflowFilename = `${pipelineNameClean}-airflow-dag.yaml`;
+  const specFilename = `${pipelineNameClean}-pipelinespec.${format === "json" ? "json" : "yaml"}`;
 
-  const repoPath = `specs/${pipelineNameClean}/`;
+  const content = view === "airflow_dag" ? airflowDagYaml : specContent;
+  const filename = view === "airflow_dag" ? airflowFilename : specFilename;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
@@ -107,29 +94,218 @@ export default function JobSpecTabPreview({ formData, connections }) {
     URL.revokeObjectURL(url);
   };
 
+  const handleValidate = async () => {
+    setValidating(true);
+    try {
+      const resp = await fetch("/api/validate-spec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ spec: cleanSpec }),
+      });
+      const data = await resp.json();
+      setValidation(data);
+      setValidationOpen(true);
+    } catch (err) {
+      setValidation({
+        valid: false,
+        errors: [{ path: "", message: `Validation request failed: ${err.message}`, severity: "error" }],
+        warnings: [],
+      });
+      setValidationOpen(true);
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const specFingerprint = JSON.stringify(cleanSpec);
+  const prevFingerprint = useRef(specFingerprint);
+
+  useEffect(() => {
+    if (prevFingerprint.current === specFingerprint && validation) return;
+    prevFingerprint.current = specFingerprint;
+    const timer = setTimeout(() => handleValidate(), 600);
+    return () => clearTimeout(timer);
+  }, [specFingerprint]);
+
+  const handleSaveTemplate = async (tmplData) => {
+    const existing = customTemplates.find(t => t.templateId === tmplData.templateId);
+    if (existing) {
+      await dataflow.entities.DagTemplate.update(existing.id, tmplData);
+    } else {
+      await dataflow.entities.DagTemplate.create(tmplData);
+    }
+    const res = await dataflow.entities.DagTemplate.list();
+    if (Array.isArray(res)) setCustomTemplates(res);
+  };
+
+  const handleDeleteTemplate = async (templateId) => {
+    const tmpl = customTemplates.find(t => t.templateId === templateId);
+    if (tmpl) {
+      await dataflow.entities.DagTemplate.delete(tmpl.id);
+      const res = await dataflow.entities.DagTemplate.list();
+      if (Array.isArray(res)) setCustomTemplates(res);
+    }
+  };
+
+  const isRecommended = availableTemplates.find(t => t.id === selectedTemplateId);
+  const isFlatFile = FLAT_FILE_PLATFORMS.includes(sourcePlatform);
+  const builtinForSource = BUILTIN_TEMPLATES.filter(t => t.sourceType === (isFlatFile ? "flat_file" : "database"));
+  const builtinOther = BUILTIN_TEMPLATES.filter(t => t.sourceType !== (isFlatFile ? "flat_file" : "database"));
+  const customForSource = customTemplates.filter(t => !t.sourceType || t.sourceType === "any" || t.sourceType === (isFlatFile ? "flat_file" : "database"));
+  const customOther = customTemplates.filter(t => t.sourceType && t.sourceType !== "any" && t.sourceType !== (isFlatFile ? "flat_file" : "database"));
+  const isCustomSelected = selectedTmpl && !selectedTmpl.builtin;
+
   return (
     <div className="space-y-3">
-      {/* Repo path */}
-      <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 flex items-center gap-2">
-        <GitBranch className="w-4 h-4 text-indigo-700 shrink-0" />
-        <span className="text-xs text-indigo-700 font-medium">Repo path:</span>
-        <code className="text-xs font-mono bg-indigo-100 px-2 py-0.5 rounded text-indigo-900">{repoPath}</code>
+      <div className="rounded-lg border border-[#0060AF]/20 bg-[#0060AF]/5 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <LayoutTemplate className="w-5 h-5 text-[#0060AF]" />
+          <span className="text-sm font-bold text-slate-900">Select DAG Template</span>
+          {isRecommended && selectedTmpl?.builtin && (
+            <span className="ml-auto text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Built-in</span>
+          )}
+          {isCustomSelected && (
+            <span className="ml-auto text-[10px] font-semibold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Custom</span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={selectedTemplateId}
+            onChange={e => setSelectedTemplateId(e.target.value)}
+            className="flex-1 px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-[#0060AF]/30 focus:border-[#0060AF] outline-none font-medium"
+          >
+            {builtinForSource.length > 0 && (
+              <optgroup label={isFlatFile ? "Flat File Templates" : "Database Templates"}>
+                {builtinForSource.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </optgroup>
+            )}
+            {customForSource.length > 0 && (
+              <optgroup label="Custom Templates">
+                {customForSource.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </optgroup>
+            )}
+            {(builtinOther.length > 0 || customOther.length > 0) && (
+              <optgroup label="Other Templates">
+                {builtinOther.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+                {customOther.map(t => (
+                  <option key={t.id} value={t.id}>{t.name} (custom)</option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+          {isCustomSelected && (
+            <Button
+              type="button" variant="outline" size="sm"
+              onClick={() => { setEditingTemplate(selectedTmpl); setEditorOpen(true); }}
+              className="gap-1 shrink-0"
+            >
+              <Pencil className="w-3.5 h-3.5" /> Edit
+            </Button>
+          )}
+          <Button
+            type="button" variant="outline" size="sm"
+            onClick={() => { setEditingTemplate(null); setEditorOpen(true); }}
+            className="gap-1 shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" /> New
+          </Button>
+        </div>
+        {selectedTmpl && (
+          <p className="text-xs text-slate-500">{selectedTmpl.description}</p>
+        )}
+        <button
+          type="button"
+          onClick={() => setShowRawTemplate(!showRawTemplate)}
+          className="flex items-center gap-1.5 text-xs text-[#0060AF] hover:text-[#004d8c] font-medium"
+        >
+          {showRawTemplate ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          {showRawTemplate ? "Hide raw template" : "View raw template (before fill)"}
+        </button>
+        {showRawTemplate && selectedTmpl && (
+          <div className="rounded-lg border border-slate-300 bg-slate-900 overflow-hidden">
+            <div className="px-3 py-1.5 bg-slate-800 border-b border-slate-700">
+              <span className="text-[10px] font-mono text-slate-400">Raw template with {"{{placeholders}}"}</span>
+            </div>
+            <pre className="p-3 text-xs text-amber-300 font-mono whitespace-pre overflow-auto max-h-48 leading-relaxed">
+              {selectedTmpl.template}
+            </pre>
+          </div>
+        )}
       </div>
+
+      {validation && (
+        <div className={`rounded-lg border ${validation.valid ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
+          <button
+            type="button"
+            onClick={() => setValidationOpen(!validationOpen)}
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-left"
+          >
+            {validation.valid ? (
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <ShieldAlert className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span className={`text-sm font-semibold ${validation.valid ? "text-emerald-700" : "text-red-700"}`}>
+              {validation.valid
+                ? `Spec Valid${validation.warnings.length > 0 ? ` — ${validation.warnings.length} warning${validation.warnings.length !== 1 ? "s" : ""}` : ""}`
+                : `${validation.errors.length} error${validation.errors.length !== 1 ? "s" : ""}${validation.warnings.length > 0 ? `, ${validation.warnings.length} warning${validation.warnings.length !== 1 ? "s" : ""}` : ""}`
+              }
+            </span>
+            <span className="ml-auto">
+              {validationOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            </span>
+          </button>
+
+          {validationOpen && (validation.errors.length > 0 || validation.warnings.length > 0) && (
+            <div className="px-4 pb-3 space-y-1.5">
+              {validation.errors.map((e, i) => (
+                <div key={`e-${i}`} className="flex items-start gap-2 text-xs">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 uppercase shrink-0 mt-0.5">Error</span>
+                  <div>
+                    {e.path && <code className="text-red-600 font-mono text-[11px]">{e.path}</code>}
+                    <span className="text-red-700 ml-1">{e.message}</span>
+                  </div>
+                </div>
+              ))}
+              {validation.warnings.map((w, i) => (
+                <div key={`w-${i}`} className="flex items-start gap-2 text-xs">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 uppercase shrink-0 mt-0.5">Warn</span>
+                  <div>
+                    {w.path && <code className="text-amber-600 font-mono text-[11px]">{w.path}</code>}
+                    <span className="text-amber-700 ml-1">{w.message}</span>
+                  </div>
+                </div>
+              ))}
+              {validation.checked_at && (
+                <p className="text-[10px] text-slate-400 pt-1">Checked at {new Date(validation.checked_at).toLocaleTimeString()}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center gap-2 flex-wrap">
         <FileJson className="w-4 h-4 text-blue-600" />
-        <span className="text-sm font-semibold text-slate-900">Pipeline Spec</span>
-        <span className="text-xs text-slate-400 ml-1">(check this file into git)</span>
+        <span className="text-sm font-semibold text-slate-900">Generated Output</span>
         <div className="flex gap-1.5 ml-auto flex-wrap">
-          {["spec", "lineage", "dag"].map(v => (
-            <button key={v} type="button" onClick={() => setView(v)}
+          {[
+            { key: "airflow_dag", label: "Airflow DAG (YAML)" },
+            { key: "spec", label: "Pipeline Spec" },
+          ].map(v => (
+            <button key={v.key} type="button" onClick={() => setView(v.key)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
-                view === v ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
+                view === v.key ? "bg-[#0060AF] text-white border-[#0060AF]" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
               }`}>
-              {v === "dag" ? "Airflow DAG" : v === "lineage" ? "Lineage Spec" : "Pipeline Spec"}
+              {v.label}
             </button>
           ))}
-          {view === "spec" && !gitCheckInFormat && ["yaml", "json"].map(f => (
+          {view === "spec" && ["yaml", "json"].map(f => (
             <button key={f} type="button" onClick={() => setFormat(f)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
                 format === f ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
@@ -137,14 +313,6 @@ export default function JobSpecTabPreview({ formData, connections }) {
               {f.toUpperCase()}
             </button>
           ))}
-          {view === "spec" && (
-            <button type="button" onClick={() => setGitCheckInFormat(!gitCheckInFormat)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
-                gitCheckInFormat ? "bg-emerald-600 text-white border-emerald-600" : "bg-white text-slate-600 border-slate-200 hover:border-emerald-300"
-              }`}>
-              Git Checkin Format
-            </button>
-          )}
         </div>
       </div>
 
@@ -165,14 +333,26 @@ export default function JobSpecTabPreview({ formData, connections }) {
       )}
 
       <p className="text-xs text-slate-500">
-        This spec reflects the current (unsaved) form state. Save the pipeline first, then download to commit.
+        {view === "airflow_dag"
+          ? "YAML generated from the selected template, auto-filled with your pipeline configuration. This is the artifact that will be checked in."
+          : "Pipeline specification with all configuration details. Used as input to populate the DAG template."}
       </p>
       <div className="rounded-lg border border-slate-200 bg-slate-950 overflow-hidden">
+        <div className="px-3 py-1.5 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
+          <span className="text-[10px] font-mono text-slate-400">
+            {view === "airflow_dag" ? `${airflowFilename} — Template: ${selectedTmpl?.name || "none"}` : specFilename}
+          </span>
+          <span className="text-[10px] text-slate-500">{content.split("\n").length} lines</span>
+        </div>
         <pre className="p-4 text-xs text-emerald-300 font-mono whitespace-pre overflow-auto max-h-[50vh] leading-relaxed">
           {content}
         </pre>
       </div>
       <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={handleValidate} disabled={validating} className="gap-1.5">
+          {validating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          {validating ? "Validating..." : "Validate Spec"}
+        </Button>
         <Button type="button" variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
           {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
           {copied ? "Copied!" : "Copy"}
@@ -182,6 +362,16 @@ export default function JobSpecTabPreview({ formData, connections }) {
           Download {filename}
         </Button>
       </div>
+
+      {editorOpen && (
+        <CustomTemplateEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          editingTemplate={editingTemplate}
+          onSave={handleSaveTemplate}
+          onDelete={handleDeleteTemplate}
+        />
+      )}
     </div>
   );
 }

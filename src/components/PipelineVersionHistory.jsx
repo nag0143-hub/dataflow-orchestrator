@@ -73,7 +73,7 @@ export default function PipelineVersionHistory({ job, onRestore }) {
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${changeTypeColors[v.change_type] || "bg-slate-100 text-slate-600"}`}>
                   {v.change_type}
                 </span>
-                {idx === 0 && <span className="text-xs bg-slate-900 text-white px-2 py-0.5 rounded-full">current</span>}
+                {idx === 0 && <span className="text-xs bg-[#0060AF] text-white px-2 py-0.5 rounded-full">current</span>}
               </div>
               {v.commit_message && <p className="text-xs text-slate-500 mt-0.5 truncate">{v.commit_message}</p>}
             </div>

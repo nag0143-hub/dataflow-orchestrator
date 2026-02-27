@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import StatusBadge from "@/components/StatusBadge";
 import PlatformIcon from "@/components/PlatformIcon";
-import { Eye, Play, MoreVertical, FileJson, RotateCcw, Pause, Copy, Edit, Trash2, ArrowRight, GitBranch } from "lucide-react";
+import { Eye, Play, MoreVertical, FileJson, RotateCcw, Pause, Copy, Edit, Trash2, ArrowRight, GitBranch, Tag } from "lucide-react";
 import moment from "moment";
 import GitCheckinDialog from "@/components/GitCheckinDialog";
 
@@ -64,6 +64,17 @@ const PipelineCard = memo(function PipelineCard({
                 </div>
               )}
             </div>
+
+            {job.tags?.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {job.tags.map(tag => (
+                  <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
+                    <Tag className="w-3 h-3 mr-1" />
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Stats */}
@@ -105,10 +116,10 @@ const PipelineCard = memo(function PipelineCard({
               size="sm"
               onClick={() => setGitCheckinOpen(true)}
               className="gap-1 text-slate-500"
-              title="Git Check-out / Check-in"
+              title="View deployment artifacts"
             >
               <GitBranch className="w-4 h-4" />
-              Checkout
+              Deploy
             </Button>
             <Button
               variant="outline"

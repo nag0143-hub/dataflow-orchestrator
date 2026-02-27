@@ -3,7 +3,7 @@ import { dataflow } from '@/api/client';
 import { 
   Plus, Search, MoreVertical, Edit, Trash2, TestTube,
   Cable, Filter, Shield, CheckCircle2, XCircle, Loader2, Wifi, BookOpen, RefreshCw,
-  Tag, X, Layers, LayoutGrid, List
+  Tag, X, Layers, LayoutGrid, List, Lock, KeyRound, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,18 +97,29 @@ const PLATFORM_TEMPLATES = {
   local_fs: { auth_method: "none", file_config: { encoding: "UTF-8", file_pattern: "*", nas_path: "", archive_path: "" } },
 };
 
+const DEFAULT_VAULT_CONFIG = {
+  vault_url: "https://hcvault.us.bank-dns.com/",
+  vault_namespace: "",
+  vault_role_id: "",
+  vault_secret_id: "",
+  vault_mount_point: "secret",
+  vault_secret_path: "",
+};
+
 const defaultFormData = {
   name: "", source_system_name: "", description: "", car_id: "",
   connection_type: "source", platform: "", host: "", port: "", database: "",
-  username: "", auth_method: "password", region: "", bucket_container: "",
+  username: "", password: "", connection_string: "", auth_method: "password",
+  region: "", bucket_container: "", ssl: false,
   status: "active", notes: "", tags: [],
+  vault_config: { ...DEFAULT_VAULT_CONFIG },
   file_config: { delimiter: ",", encoding: "UTF-8", has_header: true, quote_char: '"', escape_char: "\\", record_length: "", copybook_path: "", file_pattern: "*", nas_path: "", archive_path: "" }
 };
 
 export default function Connections() {
   const { user, scope } = useTenant();
   const { retry } = useRetry();
-  const { data: cachedConnections = [], loading: cacheLoading } = useCache(
+  const { data: cachedConnections = [], loading: cacheLoading, revalidate } = useCache(
     'connections',
     () => dataflow.entities.Connection.list(),
     { staleTime: 5 * 60 * 1000 }
@@ -128,6 +139,8 @@ export default function Connections() {
   const [formTab, setFormTab] = useState("general");
   const [testingId, setTestingId] = useState(null);
   const [testResult, setTestResult] = useState(null);
+  const [vaultTesting, setVaultTesting] = useState(false);
+  const [vaultTestResult, setVaultTestResult] = useState(null);
 
   const connections = scope(cachedConnections || []);
   const loading = cacheLoading;
@@ -144,9 +157,8 @@ export default function Connections() {
   };
 
   const loadData = async () => {
-    // Trigger cache revalidation
     try {
-      await dataflow.entities.Connection.list();
+      revalidate();
       await loadPrereqs();
     } catch (err) {
       setError(err?.message || "Failed to refresh connections");
@@ -196,10 +208,14 @@ export default function Connections() {
       description: connection.description || "", car_id: connection.car_id || "",
       connection_type: connection.connection_type || "source", platform: connection.platform || "",
       host: connection.host || "", port: connection.port || "", database: connection.database || "",
-      username: connection.username || "", auth_method: connection.auth_method || "password",
+      username: connection.username || "", password: connection.password || "",
+      connection_string: connection.connection_string || "",
+      auth_method: connection.auth_method || "password",
+      ssl: connection.ssl || false,
       region: connection.region || "", bucket_container: connection.bucket_container || "",
       status: connection.status || "active", notes: connection.notes || "",
       tags: connection.tags || [],
+      vault_config: connection.vault_config || { ...DEFAULT_VAULT_CONFIG },
       file_config: connection.file_config || defaultFormData.file_config
     });
     setFormTab("general");
@@ -222,31 +238,63 @@ export default function Connections() {
   const handleTestConnection = async (connection) => {
     setTestingId(connection.id);
     setTestResult(null);
-    const startTime = Date.now();
     try {
-      const hasRequired = connection.host || connection.bucket_container || connection.file_config?.nas_path;
-      const hasAuth = connection.auth_method === "none" || connection.username;
-      const success = !!(hasRequired && hasAuth);
-      const latency = Date.now() - startTime;
+      const response = await fetch('/api/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform: connection.platform,
+          host: connection.host,
+          port: connection.port,
+          database: connection.database,
+          username: connection.username,
+          password: connection.password,
+          connection_string: connection.connection_string,
+          auth_method: connection.auth_method,
+          ssl: connection.ssl,
+          region: connection.region,
+          bucket_container: connection.bucket_container,
+          file_config: connection.file_config,
+          vault_config: connection.vault_config,
+        }),
+      });
+      const result = await response.json();
 
-      await retry(() => dataflow.entities.Connection.update(connection.id, { status: success ? "active" : "error", last_tested: new Date().toISOString() }));
+      await retry(() => dataflow.entities.Connection.update(connection.id, {
+        status: result.success ? "active" : "error",
+        last_tested: new Date().toISOString(),
+      }));
       dataflow.entities.ActivityLog.create({
-        log_type: success ? "success" : "error", category: "connection", connection_id: connection.id,
-        message: success ? `Connection "${connection.name}" test passed (${latency}ms)` : `Connection "${connection.name}" test failed`
+        log_type: result.success ? "success" : "error",
+        category: "connection",
+        connection_id: connection.id,
+        message: result.success
+          ? `Connection "${connection.name}" test passed (${result.latency_ms}ms) — ${result.server_version || 'OK'}`
+          : `Connection "${connection.name}" test failed: ${result.error_message || 'Unknown error'}`,
       }).catch(() => {});
 
-      setTestResult({ connection, success, latency_ms: latency, error_code: success ? null : "INVALID_CONFIG", error_message: success ? null : "Missing required connection details", server_version: success ? "Connection validated" : null });
+      setTestResult({ connection, ...result });
       loadData();
     } catch (err) {
       console.error("[Connections] handleTestConnection error:", err);
-      toast.error("Test failed unexpectedly");
+      setTestResult({
+        connection,
+        success: false,
+        latency_ms: 0,
+        error_code: 'NETWORK_ERROR',
+        error_message: `Could not reach the test endpoint: ${err.message}`,
+      });
     } finally {
       setTestingId(null);
     }
   };
 
   const filteredConnections = useMemo(() => connections.filter(c => {
-    const matchesSearch = (c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (c.platform || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = !term ||
+      (c.name || "").toLowerCase().includes(term) ||
+      (c.platform || "").toLowerCase().includes(term) ||
+      (c.tags || []).some(tag => tag.toLowerCase().includes(term));
     return matchesSearch && (filterType === "all" || c.connection_type === filterType);
   }), [connections, searchTerm, filterType]);
 
@@ -287,8 +335,8 @@ export default function Connections() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Connections</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Manage your data sources and targets</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Connections</h1>
+            <p className="text-muted-foreground mt-0.5">Manage your data sources and targets</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={loadData} title="Refresh">
@@ -305,7 +353,7 @@ export default function Connections() {
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input placeholder="Search connections..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+            <Input placeholder="Search by name, platform, or tag..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-40">
@@ -328,11 +376,11 @@ export default function Connections() {
           </Button>
           <div className="flex border rounded-md overflow-hidden shrink-0">
             <button
-              className={`px-2.5 py-1.5 ${viewMode === "grid" ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+              className={`px-2.5 py-1.5 ${viewMode === "grid" ? "bg-[#0060AF] text-white dark:bg-[#0060AF] dark:text-white" : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
               onClick={() => setViewMode("grid")} title="Grid view"
             ><LayoutGrid className="w-4 h-4" /></button>
             <button
-              className={`px-2.5 py-1.5 ${viewMode === "list" ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+              className={`px-2.5 py-1.5 ${viewMode === "list" ? "bg-[#0060AF] text-white dark:bg-[#0060AF] dark:text-white" : "bg-white dark:bg-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
               onClick={() => setViewMode("list")} title="List view"
             ><List className="w-4 h-4" /></button>
           </div>
@@ -392,12 +440,14 @@ export default function Connections() {
             </div>
           )
         ) : (
-          <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700">
-            <CardContent className="py-16 text-center">
-              <Cable className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No connections found</h3>
-              <p className="text-slate-500 dark:text-slate-400 mb-4">{searchTerm ? "Try adjusting your search" : "Create your first connection to get started"}</p>
-              {!searchTerm && <Button onClick={() => setDialogOpen(true)} className="gap-2"><Plus className="w-4 h-4" />New Connection</Button>}
+          <Card>
+            <CardContent className="py-12 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-5">
+                <Cable className="w-8 h-8 text-[#0060AF] dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-1">No connections found</h3>
+              <p className="text-muted-foreground mb-6">{searchTerm ? "Try adjusting your search" : "Create your first connection to get started"}</p>
+              {!searchTerm && <Button onClick={() => setDialogOpen(true)} className="gap-2 bg-[#0060AF] hover:bg-[#004d8c] text-white"><Plus className="w-4 h-4" />New Connection</Button>}
             </CardContent>
           </Card>
         )}
@@ -478,7 +528,7 @@ export default function Connections() {
                       </div>
                     )}
 
-                    {!isCloudPlatform && !isFilePlatform && (
+                    {!isCloudPlatform && !isFilePlatform && formData.auth_method !== "vault_credentials" && (
                       <>
                         <div><Label>Host</Label><Input value={formData.host} onChange={(e) => setFormData({...formData, host: e.target.value})} placeholder="localhost or IP" /></div>
                         <div><Label>Port</Label><Input type="number" value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="1433" /></div>
@@ -510,10 +560,14 @@ export default function Connections() {
 
                     <div>
                       <Label>Auth Method</Label>
-                      <Select value={formData.auth_method} onValueChange={(v) => setFormData({...formData, auth_method: v})}>
+                      <Select value={formData.auth_method} onValueChange={(v) => {
+                        setFormData({...formData, auth_method: v});
+                        setVaultTestResult(null);
+                      }}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="password">Password</SelectItem>
+                          <SelectItem value="vault_credentials">Vault Credentials (HashiCorp)</SelectItem>
                           <SelectItem value="key">Access Key</SelectItem>
                           <SelectItem value="sftp_key">SFTP Private Key</SelectItem>
                           <SelectItem value="connection_string">Connection String</SelectItem>
@@ -522,7 +576,101 @@ export default function Connections() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div><Label>Username / Access Key ID</Label><Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="Username" /></div>
+                    {formData.auth_method === "vault_credentials" ? (
+                      <div className="col-span-2 space-y-3">
+                        <div className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                          <Lock className="w-3.5 h-3.5 shrink-0" />
+                          <span>Credentials are retrieved from HashiCorp Vault at connection time using AppRole authentication. No passwords are stored in DataFlow.</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-800/50">
+                          <div className="col-span-2">
+                            <Label className="text-xs">Vault URL</Label>
+                            <Input value={formData.vault_config?.vault_url || ""} onChange={(e) => setFormData({...formData, vault_config: {...formData.vault_config, vault_url: e.target.value}})} placeholder="https://hcvault.us.bank-dns.com/" className="text-sm" />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Namespace</Label>
+                            <Input value={formData.vault_config?.vault_namespace || ""} onChange={(e) => setFormData({...formData, vault_config: {...formData.vault_config, vault_namespace: e.target.value}})} placeholder="8118" className="text-sm" />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Mount Point</Label>
+                            <Input value={formData.vault_config?.vault_mount_point || "secret"} onChange={(e) => setFormData({...formData, vault_config: {...formData.vault_config, vault_mount_point: e.target.value}})} placeholder="secret" className="text-sm" />
+                          </div>
+                          <div>
+                            <Label className="text-xs">AppRole Role ID</Label>
+                            <Input value={formData.vault_config?.vault_role_id || ""} onChange={(e) => setFormData({...formData, vault_config: {...formData.vault_config, vault_role_id: e.target.value}})} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" className="font-mono text-xs" />
+                          </div>
+                          <div>
+                            <Label className="text-xs">AppRole Secret ID</Label>
+                            <Input type="password" value={formData.vault_config?.vault_secret_id || ""} onChange={(e) => setFormData({...formData, vault_config: {...formData.vault_config, vault_secret_id: e.target.value}})} placeholder="••••••••" className="font-mono text-xs" />
+                          </div>
+                          <div className="col-span-2">
+                            <Label className="text-xs">Secret Path</Label>
+                            <Input value={formData.vault_config?.vault_secret_path || ""} onChange={(e) => setFormData({...formData, vault_config: {...formData.vault_config, vault_secret_path: e.target.value}})} placeholder="/prod/common/appid/azbdpappidprod" className="font-mono text-sm" />
+                            <p className="text-xs text-muted-foreground mt-1">KV v2 path containing username/password keys</p>
+                          </div>
+                          <div className="col-span-2 flex items-center gap-2">
+                            <Button
+                              type="button" variant="outline" size="sm"
+                              className="text-xs gap-1.5"
+                              disabled={vaultTesting || !formData.vault_config?.vault_role_id || !formData.vault_config?.vault_secret_path}
+                              onClick={async () => {
+                                setVaultTesting(true);
+                                setVaultTestResult(null);
+                                try {
+                                  const res = await fetch('/api/test-vault', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(formData.vault_config),
+                                  });
+                                  const result = await res.json();
+                                  setVaultTestResult(result);
+                                } catch (err) {
+                                  setVaultTestResult({ success: false, error: err.message });
+                                } finally {
+                                  setVaultTesting(false);
+                                }
+                              }}
+                            >
+                              {vaultTesting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <KeyRound className="w-3.5 h-3.5" />}
+                              Test Vault Connection
+                            </Button>
+                            {vaultTestResult && (
+                              <span className={`text-xs font-medium ${vaultTestResult.success ? "text-emerald-600" : "text-red-600"}`}>
+                                {vaultTestResult.success
+                                  ? `Connected — found keys: ${vaultTestResult.raw_keys?.join(", ") || "none"}`
+                                  : vaultTestResult.error}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div><Label className="text-xs">Host (override or leave for vault)</Label><Input value={formData.host} onChange={(e) => setFormData({...formData, host: e.target.value})} placeholder="From vault or enter manually" className="text-sm" /></div>
+                          <div><Label className="text-xs">Port (override or leave for vault)</Label><Input type="number" value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="From vault" className="text-sm" /></div>
+                          <div className="col-span-2"><Label className="text-xs">Database (override or leave for vault)</Label><Input value={formData.database} onChange={(e) => setFormData({...formData, database: e.target.value})} placeholder="From vault or enter manually" className="text-sm" /></div>
+                        </div>
+                      </div>
+                    ) : formData.auth_method === "connection_string" ? (
+                      <div className="col-span-2">
+                        <Label>Connection String</Label>
+                        <Input type="password" value={formData.connection_string} onChange={(e) => setFormData({...formData, connection_string: e.target.value})} placeholder="postgresql://user:pass@host:5432/db" />
+                        <p className="text-xs text-muted-foreground mt-1">Full connection URI overrides host, port, database, and credentials</p>
+                      </div>
+                    ) : formData.auth_method !== "none" && formData.auth_method !== "managed_identity" ? (
+                      <>
+                        <div><Label>{formData.auth_method === "key" ? "Access Key ID" : "Username"}</Label><Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder={formData.auth_method === "key" ? "AKIA..." : "Username"} /></div>
+                        <div><Label>{formData.auth_method === "key" ? "Secret Access Key" : "Password"}</Label><Input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="••••••••" /></div>
+                      </>
+                    ) : formData.auth_method !== "managed_identity" ? null : (
+                      <div className="col-span-2 text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-md px-3 py-2">
+                        Managed Identity authentication uses the host environment's identity. No credentials are needed.
+                      </div>
+                    )}
+                    {!isFilePlatform && formData.auth_method !== "connection_string" && (
+                      <div className="flex items-center gap-3 col-span-2">
+                        <Switch checked={formData.ssl || false} onCheckedChange={v => setFormData({...formData, ssl: v})} />
+                        <Label>Use SSL / TLS encryption</Label>
+                      </div>
+                    )}
                     <div>
                       <Label>Status</Label>
                       <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
@@ -626,7 +774,54 @@ export default function Connections() {
               </Tabs>
 
               <div className="flex items-center justify-between pt-4 mt-4 border-t">
-                <SaveAsProfileButton formData={formData} />
+                <div className="flex items-center gap-2">
+                  <SaveAsProfileButton formData={formData} />
+                  {formData.platform && (
+                    <Button
+                      type="button" variant="outline" size="sm"
+                      className="text-xs gap-1.5"
+                      disabled={testingId === 'form'}
+                      onClick={async () => {
+                        setTestingId('form');
+                        try {
+                          const response = await fetch('/api/test-connection', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              platform: formData.platform,
+                              host: formData.host,
+                              port: formData.port,
+                              database: formData.database,
+                              username: formData.username,
+                              password: formData.password,
+                              connection_string: formData.connection_string,
+                              auth_method: formData.auth_method,
+                              ssl: formData.ssl,
+                              region: formData.region,
+                              bucket_container: formData.bucket_container,
+                              file_config: formData.file_config,
+                              vault_config: formData.vault_config,
+                            }),
+                          });
+                          const result = await response.json();
+                          setTestResult({ connection: { ...formData, id: 'form-test' }, ...result });
+                        } catch (err) {
+                          setTestResult({
+                            connection: { ...formData, id: 'form-test' },
+                            success: false, latency_ms: 0,
+                            error_code: 'NETWORK_ERROR',
+                            error_message: err.message,
+                          });
+                        } finally {
+                          setTestingId(null);
+                        }
+                      }}
+                    >
+                      {testingId === 'form' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wifi className="w-3.5 h-3.5" />}
+                      Test
+                    </Button>
+                  )}
+                </div>
                 <div className="flex gap-3">
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
                   <Button type="submit" disabled={saving}>{saving ? "Saving..." : editingConnection ? "Update" : "Create"}</Button>

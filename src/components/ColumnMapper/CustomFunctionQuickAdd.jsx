@@ -102,7 +102,7 @@ export default function CustomFunctionQuickAdd({ customFunctions, onFunctionAdde
           <div className="flex gap-2">
             <Button
               size="sm"
-              className="h-7 text-xs gap-1 bg-slate-800 hover:bg-slate-900 dark:bg-slate-600 dark:hover:bg-slate-500"
+              className="h-7 text-xs gap-1 bg-[#0060AF] hover:bg-[#004d8c] dark:bg-[#0060AF] dark:hover:bg-[#004d8c]"
               disabled={!form.name || !form.label || saving}
               onClick={save}
             >

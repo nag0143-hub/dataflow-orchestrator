@@ -15,6 +15,7 @@ const SCHEDULE_OPTS = [
   { value: "event_driven",  label: "Event Driven" },
 ];
 
+
 const EVENT_SENSOR_OPTS = [
   { value: "file_watcher",   label: "File Watcher",    desc: "Trigger when a file appears or changes in a path" },
   { value: "s3_event",       label: "S3 / ADLS Event", desc: "Trigger on object create/update in cloud storage" },
@@ -31,28 +32,8 @@ export default function ScheduleSettings({ formData, setFormData }) {
 
   return (
     <div className="space-y-4">
-      {/* Load Method */}
-      <div className="border border-slate-200 rounded-lg p-4 space-y-3">
-        <Label className="text-sm font-semibold">Load Method *</Label>
-        <p className="text-xs text-slate-500">How to handle existing data in the target</p>
-        <Select
-          value={formData.load_method || "append"}
-          onValueChange={(v) => setFormData({ ...formData, load_method: v })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="append">Append - Add new rows</SelectItem>
-            <SelectItem value="replace">Replace - Clear and reload</SelectItem>
-            <SelectItem value="upsert">Upsert - Insert or update</SelectItem>
-            <SelectItem value="merge">Merge - Advanced strategy</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Schedule */}
-      <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+      <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 space-y-3">
         <Label className="text-sm font-semibold">Run Schedule</Label>
         <p className="text-xs text-slate-500">When this pipeline should run</p>
 
@@ -76,7 +57,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
               className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
                 schedType === opt.value
                   ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
+                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-300"
               }`}
             >
               {opt.label}
@@ -301,7 +282,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
         {/* Event Driven */}
         {schedType === "event_driven" && (
           <div className="space-y-3">
-            <Label className="text-xs font-semibold text-slate-700">Sensor / Trigger Type</Label>
+            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Sensor / Trigger Type</Label>
             <div className="grid grid-cols-1 gap-2">
               {EVENT_SENSOR_OPTS.map(opt => {
                 const isSelected = formData.event_sensor_type === opt.value;
@@ -313,7 +294,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                     className={`flex items-start gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
                       isSelected
                         ? "bg-purple-50 border-purple-400 text-purple-900"
-                        : "bg-white border-slate-200 hover:border-purple-300 text-slate-700"
+                        : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-purple-300 text-slate-700 dark:text-slate-300"
                     }`}
                   >
                     <div className={`w-3.5 h-3.5 rounded-full border-2 mt-0.5 shrink-0 ${
@@ -370,7 +351,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                     <Input
                       value={`/api/webhooks/pipeline/${formData.name || "<pipeline-name>"}/trigger`}
                       readOnly
-                      className="font-mono text-sm bg-slate-50 text-slate-500"
+                      className="font-mono text-sm bg-slate-50 dark:bg-slate-800 text-slate-500"
                     />
                     <p className="text-xs text-slate-400">POST to this endpoint with a valid API key to trigger the pipeline.</p>
                   </div>
@@ -429,7 +410,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
           <div className="pt-2 border-t border-slate-100 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-700">Use Custom Calendar</p>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Use Custom Calendar</p>
                 <p className="text-xs text-slate-400">Apply include/exclude date rules (e.g. bank holidays)</p>
               </div>
               <Switch
@@ -441,7 +422,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
             {formData.use_custom_calendar && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-slate-700 font-semibold mb-1 block">
+                  <Label className="text-xs text-slate-700 dark:text-slate-300 font-semibold mb-1 block">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1" />
                     Include Calendar
                   </Label>
@@ -461,7 +442,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-700 font-semibold mb-1 block">
+                  <Label className="text-xs text-slate-700 dark:text-slate-300 font-semibold mb-1 block">
                     <span className="w-2 h-2 rounded-full bg-red-400 inline-block mr-1" />
                     Exclude Calendar
                   </Label>
@@ -485,10 +466,10 @@ export default function ScheduleSettings({ formData, setFormData }) {
         )}
 
         {/* Advanced Features Toggle */}
-        <div className="border border-slate-200 rounded-xl p-4">
+        <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-700">Advanced Features</p>
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Advanced Features</p>
               <p className="text-xs text-slate-400">Enable advanced options for data quality, column mapping, and cleansing</p>
             </div>
             <Switch
@@ -498,6 +479,7 @@ export default function ScheduleSettings({ formData, setFormData }) {
           </div>
         </div>
       </div>
+
     </div>
   );
 }

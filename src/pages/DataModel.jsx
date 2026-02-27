@@ -5,19 +5,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 
 const DDL = `-- ============================================================
--- DataFlow Platform — PostgreSQL DDL
+-- DataFlow Platform — PostgreSQL DDL (Performance-Optimized)
 -- Generated: ${new Date().toISOString().slice(0, 10)}
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 -- ------------------------------------------------------------
 -- ENUM TYPES
 -- ------------------------------------------------------------
 
 CREATE TYPE connection_type_enum    AS ENUM ('source', 'target');
-CREATE TYPE platform_enum           AS ENUM ('sql_server','oracle','postgresql','mysql','mongodb','adls2','s3','flat_file_delimited','flat_file_fixed_width','cobol_ebcdic','sftp','nas','local_fs');
-CREATE TYPE auth_method_enum        AS ENUM ('password','key','connection_string','managed_identity','sftp_key','none');
+CREATE TYPE platform_enum           AS ENUM ('sql_server','oracle','postgresql','mysql','mongodb','adls2','s3','flat_file_delimited','flat_file_fixed_width','cobol_ebcdic','sftp','nas','local_fs','azure_synapse','snowflake','databricks');
+CREATE TYPE auth_method_enum        AS ENUM ('password','key','connection_string','managed_identity','sftp_key','none','vault_credentials');
 CREATE TYPE connection_status_enum  AS ENUM ('active','inactive','error','pending_setup');
 CREATE TYPE schedule_type_enum      AS ENUM ('manual','hourly','daily','weekly','custom');
 CREATE TYPE job_status_enum         AS ENUM ('idle','running','completed','failed','paused');
@@ -26,10 +27,15 @@ CREATE TYPE triggered_by_enum       AS ENUM ('manual','schedule','retry');
 CREATE TYPE log_type_enum           AS ENUM ('info','warning','error','success');
 CREATE TYPE log_category_enum       AS ENUM ('connection','job','system','authentication');
 CREATE TYPE change_type_enum        AS ENUM ('created','updated','paused','resumed','deleted');
-CREATE TYPE prereq_type_enum        AS ENUM ('nsg_rule','egress_rule','nas_path','dba_access','firewall_rule','service_account','vpn_tunnel','other');
+CREATE TYPE prereq_type_enum        AS ENUM ('nsg_rule','egress_rule','nas_path','dba_access','firewall_rule','service_account','vpn_tunnel','vault_credentials','app_id','entitlement','other');
 CREATE TYPE assigned_team_enum      AS ENUM ('networking','dba','security','storage','platform','other');
 CREATE TYPE prereq_status_enum      AS ENUM ('pending','in_progress','completed','rejected','not_required');
 CREATE TYPE priority_enum           AS ENUM ('high','medium','low');
+CREATE TYPE audit_action_enum       AS ENUM ('create','update','delete','login','logout','export','import');
+CREATE TYPE ingestion_job_type_enum AS ENUM ('full_load','incremental','cdc','snapshot');
+CREATE TYPE ingestion_status_enum   AS ENUM ('pending','running','completed','failed','cancelled');
+CREATE TYPE function_type_enum      AS ENUM ('transform','validate','enrich','filter','aggregate');
+CREATE TYPE template_type_enum      AS ENUM ('dag_factory','custom','jinja','python');
 
 -- ------------------------------------------------------------
 -- CONNECTION
@@ -54,14 +60,26 @@ CREATE TABLE connection (
     auth_method     auth_method_enum DEFAULT 'password',
     region          TEXT,
     bucket_container TEXT,
-    file_config     JSONB,          -- delimiter, encoding, has_header, quote_char, …
+    file_config     JSONB,
+    vault_config    JSONB,
+    tags            TEXT[],
+    environment     TEXT,
     status          connection_status_enum DEFAULT 'active',
     last_tested     TIMESTAMPTZ,
     notes           TEXT
 );
 
-CREATE INDEX idx_connection_status   ON connection(status);
-CREATE INDEX idx_connection_platform ON connection(platform);
+CREATE INDEX idx_connection_status    ON connection(status);
+CREATE INDEX idx_connection_platform  ON connection(platform);
+CREATE INDEX idx_connection_type      ON connection(connection_type);
+CREATE INDEX idx_connection_env       ON connection(environment);
+CREATE INDEX idx_connection_file_cfg  ON connection USING GIN(file_config);
+CREATE INDEX idx_connection_vault_cfg ON connection USING GIN(vault_config);
+CREATE INDEX idx_connection_tags      ON connection USING GIN(tags);
+CREATE INDEX idx_connection_name_trgm ON connection USING GIN(name gin_trgm_ops);
+CREATE INDEX idx_connection_fts       ON connection USING GIN(
+  to_tsvector('english', coalesce(name,'') || ' ' || coalesce(description,'') || ' ' || coalesce(platform::text,''))
+);
 
 -- ------------------------------------------------------------
 -- PIPELINE
@@ -79,16 +97,19 @@ CREATE TABLE pipeline (
     target_connection_id UUID NOT NULL REFERENCES connection(id) ON DELETE RESTRICT,
     source_path          TEXT,
     source_format        TEXT,
-    selected_objects     JSONB,      -- [{schema, table, filter_query, target_path, incremental_column, last_value}]
+    selected_objects     JSONB,
     schedule_type        schedule_type_enum DEFAULT 'manual',
     cron_expression      TEXT,
     status               job_status_enum DEFAULT 'idle',
-    retry_config         JSONB,      -- {max_retries, retry_delay_seconds, exponential_backoff}
+    retry_config         JSONB,
     use_custom_calendar  BOOLEAN DEFAULT false,
     include_calendar_id  TEXT,
     exclude_calendar_id  TEXT,
-    column_mappings      JSONB,      -- {"schema.table": [{source, target, transformation}]}
-    dq_rules             JSONB,      -- {"schema.table": {dataset_rules: [], column_rules: []}}
+    column_mappings      JSONB,
+    dq_rules             JSONB,
+    tags                 TEXT[],
+    owner                TEXT,
+    dag_id               TEXT,
     last_run             TIMESTAMPTZ,
     next_run             TIMESTAMPTZ,
     total_runs           INTEGER DEFAULT 0,
@@ -96,9 +117,19 @@ CREATE TABLE pipeline (
     failed_runs          INTEGER DEFAULT 0
 );
 
-CREATE INDEX idx_pipeline_status ON pipeline(status);
-CREATE INDEX idx_pipeline_source ON pipeline(source_connection_id);
-CREATE INDEX idx_pipeline_target ON pipeline(target_connection_id);
+CREATE INDEX idx_pipeline_status    ON pipeline(status);
+CREATE INDEX idx_pipeline_source    ON pipeline(source_connection_id);
+CREATE INDEX idx_pipeline_target    ON pipeline(target_connection_id);
+CREATE INDEX idx_pipeline_owner     ON pipeline(owner);
+CREATE INDEX idx_pipeline_dag_id    ON pipeline(dag_id);
+CREATE INDEX idx_pipeline_tags      ON pipeline USING GIN(tags);
+CREATE INDEX idx_pipeline_sel_obj   ON pipeline USING GIN(selected_objects);
+CREATE INDEX idx_pipeline_col_map   ON pipeline USING GIN(column_mappings);
+CREATE INDEX idx_pipeline_dq        ON pipeline USING GIN(dq_rules);
+CREATE INDEX idx_pipeline_name_trgm ON pipeline USING GIN(name gin_trgm_ops);
+CREATE INDEX idx_pipeline_fts       ON pipeline USING GIN(
+  to_tsvector('english', coalesce(name,'') || ' ' || coalesce(description,''))
+);
 
 -- ------------------------------------------------------------
 -- PIPELINE RUN
@@ -123,11 +154,11 @@ CREATE TABLE pipeline_run (
     triggered_by      triggered_by_enum DEFAULT 'manual'
 );
 
-CREATE INDEX idx_pipeline_run_pipeline_id ON pipeline_run(pipeline_id);
-CREATE INDEX idx_pipeline_run_status ON pipeline_run(status);
-CREATE INDEX idx_pipeline_run_pipeline_status ON pipeline_run(pipeline_id, status);
-CREATE INDEX idx_pipeline_run_triggered ON pipeline_run(triggered_by);
-CREATE INDEX idx_pipeline_run_started ON pipeline_run(started_at DESC);
+CREATE INDEX idx_run_pipeline       ON pipeline_run(pipeline_id);
+CREATE INDEX idx_run_status         ON pipeline_run(status);
+CREATE INDEX idx_run_pipe_status    ON pipeline_run(pipeline_id, status);
+CREATE INDEX idx_run_triggered      ON pipeline_run(triggered_by);
+CREATE INDEX idx_run_started        ON pipeline_run(started_at DESC);
 
 -- ------------------------------------------------------------
 -- ACTIVITY LOG
@@ -148,11 +179,14 @@ CREATE TABLE activity_log (
     stack_trace   TEXT
 );
 
-CREATE INDEX idx_activity_log_category ON activity_log(category);
-CREATE INDEX idx_activity_log_log_type ON activity_log(log_type);
-CREATE INDEX idx_activity_log_job      ON activity_log(job_id);
-CREATE INDEX idx_activity_log_conn     ON activity_log(connection_id);
-CREATE INDEX idx_activity_log_created  ON activity_log(created_date DESC);
+CREATE INDEX idx_alog_category ON activity_log(category);
+CREATE INDEX idx_alog_log_type ON activity_log(log_type);
+CREATE INDEX idx_alog_job      ON activity_log(job_id);
+CREATE INDEX idx_alog_conn     ON activity_log(connection_id);
+CREATE INDEX idx_alog_created  ON activity_log(created_date DESC);
+CREATE INDEX idx_alog_fts      ON activity_log USING GIN(
+  to_tsvector('english', coalesce(message,'') || ' ' || coalesce(category::text,''))
+);
 
 -- ------------------------------------------------------------
 -- PIPELINE VERSION
@@ -166,14 +200,15 @@ CREATE TABLE pipeline_version (
     version_number INTEGER NOT NULL,
     label          TEXT,
     commit_message TEXT,
-    snapshot       JSONB NOT NULL,  -- full copy of pipeline at this point in time
+    snapshot       JSONB NOT NULL,
     changed_by     TEXT,
     change_type    change_type_enum NOT NULL,
 
     UNIQUE (pipeline_id, version_number)
 );
 
-CREATE INDEX idx_pipeline_version_pipeline ON pipeline_version(pipeline_id, version_number DESC);
+CREATE INDEX idx_pver_pipeline ON pipeline_version(pipeline_id, version_number DESC);
+CREATE INDEX idx_pver_snapshot ON pipeline_version USING GIN(snapshot);
 
 -- ------------------------------------------------------------
 -- CONNECTION PREREQUISITE
@@ -202,15 +237,93 @@ CREATE INDEX idx_prereq_connection ON connection_prerequisite(connection_id);
 CREATE INDEX idx_prereq_status     ON connection_prerequisite(status);
 CREATE INDEX idx_prereq_type       ON connection_prerequisite(prereq_type);
 
--- JSONB indexes for common query patterns
-CREATE INDEX idx_connection_file_config ON connection USING GIN(file_config);
-CREATE INDEX idx_pipeline_selected_objects ON pipeline USING GIN(selected_objects);
-CREATE INDEX idx_pipeline_column_mappings ON pipeline USING GIN(column_mappings);
-CREATE INDEX idx_pipeline_dq_rules ON pipeline USING GIN(dq_rules);
-CREATE INDEX idx_pipeline_version_snapshot ON pipeline_version USING GIN(snapshot);
+-- ------------------------------------------------------------
+-- AUDIT LOG
+-- ------------------------------------------------------------
+
+CREATE TABLE audit_log (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date  TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    entity_type   TEXT NOT NULL,
+    entity_id     UUID,
+    action        audit_action_enum NOT NULL,
+    changed_by    TEXT NOT NULL,
+    changes       JSONB,
+    ip_address    TEXT
+);
+
+CREATE INDEX idx_audit_entity   ON audit_log(entity_type, entity_id);
+CREATE INDEX idx_audit_action   ON audit_log(action);
+CREATE INDEX idx_audit_user     ON audit_log(changed_by);
+CREATE INDEX idx_audit_created  ON audit_log(created_date DESC);
 
 -- ------------------------------------------------------------
--- CONNECTION PROFILE  (reusable template)
+-- INGESTION JOB
+-- ------------------------------------------------------------
+
+CREATE TABLE ingestion_job (
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date   TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    pipeline_id    UUID NOT NULL REFERENCES pipeline(id) ON DELETE CASCADE,
+    job_type       ingestion_job_type_enum NOT NULL,
+    status         ingestion_status_enum NOT NULL DEFAULT 'pending',
+    config         JSONB,
+    last_run       TIMESTAMPTZ,
+    error_message  TEXT
+);
+
+CREATE INDEX idx_ijob_pipeline ON ingestion_job(pipeline_id);
+CREATE INDEX idx_ijob_status   ON ingestion_job(status);
+CREATE INDEX idx_ijob_type     ON ingestion_job(job_type);
+
+-- ------------------------------------------------------------
+-- AIRFLOW DAG
+-- ------------------------------------------------------------
+
+CREATE TABLE airflow_dag (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date        TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    pipeline_id         UUID NOT NULL REFERENCES pipeline(id) ON DELETE CASCADE,
+    dag_id              TEXT NOT NULL,
+    dag_yaml            TEXT,
+    dag_factory_config  JSONB,
+    deployed_at         TIMESTAMPTZ,
+    deployed_by         TEXT,
+    version             INTEGER DEFAULT 1
+);
+
+CREATE INDEX idx_adag_pipeline  ON airflow_dag(pipeline_id);
+CREATE INDEX idx_adag_dag_id    ON airflow_dag(dag_id);
+
+-- ------------------------------------------------------------
+-- CUSTOM FUNCTION
+-- ------------------------------------------------------------
+
+CREATE TABLE custom_function (
+    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date   TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    name           TEXT NOT NULL,
+    description    TEXT,
+    function_type  function_type_enum NOT NULL,
+    code           TEXT NOT NULL,
+    language       TEXT DEFAULT 'python',
+    parameters     JSONB,
+    created_by     TEXT NOT NULL
+);
+
+CREATE INDEX idx_cfunc_type      ON custom_function(function_type);
+CREATE INDEX idx_cfunc_lang      ON custom_function(language);
+CREATE INDEX idx_cfunc_name_trgm ON custom_function USING GIN(name gin_trgm_ops);
+
+-- ------------------------------------------------------------
+-- CONNECTION PROFILE (reusable template)
 -- ------------------------------------------------------------
 
 CREATE TABLE connection_profile (
@@ -234,31 +347,85 @@ CREATE TABLE connection_profile (
     notes            TEXT
 );
 
+CREATE INDEX idx_cprof_platform ON connection_profile(platform);
+
 -- ------------------------------------------------------------
--- RETENTION POLICY - Activity Log Purge (30-day retention)
--- Run this periodically via cron job or scheduled task
+-- DATA CATALOG ENTRY
 -- ------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION purge_old_activity_logs()
+CREATE TABLE data_catalog_entry (
+    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date          TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    name                  TEXT NOT NULL,
+    description           TEXT,
+    source_connection_id  UUID REFERENCES connection(id) ON DELETE SET NULL,
+    schema_name           TEXT,
+    table_name            TEXT,
+    columns               JSONB,
+    row_count             BIGINT,
+    last_profiled         TIMESTAMPTZ,
+    tags                  TEXT[],
+    owner                 TEXT
+);
+
+CREATE INDEX idx_dcat_connection ON data_catalog_entry(source_connection_id);
+CREATE INDEX idx_dcat_tags       ON data_catalog_entry USING GIN(tags);
+CREATE INDEX idx_dcat_name_trgm  ON data_catalog_entry USING GIN(name gin_trgm_ops);
+
+-- ------------------------------------------------------------
+-- DAG TEMPLATE
+-- ------------------------------------------------------------
+
+CREATE TABLE dag_template (
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_date      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_date      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    name              TEXT NOT NULL,
+    description       TEXT,
+    template_type     template_type_enum NOT NULL,
+    template_content  TEXT NOT NULL,
+    parameters        JSONB,
+    created_by        TEXT NOT NULL,
+    version           INTEGER DEFAULT 1
+);
+
+CREATE INDEX idx_dtpl_type ON dag_template(template_type);
+
+-- ------------------------------------------------------------
+-- RETENTION FUNCTIONS
+-- ------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION purge_old_activity_logs(retention_days INTEGER DEFAULT 30)
 RETURNS TABLE(deleted_count INTEGER) LANGUAGE plpgsql AS $$
 DECLARE
   count_deleted INTEGER;
 BEGIN
   DELETE FROM activity_log
-  WHERE created_date < (now() - INTERVAL '30 days');
-  
+  WHERE created_date < (now() - (retention_days || ' days')::INTERVAL);
+
   GET DIAGNOSTICS count_deleted = ROW_COUNT;
   RETURN QUERY SELECT count_deleted;
 END;
 $$;
 
--- Example: Run daily at 2 AM (using pg_cron extension if available)
--- SELECT cron.schedule('purge_activity_logs', '0 2 * * *', 'SELECT purge_old_activity_logs()');
+CREATE OR REPLACE FUNCTION purge_old_pipeline_runs(retention_days INTEGER DEFAULT 90)
+RETURNS TABLE(deleted_count INTEGER) LANGUAGE plpgsql AS $$
+DECLARE
+  count_deleted INTEGER;
+BEGIN
+  DELETE FROM pipeline_run
+  WHERE created_date < (now() - (retention_days || ' days')::INTERVAL);
 
--- Or manually run: SELECT purge_old_activity_logs();
+  GET DIAGNOSTICS count_deleted = ROW_COUNT;
+  RETURN QUERY SELECT count_deleted;
+END;
+$$;
 
 -- ------------------------------------------------------------
--- updated_date trigger (apply to tables that have it)
+-- updated_date trigger (apply to all tables with updated_date)
 -- ------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION set_updated_date()
@@ -284,6 +451,26 @@ CREATE TRIGGER trg_connection_prerequisite_updated
 CREATE TRIGGER trg_connection_profile_updated
   BEFORE UPDATE ON connection_profile
   FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+
+CREATE TRIGGER trg_ingestion_job_updated
+  BEFORE UPDATE ON ingestion_job
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+
+CREATE TRIGGER trg_airflow_dag_updated
+  BEFORE UPDATE ON airflow_dag
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+
+CREATE TRIGGER trg_custom_function_updated
+  BEFORE UPDATE ON custom_function
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+
+CREATE TRIGGER trg_data_catalog_entry_updated
+  BEFORE UPDATE ON data_catalog_entry
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
+
+CREATE TRIGGER trg_dag_template_updated
+  BEFORE UPDATE ON dag_template
+  FOR EACH ROW EXECUTE FUNCTION set_updated_date();
 `;
 
 const typeIcon = (type) => {
@@ -297,13 +484,13 @@ const typeIcon = (type) => {
 };
 
 const typeColor = (type) => {
-  if (type === "string") return "text-emerald-600 bg-emerald-50 border-emerald-200";
-  if (type === "number") return "text-blue-600 bg-blue-50 border-blue-200";
-  if (type === "boolean") return "text-violet-600 bg-violet-50 border-violet-200";
-  if (type === "array") return "text-amber-600 bg-amber-50 border-amber-200";
-  if (type === "object") return "text-rose-600 bg-rose-50 border-rose-200";
-  if (type === "date-time") return "text-cyan-600 bg-cyan-50 border-cyan-200";
-  return "text-slate-500 bg-slate-50 border-slate-200";
+  if (type === "string") return "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800";
+  if (type === "number") return "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800";
+  if (type === "boolean") return "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/40 border-violet-200 dark:border-violet-800";
+  if (type === "array") return "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800";
+  if (type === "object") return "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800";
+  if (type === "date-time") return "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/40 border-cyan-200 dark:border-cyan-800";
+  return "text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700";
 };
 
 const entities = [
@@ -312,23 +499,27 @@ const entities = [
     color: "from-blue-500 to-indigo-600",
     description: "Represents a data source or target system with its credentials and configuration.",
     fields: [
-      { name: "id", type: "string", required: true, note: "Auto-generated" },
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
       { name: "created_by", type: "string", required: true, note: "User email (auto)" },
       { name: "name", type: "string", required: true, note: "Connection display name" },
       { name: "source_system_name", type: "string", required: false, note: "Name of the source system" },
       { name: "description", type: "string", required: false, note: "Connection description" },
       { name: "car_id", type: "string", required: false, note: "CarID identifier" },
       { name: "connection_type", type: "string", required: true, note: '"source" | "target"' },
-      { name: "platform", type: "string", required: true, note: 'sql_server, oracle, postgresql, mysql, mongodb, adls2, s3, sftp, nas, ...' },
+      { name: "platform", type: "string", required: true, note: 'sql_server, oracle, postgresql, mysql, mongodb, adls2, s3, sftp, nas, azure_synapse, snowflake, databricks, ...' },
       { name: "host", type: "string", required: false, note: "Hostname, IP, or URL" },
       { name: "port", type: "number", required: false, note: "TCP port" },
       { name: "database", type: "string", required: false, note: "Database / container name" },
       { name: "username", type: "string", required: false, note: "Username or access key ID" },
-      { name: "auth_method", type: "string", required: false, note: 'password | key | sftp_key | connection_string | managed_identity | none' },
+      { name: "auth_method", type: "string", required: false, note: 'password | key | sftp_key | connection_string | managed_identity | vault_credentials | none' },
       { name: "region", type: "string", required: false, note: "Cloud region (e.g. eastus, us-east-1)" },
       { name: "bucket_container", type: "string", required: false, note: "S3 bucket or ADLS container" },
       { name: "file_config", type: "object", required: false, note: "delimiter, encoding, has_header, quote_char, ..." },
+      { name: "vault_config", type: "object", required: false, note: "Vault path, secret engine, role config" },
+      { name: "tags", type: "array", required: false, note: "Text tags for categorization" },
+      { name: "environment", type: "string", required: false, note: "dev | staging | production" },
       { name: "status", type: "string", required: false, note: 'active | inactive | error | pending_setup' },
       { name: "last_tested", type: "date-time", required: false, note: "Timestamp of last connection test" },
       { name: "notes", type: "string", required: false, note: "Free-text notes" },
@@ -339,8 +530,9 @@ const entities = [
     color: "from-emerald-500 to-teal-600",
     description: "Defines a data transfer pipeline from a source to a target, including schedule and retry config.",
     fields: [
-      { name: "id", type: "string", required: true, note: "Auto-generated" },
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
       { name: "created_by", type: "string", required: true, note: "User email (auto)" },
       { name: "name", type: "string", required: true, note: "Pipeline display name" },
       { name: "description", type: "string", required: false, note: "Optional description" },
@@ -360,6 +552,9 @@ const entities = [
       { name: "exclude_calendar_id", type: "string", required: false, note: "Calendar ID — SKIP runs on these dates" },
       { name: "column_mappings", type: "object", required: false, note: 'Keyed by "schema.table": [{source, target, transformation}]' },
       { name: "dq_rules", type: "object", required: false, note: 'Keyed by "schema.table": {dataset_rules: [], column_rules: []}' },
+      { name: "tags", type: "array", required: false, note: "Text tags for categorization" },
+      { name: "owner", type: "string", required: false, note: "Pipeline owner / responsible person" },
+      { name: "dag_id", type: "string", required: false, note: "Associated Airflow DAG identifier" },
       { name: "total_runs", type: "number", required: false, note: "Cumulative run count" },
       { name: "successful_runs", type: "number", required: false, note: "Cumulative success count" },
       { name: "failed_runs", type: "number", required: false, note: "Cumulative failure count" },
@@ -370,7 +565,7 @@ const entities = [
     color: "from-amber-500 to-orange-600",
     description: "A single execution instance of a Pipeline, capturing metrics and outcomes.",
     fields: [
-      { name: "id", type: "string", required: true, note: "Auto-generated" },
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
       { name: "pipeline_id", type: "string", required: true, note: "→ Pipeline.id" },
       { name: "run_number", type: "number", required: false, note: "Sequential run counter per pipeline" },
@@ -392,7 +587,7 @@ const entities = [
     color: "from-violet-500 to-purple-600",
     description: "Audit trail for all system events across connections, jobs, and authentication.",
     fields: [
-      { name: "id", type: "string", required: true, note: "Auto-generated" },
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
       { name: "log_type", type: "string", required: true, note: 'info | warning | error | success' },
       { name: "category", type: "string", required: true, note: 'connection | job | system | authentication' },
@@ -410,7 +605,7 @@ const entities = [
     color: "from-rose-500 to-pink-600",
     description: "Version snapshot of a Pipeline for audit and rollback purposes.",
     fields: [
-      { name: "id", type: "string", required: true, note: "Auto-generated" },
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
       { name: "pipeline_id", type: "string", required: true, note: "→ Pipeline.id" },
       { name: "version_number", type: "number", required: true, note: "Monotonically increasing" },
@@ -426,10 +621,11 @@ const entities = [
     color: "from-teal-500 to-cyan-600",
     description: "Tracks infra/ops tasks (firewall rules, VPN tunnels, DBA access) required before a connection can be used.",
     fields: [
-      { name: "id", type: "string", required: true, note: "Auto-generated" },
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
       { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
       { name: "connection_id", type: "string", required: true, note: "→ Connection.id" },
-      { name: "prereq_type", type: "string", required: true, note: 'nsg_rule | egress_rule | nas_path | dba_access | firewall_rule | vpn_tunnel | ...' },
+      { name: "prereq_type", type: "string", required: true, note: 'nsg_rule | egress_rule | nas_path | dba_access | firewall_rule | vpn_tunnel | vault_credentials | app_id | entitlement | ...' },
       { name: "title", type: "string", required: true, note: "Short task title" },
       { name: "description", type: "string", required: false, note: "Detailed notes / ticket instructions" },
       { name: "assigned_team", type: "string", required: true, note: 'networking | dba | security | storage | platform | other' },
@@ -440,6 +636,132 @@ const entities = [
       { name: "due_date", type: "date-time", required: false, note: "Target completion date" },
       { name: "completed_at", type: "date-time", required: false, note: "Actual completion date" },
       { name: "notes", type: "string", required: false, note: "Resolution notes" },
+    ]
+  },
+  {
+    name: "AuditLog",
+    color: "from-slate-500 to-gray-600",
+    description: "Records entity-level changes (create, update, delete) for compliance and traceability.",
+    fields: [
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
+      { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "entity_type", type: "string", required: true, note: "Entity table name (e.g. connection, pipeline)" },
+      { name: "entity_id", type: "string", required: false, note: "UUID of the affected entity" },
+      { name: "action", type: "string", required: true, note: 'create | update | delete | login | logout | export | import' },
+      { name: "changed_by", type: "string", required: true, note: "User who made the change" },
+      { name: "changes", type: "object", required: false, note: "JSON diff of old/new values" },
+      { name: "ip_address", type: "string", required: false, note: "Client IP address" },
+    ]
+  },
+  {
+    name: "IngestionJob",
+    color: "from-orange-500 to-red-600",
+    description: "Tracks individual ingestion jobs tied to a pipeline, including type, status, and error details.",
+    fields: [
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
+      { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
+      { name: "pipeline_id", type: "string", required: true, note: "→ Pipeline.id" },
+      { name: "job_type", type: "string", required: true, note: 'full_load | incremental | cdc | snapshot' },
+      { name: "status", type: "string", required: true, note: 'pending | running | completed | failed | cancelled' },
+      { name: "config", type: "object", required: false, note: "Job-specific configuration (batch size, parallelism, etc.)" },
+      { name: "last_run", type: "date-time", required: false, note: "Timestamp of last execution" },
+      { name: "error_message", type: "string", required: false, note: "Error details if failed" },
+    ]
+  },
+  {
+    name: "AirflowDag",
+    color: "from-sky-500 to-blue-600",
+    description: "Stores generated Airflow DAG definitions linked to pipelines, with versioning and deployment tracking.",
+    fields: [
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
+      { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
+      { name: "pipeline_id", type: "string", required: true, note: "→ Pipeline.id" },
+      { name: "dag_id", type: "string", required: true, note: "Airflow DAG identifier" },
+      { name: "dag_yaml", type: "string", required: false, note: "Generated DAG YAML content" },
+      { name: "dag_factory_config", type: "object", required: false, note: "DAG Factory configuration object" },
+      { name: "deployed_at", type: "date-time", required: false, note: "When DAG was last deployed" },
+      { name: "deployed_by", type: "string", required: false, note: "User who deployed the DAG" },
+      { name: "version", type: "number", required: false, note: "DAG version number" },
+    ]
+  },
+  {
+    name: "CustomFunction",
+    color: "from-fuchsia-500 to-purple-600",
+    description: "User-defined transformation, validation, or enrichment functions for use in column mappings.",
+    fields: [
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
+      { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
+      { name: "name", type: "string", required: true, note: "Function display name" },
+      { name: "description", type: "string", required: false, note: "What the function does" },
+      { name: "function_type", type: "string", required: true, note: 'transform | validate | enrich | filter | aggregate' },
+      { name: "code", type: "string", required: true, note: "Function source code" },
+      { name: "language", type: "string", required: false, note: "Programming language (default: python)" },
+      { name: "parameters", type: "array", required: false, note: "Parameter definitions [{name, type, default, required}]" },
+      { name: "created_by", type: "string", required: true, note: "User who created the function" },
+    ]
+  },
+  {
+    name: "ConnectionProfile",
+    color: "from-lime-500 to-green-600",
+    description: "Reusable connection templates for quickly creating new connections with predefined settings.",
+    fields: [
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
+      { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
+      { name: "created_by", type: "string", required: true, note: "User email (auto)" },
+      { name: "name", type: "string", required: true, note: "Profile display name" },
+      { name: "description", type: "string", required: false, note: "Profile description" },
+      { name: "connection_type", type: "string", required: false, note: '"source" | "target"' },
+      { name: "platform", type: "string", required: true, note: 'sql_server, oracle, postgresql, mysql, ...' },
+      { name: "host", type: "string", required: false, note: "Default hostname" },
+      { name: "port", type: "number", required: false, note: "Default TCP port" },
+      { name: "database", type: "string", required: false, note: "Default database name" },
+      { name: "username", type: "string", required: false, note: "Default username" },
+      { name: "auth_method", type: "string", required: false, note: 'password | key | connection_string | managed_identity | vault_credentials | none' },
+      { name: "region", type: "string", required: false, note: "Default cloud region" },
+      { name: "bucket_container", type: "string", required: false, note: "Default S3 bucket or ADLS container" },
+      { name: "file_config", type: "object", required: false, note: "Default file configuration" },
+      { name: "notes", type: "string", required: false, note: "Template notes" },
+    ]
+  },
+  {
+    name: "DataCatalogEntry",
+    color: "from-indigo-500 to-violet-600",
+    description: "Cataloged data assets with schema metadata, profiling stats, and ownership information.",
+    fields: [
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
+      { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
+      { name: "name", type: "string", required: true, note: "Catalog entry display name" },
+      { name: "description", type: "string", required: false, note: "Description of the data asset" },
+      { name: "source_connection_id", type: "string", required: false, note: "→ Connection.id" },
+      { name: "schema_name", type: "string", required: false, note: "Database schema name" },
+      { name: "table_name", type: "string", required: false, note: "Table or object name" },
+      { name: "columns", type: "array", required: false, note: "Column definitions [{name, type, nullable, description}]" },
+      { name: "row_count", type: "number", required: false, note: "Estimated or profiled row count" },
+      { name: "last_profiled", type: "date-time", required: false, note: "When data was last profiled" },
+      { name: "tags", type: "array", required: false, note: "Classification tags" },
+      { name: "owner", type: "string", required: false, note: "Data owner / steward" },
+    ]
+  },
+  {
+    name: "DagTemplate",
+    color: "from-yellow-500 to-amber-600",
+    description: "Reusable DAG generation templates for Airflow, supporting multiple template engines.",
+    fields: [
+      { name: "id", type: "string", required: true, note: "Auto-generated UUID" },
+      { name: "created_date", type: "date-time", required: true, note: "Auto-generated" },
+      { name: "updated_date", type: "date-time", required: true, note: "Auto-updated via trigger" },
+      { name: "name", type: "string", required: true, note: "Template display name" },
+      { name: "description", type: "string", required: false, note: "What the template generates" },
+      { name: "template_type", type: "string", required: true, note: 'dag_factory | custom | jinja | python' },
+      { name: "template_content", type: "string", required: true, note: "Template source code / content" },
+      { name: "parameters", type: "array", required: false, note: "Configurable parameters [{name, type, default}]" },
+      { name: "created_by", type: "string", required: true, note: "User who created the template" },
+      { name: "version", type: "number", required: false, note: "Template version number" },
     ]
   },
 ];
@@ -453,6 +775,9 @@ const relationships = [
   { from: "ActivityLog", to: "Connection", label: "connection_id (optional)", type: "many-to-one" },
   { from: "PipelineVersion", to: "Pipeline", label: "pipeline_id", type: "many-to-one" },
   { from: "ConnectionPrerequisite", to: "Connection", label: "connection_id", type: "many-to-one" },
+  { from: "IngestionJob", to: "Pipeline", label: "pipeline_id", type: "many-to-one" },
+  { from: "AirflowDag", to: "Pipeline", label: "pipeline_id", type: "many-to-one" },
+  { from: "DataCatalogEntry", to: "Connection", label: "source_connection_id (optional)", type: "many-to-one" },
 ];
 
 function EntityCard({ entity }) {
@@ -573,7 +898,7 @@ export default function DataModel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center">
               <Database className="w-5 h-5 text-white" />
             </div>

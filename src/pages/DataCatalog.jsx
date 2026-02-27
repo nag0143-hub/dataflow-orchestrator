@@ -109,8 +109,8 @@ export default function DataCatalog() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Data Catalog</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Data Catalog</h1>
+          <p className="text-muted-foreground mt-0.5">
             Searchable metadata repository of all datasets
           </p>
         </div>
@@ -218,13 +218,18 @@ export default function DataCatalog() {
       {/* Catalog Entries */}
       <div className="grid gap-4">
         {filteredEntries.length === 0 ? (
-          <Card className="dark:bg-slate-800 dark:border-slate-700">
+          <Card>
             <CardContent className="py-12 text-center">
-              <Database className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-500 dark:text-slate-400">
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-5">
+                <Database className="w-8 h-8 text-[#0060AF] dark:text-blue-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                {searchQuery || selectedTag || selectedClassification ? "No datasets match your filters" : "No catalog entries yet"}
+              </h3>
+              <p className="text-muted-foreground">
                 {searchQuery || selectedTag || selectedClassification
-                  ? "No datasets match your filters"
-                  : "No catalog entries yet. Create your first entry to get started."}
+                  ? "Try adjusting your search or filters"
+                  : "Create your first entry to get started."}
               </p>
             </CardContent>
           </Card>

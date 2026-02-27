@@ -1,11 +1,46 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import compression from 'compression';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { initializeDatabase, pool, entityNameToTable, sanitizeFieldName, config } from './db.js';
+import { testConnection } from './test-connection.js';
+import airflowRouter from './airflow-proxy.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = config.server.port;
+const startTime = Date.now();
+
+app.use(compression());
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX || '1000', 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' },
+});
+app.use('/api/', apiLimiter);
+
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_WRITE_MAX || '200', 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many write requests, please try again later.' },
+});
+app.use('/api/entities/:entityName', (req, res, next) => {
+  if (req.method === 'DELETE') return writeLimiter(req, res, next);
+  if ((req.method === 'POST' || req.method === 'PUT') && !req.url.includes('/filter')) return writeLimiter(req, res, next);
+  next();
+});
 
 app.use(express.json({ limit: config.api.bodyLimit }));
 
@@ -124,7 +159,7 @@ async function searchEntities(table, searchTerm, filters, limit = 50) {
   }
   if (searchTerm) {
     paramIndex++;
-    conditions.push(`data::text ~* $${paramIndex}`);
+    conditions.push(`to_tsvector('english', data::text) @@ plainto_tsquery('english', $${paramIndex})`);
     params.push(searchTerm);
   }
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -137,7 +172,25 @@ async function searchEntities(table, searchTerm, filters, limit = 50) {
   return result.rows.map(formatRecord);
 }
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbCheck = await pool.query('SELECT 1');
+    res.json({
+      status: 'ok',
+      uptime: Math.floor((Date.now() - startTime) / 1000),
+      database: dbCheck ? 'connected' : 'error',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(503).json({
+      status: 'degraded',
+      uptime: Math.floor((Date.now() - startTime) / 1000),
+      database: 'disconnected',
+      error: err.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
 
 app.get('/api/auth/me', (req, res) => {
   res.json({ ...config.auth.mockUser, is_authenticated: true });
@@ -236,6 +289,54 @@ app.delete('/api/entities/:entityName/:id', async (req, res) => {
   }
 });
 
+app.use('/api/airflow', airflowRouter);
+
+app.post('/api/test-connection', async (req, res) => {
+  try {
+    const result = await testConnection(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error_code: 'INTERNAL_ERROR',
+      error_message: err.message,
+      latency_ms: 0,
+    });
+  }
+});
+
+app.post('/api/validate-spec', async (req, res) => {
+  try {
+    const { validateSpecWithDB } = await import('./spec-validator.js');
+    const spec = req.body.spec || req.body;
+    const results = await validateSpecWithDB(spec, pool, entityNameToTable);
+    res.json({ ...results, checked_at: new Date().toISOString() });
+  } catch (err) {
+    res.status(500).json({ valid: false, errors: [{ path: "", message: err.message, severity: "error" }], warnings: [], checked_at: new Date().toISOString() });
+  }
+});
+
+app.post('/api/introspect-schema', async (req, res) => {
+  try {
+    const { connectionId } = req.body;
+    const parsedId = parseInt(connectionId);
+    if (!connectionId || isNaN(parsedId)) {
+      return res.status(400).json({ success: false, error: 'A valid numeric connectionId is required' });
+    }
+    const table = entityNameToTable('Connection');
+    const result = await pool.query('SELECT data FROM "' + table + '" WHERE id = $1', [parsedId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Connection not found' });
+    }
+    const connData = result.rows[0].data;
+    const { introspectSchema } = await import('./introspect-schema.js');
+    const schemas = await introspectSchema(connData);
+    res.json(schemas);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/functions/:functionName', async (req, res) => {
   const { functionName } = req.params;
   try {
@@ -260,7 +361,7 @@ app.post('/api/functions/:functionName', async (req, res) => {
         res.json({ error: 'Vault not configured in local environment' });
         break;
       case 'generateLineage':
-        res.json({ jobId: req.body?.jobId, lineage: [] });
+        res.json({ error: 'Lineage feature has been removed' });
         break;
       case 'syncAirflowDagsAsync':
         res.json({ status: 'sync_not_available', message: 'Airflow sync not configured in local environment' });

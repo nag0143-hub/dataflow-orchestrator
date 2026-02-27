@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { MoreVertical, Edit, Trash2, TestTube, Shield, Loader2, Wifi } from "lucide-react";
+import { MoreVertical, Edit, Trash2, TestTube, Shield, Loader2, Wifi, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -19,7 +19,7 @@ const ConnectionCard = memo(function ConnectionCard({
   const prereq = getPrereqSummary(connection.id);
 
   return (
-    <Card className="border-slate-200 dark:bg-slate-800 dark:border-slate-700 hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -54,6 +54,12 @@ const ConnectionCard = memo(function ConnectionCard({
           {connection.host && <div className="flex justify-between"><span className="text-slate-500">Host</span><span className="text-slate-700 dark:text-slate-300 truncate ml-2 max-w-[150px]">{connection.host}</span></div>}
           {connection.database && <div className="flex justify-between"><span className="text-slate-500">Database</span><span className="text-slate-700 dark:text-slate-300">{connection.database}</span></div>}
           {connection.bucket_container && <div className="flex justify-between"><span className="text-slate-500">Container</span><span className="text-slate-700 dark:text-slate-300">{connection.bucket_container}</span></div>}
+          {connection.auth_method === "vault_credentials" && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <Lock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+              <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">Vault Credentials</span>
+            </div>
+          )}
         </div>
 
         {connection.tags?.length > 0 && (

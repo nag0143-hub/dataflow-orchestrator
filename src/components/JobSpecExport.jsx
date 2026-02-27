@@ -2,57 +2,15 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Copy, Download, FileJson, FileText, Check } from "lucide-react";
-
-// Minimal YAML serializer (no deps needed)
-function toYaml(obj, indent = 0) {
-  const pad = "  ".repeat(indent);
-  if (obj === null || obj === undefined) return "null";
-  if (typeof obj === "boolean") return obj ? "true" : "false";
-  if (typeof obj === "number") return String(obj);
-  if (typeof obj === "string") {
-    // Quote strings that need it
-    if (/[\n:#\[\]{},'"&*?|<>=!%@`]/.test(obj) || obj === "" || /^(true|false|null|yes|no)$/i.test(obj)) {
-      return `"${obj.replace(/"/g, '\\"')}"`;
-    }
-    return obj;
-  }
-  if (Array.isArray(obj)) {
-    if (obj.length === 0) return "[]";
-    return obj.map(item => {
-      const val = toYaml(item, indent + 1);
-      if (typeof item === "object" && item !== null && !Array.isArray(item)) {
-        const lines = val.split("\n");
-        return `${pad}- ${lines[0]}\n${lines.slice(1).join("\n")}`;
-      }
-      return `${pad}- ${val}`;
-    }).join("\n");
-  }
-  if (typeof obj === "object") {
-    const keys = Object.keys(obj);
-    if (keys.length === 0) return "{}";
-    return keys.map(k => {
-      const val = obj[k];
-      if (val !== null && typeof val === "object" && !Array.isArray(val)) {
-        const nested = toYaml(val, indent + 1);
-        if (nested === "{}") return `${pad}${k}: {}`;
-        return `${pad}${k}:\n${nested}`;
-      }
-      if (Array.isArray(val)) {
-        if (val.length === 0) return `${pad}${k}: []`;
-        if (typeof val[0] === "object") return `${pad}${k}:\n${toYaml(val, indent + 1)}`;
-      }
-      return `${pad}${k}: ${toYaml(val, indent)}`;
-    }).join("\n");
-  }
-  return String(obj);
-}
+import { toYaml } from "@/utils/toYaml";
 
 export const FLAT_FILE_PLATFORMS = ["flat_file_delimited", "flat_file_fixed_width", "cobol_ebcdic", "sftp", "nas", "local_fs"];
 
-function getOperatorType(sourcePlatform, targetPlatform) {
+function getOperatorType(sourcePlatform, targetPlatform, override) {
+  if (override === "custom_template") return "custom_template";
+  if (override && override !== "auto") return override;
   const srcFlat = FLAT_FILE_PLATFORMS.includes(sourcePlatform);
   const tgtFlat = FLAT_FILE_PLATFORMS.includes(targetPlatform);
-  // If either source or target is a flat file type, use PythonOperator
   return (srcFlat || tgtFlat) ? "PythonOperator" : "SparkSubmitOperator";
 }
 
@@ -81,10 +39,36 @@ export function buildJobSpec(job, connections) {
 
   const srcPlatform = sourceConn?.platform || "";
   const tgtPlatform = targetConn?.platform || "";
-  const operatorType = getOperatorType(srcPlatform, tgtPlatform);
+  const operatorOverride = job.operator_type || "auto";
+  const operatorType = getOperatorType(srcPlatform, tgtPlatform, operatorOverride);
   const isSparkJob = operatorType === "SparkSubmitOperator";
+  const isCustom = operatorType === "custom_template";
+
+  const sparkCfg = job.spark_config || {};
+  const pythonCfg = job.python_config || {};
 
   const datasets = (job.selected_datasets || job.selected_objects || []);
+
+  const scheduleSection = {
+    type: job.schedule_type || "manual",
+    cron_expression: job.cron_expression || "",
+    use_custom_calendar: job.use_custom_calendar || false,
+    include_calendar_id: job.include_calendar_id || "",
+    exclude_calendar_id: job.exclude_calendar_id || "",
+  };
+
+  if (job.schedule_type === "event_driven") {
+    scheduleSection.event_sensor = {
+      sensor_type: job.event_sensor_type || "",
+      config: {
+        watch_path: job.event_config?.watch_path || "",
+        sql_condition: job.event_config?.sql_condition || "",
+        upstream_job: job.event_config?.upstream_job || "",
+        poll_interval: job.event_config?.poll_interval || "60",
+        timeout_hours: job.event_config?.timeout_hours || "24",
+      },
+    };
+  }
 
   return {
     apiVersion: "dataflow/v1",
@@ -105,9 +89,25 @@ export function buildJobSpec(job, connections) {
         ...connDetails(targetConn),
       },
       datasets: datasets.map(o => {
-        const datasetSrcPlatform = srcPlatform;
-        const dsOperator = getOperatorType(datasetSrcPlatform, tgtPlatform);
-        const dsIsSpark = dsOperator === "SparkSubmitOperator";
+        const taskId = `${job.name}__${o.schema}__${o.table}`.replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
+
+        const execution = { task_id: taskId, operator: operatorType };
+
+        if (isCustom) {
+          execution.template_override = true;
+        } else if (isSparkJob) {
+          execution.application = sparkCfg.application || "dataflow_spark_ingestion.py";
+          execution.spark_conf = {
+            executor_memory: sparkCfg.executor_memory || "4g",
+            executor_cores: sparkCfg.executor_cores || "2",
+            driver_memory: sparkCfg.driver_memory || "2g",
+          };
+          execution.py_files = (sparkCfg.py_files || "dataflow_utils.zip").split(",").map(f => f.trim()).filter(Boolean);
+        } else {
+          execution.python_callable = pythonCfg.callable || "run_ingestion";
+          if (pythonCfg.module) execution.module = pythonCfg.module;
+        }
+
         return {
           schema: o.schema,
           table: o.table,
@@ -115,48 +115,40 @@ export function buildJobSpec(job, connections) {
           filter_query: o.filter_query || "",
           incremental_column: o.incremental_column || "",
           load_method: o.load_method || job.load_method || "append",
-          dag: {
-            task_id: `${job.name}__${o.schema}__${o.table}`.replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase(),
-            operator: dsOperator,
-            ...(dsIsSpark ? {
-              application: "dataflow_spark_ingestion.py",
-              spark_conf: {
-                "spark.executor.memory": "4g",
-                "spark.executor.cores": "2",
-                "spark.driver.memory": "2g",
-              },
-              py_files: ["dataflow_utils.zip"],
-            } : {
-              python_callable: "run_flat_file_ingestion",
-              op_kwargs: {
-                source_platform: srcPlatform,
-                target_platform: tgtPlatform,
-              },
-            }),
-          },
+          execution,
         };
       }),
-      schedule: {
-        type: job.schedule_type || "manual",
-        cron_expression: job.cron_expression || "",
-        use_custom_calendar: job.use_custom_calendar || false,
-        include_calendar_id: job.include_calendar_id || "",
-        exclude_calendar_id: job.exclude_calendar_id || "",
-      },
+      schedule: scheduleSection,
       retry: {
         max_retries: job.retry_config?.max_retries ?? 3,
         retry_delay_seconds: job.retry_config?.retry_delay_seconds ?? 60,
         exponential_backoff: job.retry_config?.exponential_backoff ?? true,
       },
-      dag_generation: {
-        operator_type: operatorType,
-        dag_id: `dataflow__${(job.name || "pipeline").replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()}`,
-        is_pyspark: isSparkJob,
-        task_parallelism: "sequential",
-        tags: ["dataflow", isSparkJob ? "pyspark" : "flat_file", job.schedule_type || "manual"],
+      execution: {
+        operator: operatorType,
+        operator_override: operatorOverride,
+        task_parallelism: "parallel",
+        tags: ["dataflow", isCustom ? "custom" : isSparkJob ? "pyspark" : "python", job.schedule_type || "manual"],
+        ...(isCustom && job.custom_template ? { custom_template: job.custom_template } : {}),
+        ...(isSparkJob ? {
+          spark_config: {
+            executor_memory: sparkCfg.executor_memory || "4g",
+            executor_cores: sparkCfg.executor_cores || "2",
+            driver_memory: sparkCfg.driver_memory || "2g",
+            application: sparkCfg.application || "dataflow_spark_ingestion.py",
+            py_files: (sparkCfg.py_files || "dataflow_utils.zip").split(",").map(f => f.trim()).filter(Boolean),
+          },
+        } : {}),
+        ...(!isSparkJob && !isCustom ? {
+          python_config: {
+            callable: pythonCfg.callable || "run_ingestion",
+            module: pythonCfg.module || "",
+          },
+        } : {}),
       },
       column_mappings: job.column_mappings || {},
       data_quality_rules: job.dq_rules || {},
+      dag_callable_base_path: job.dag_callable_base_path || "/data/dags/",
     },
   };
 }
@@ -230,7 +222,7 @@ export default function PipelineSpecExport({ job, connections, onClose }) {
             {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
             {copied ? "Copied!" : "Copy"}
           </Button>
-          <Button type="button" onClick={handleDownload} className="gap-1.5 bg-slate-900 hover:bg-slate-800">
+          <Button type="button" onClick={handleDownload} className="gap-1.5 bg-[#0060AF] hover:bg-[#004d8c]">
             <Download className="w-4 h-4" />
             Download
           </Button>
